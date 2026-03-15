@@ -1130,16 +1130,6 @@ select option { background: white; }
         <div class="setting-val" onclick="changeSetting('pin')">Change</div>
       </div>
     </div>
-    <div class="section-title">Language / Lingua</div>
-    <div class="card">
-      <div class="setting-row" style="border:none">
-        <div><div class="setting-label">Display language</div><div class="setting-sub">App language</div></div>
-        <div style="display:flex; gap:6px">
-          <div class="setting-val" id="langEN" onclick="setLang('en')" style="cursor:pointer">EN</div>
-          <div class="setting-val" id="langIT" onclick="setLang('it')" style="cursor:pointer">IT</div>
-        </div>
-      </div>
-    </div>
     <div class="section-title">Schedule</div>
     <div class="card">
       <div class="setting-row" style="border:none">
@@ -1711,22 +1701,22 @@ function renderHome() {
     pips += `<div class="c-pip ${cls}"></div>`;
   }
 
-  // Report time
+  // Report time based on assignment
   const sched = SCHEDULE.days[dow];
   const assign = APP.assignments[todayStr];
   let reportHtml = '';
-  if (sched && type !== 'off') {
+  if (sched && assign && assign !== 'HSBY' && assign !== 'AD') {
+    const useA2 = assign.startsWith('A2');
+    const useLate = assign.endsWith('L');
+    const plane = useA2 ? sched.a2 : sched.a1;
+    const t = useLate ? plane.reportLate : plane.reportEarly;
+    const planeLabel = useA2 ? 'Aereo 2' : 'Aereo 1';
+    const shiftLabel2 = useLate ? 'Late' : 'Early';
+    if (t) reportHtml = `<div class="report-time">🕐 Report ${t} · ${planeLabel} ${shiftLabel2}</div>`;
+  } else if (sched && !assign && type !== 'off') {
     const isEarly = type === 'early';
-    if (assign === 'A1E' || assign === 'A1L' || (!assign && isEarly)) {
-      const t = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
-      if (t) reportHtml = `<div class="report-time">🕐 Report ${t} · Aereo 1</div>`;
-    } else if (assign === 'A2E' || assign === 'A2L') {
-      const t = isEarly ? sched.a2.reportEarly : sched.a2.reportLate;
-      if (t) reportHtml = `<div class="report-time">🕐 Report ${t} · Aereo 2</div>`;
-    } else {
-      const t = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
-      if (t) reportHtml = `<div class="report-time">🕐 Report from ${t}</div>`;
-    }
+    const t = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
+    if (t) reportHtml = `<div class="report-time">🕐 Report from ${t}</div>`;
   }
   if (assign === 'HSBY') reportHtml = `<div class="report-time">🏠 Home Standby</div>`;
   if (assign === 'AD')   reportHtml = `<div class="report-time">🏢 Airport Duty</div>`;
@@ -1742,12 +1732,12 @@ function renderHome() {
   // Today's flights
   const fTitle = document.getElementById('homeFltTitle');
   const fContent = document.getElementById('homeFltContent');
-  if (type !== 'off' && sched) {
+  if (assign && assign !== 'HSBY' && assign !== 'AD' && sched) {
     fTitle.textContent = "Today's Flights";
-    const isEarly = type === 'early';
-    const useA2 = assign === 'A2E' || assign === 'A2L';
+    const useA2 = assign.startsWith('A2');
+    const useLate = assign.endsWith('L');
     const plane = useA2 ? sched.a2 : sched.a1;
-    const flights = isEarly ? plane.early : plane.late;
+    const flights = useLate ? plane.late : plane.early;
     fContent.innerHTML = buildFlightBlock(flights, useA2 ? 'Aereo 2' : 'Aereo 1', useA2 ? 'a2' : 'a1');
   } else {
     fTitle.textContent = '';
@@ -1876,35 +1866,27 @@ function openDay(ds) {
 
   let body = '';
 
-  // Assignment picker (on working days)
+  // Assignment picker — always show all options
   body += `<div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-bottom:10px">Assignment</div>`;
 
-  if (sched && type !== 'off') {
-    const suffix = isEarly ? 'E' : 'L';
-
-    // Aereo 1
-    const a1flights = isEarly ? sched.a1.early : sched.a1.late;
-    const a1report  = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
-    const a1sel = assign === 'A1' + suffix;
-    body += `<div class="assign-option ${a1sel ? 'selected-a1' : ''}" onclick="setAssign('${ds}','A1${suffix}')">
-      <div>
-        <div class="assign-label" style="color:var(--early)">✈ Aereo 1 · ${isEarly ? 'Early' : 'Late'}</div>
-        <div class="assign-flights">Report ${a1report} · ${a1flights.map(f=>f.route).join(' · ')}</div>
-      </div>
-      <div class="assign-check">${a1sel ? '✓' : ''}</div>
-    </div>`;
-
-    // Aereo 2
-    const a2flights = isEarly ? sched.a2.early : sched.a2.late;
-    const a2report  = isEarly ? sched.a2.reportEarly : sched.a2.reportLate;
-    const a2sel = assign === 'A2' + suffix;
-    body += `<div class="assign-option ${a2sel ? 'selected-a2' : ''}" onclick="setAssign('${ds}','A2${suffix}')">
-      <div>
-        <div class="assign-label" style="color:var(--late)">✈ Aereo 2 · ${isEarly ? 'Early' : 'Late'}</div>
-        <div class="assign-flights">Report ${a2report} · ${a2flights.map(f=>f.route).join(' · ')}</div>
-      </div>
-      <div class="assign-check">${a2sel ? '✓' : ''}</div>
-    </div>`;
+  if (sched) {
+    const options = [
+      { id:'A1E', label:'Aereo 1 · Early', color:'var(--early)', report: sched.a1.reportEarly, flights: sched.a1.early },
+      { id:'A1L', label:'Aereo 1 · Late',  color:'var(--early)', report: sched.a1.reportLate,  flights: sched.a1.late  },
+      { id:'A2E', label:'Aereo 2 · Early', color:'var(--late)',  report: sched.a2.reportEarly, flights: sched.a2.early },
+      { id:'A2L', label:'Aereo 2 · Late',  color:'var(--late)',  report: sched.a2.reportLate,  flights: sched.a2.late  },
+    ];
+    const selClass = { A1E:'selected-a1', A1L:'selected-a1', A2E:'selected-a2', A2L:'selected-a2' };
+    options.forEach(opt => {
+      const sel = assign === opt.id;
+      body += `<div class="assign-option ${sel ? selClass[opt.id] : ''}" onclick="setAssign('${ds}','${opt.id}')">
+        <div>
+          <div class="assign-label" style="color:${opt.color}">✈ ${opt.label}</div>
+          <div class="assign-flights">Report ${opt.report} · ${opt.flights.map(f=>f.route).join(' · ')}</div>
+        </div>
+        <div class="assign-check">${sel ? '✓' : ''}</div>
+      </div>`;
+    });
   }
 
   // HSBY / AD always available
@@ -2184,11 +2166,6 @@ function renderSettings() {
   document.getElementById('settingRoster').textContent = APP.roster ? `Roster ${APP.roster}` : '—';
   document.getElementById('settingDate').textContent = APP.refDate || '—';
   document.getElementById('settingSchedVersion').textContent = `${SCHEDULE.version} · ${SCHEDULE.period}`;
-  const lang = APP.lang || 'en';
-  document.getElementById('langEN').style.background = lang === 'en' ? 'var(--blue)' : 'var(--blue-lt)';
-  document.getElementById('langEN').style.color = lang === 'en' ? 'white' : 'var(--blue)';
-  document.getElementById('langIT').style.background = lang === 'it' ? 'var(--blue)' : 'var(--blue-lt)';
-  document.getElementById('langIT').style.color = lang === 'it' ? 'white' : 'var(--blue)';
 }
 
 function changeSetting(type) {
