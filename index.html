@@ -884,6 +884,28 @@ select option { background: white; }
         <button class="pin-key" onclick="setupPin('del')" style="font-size:16px">⌫</button>
       </div>
     </div>
+
+    <!-- Step 3: Welcome / quick guide -->
+    <div class="step" id="step3">
+      <div style="text-align:center; margin-bottom:20px">
+        <div style="font-size:32px; margin-bottom:8px">🎉</div>
+        <div style="font-size:18px; font-weight:700; margin-bottom:4px">You're all set!</div>
+        <div style="font-size:13px; color:var(--text2)">Here's a quick guide to CrewPSR</div>
+      </div>
+      <div style="text-align:left; font-size:13px; line-height:1.8; color:var(--text2); margin-bottom:24px">
+        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you</div>
+        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
+        <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
+        <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
+        <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers</div>
+        <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
+        <div style="margin-bottom:8px">ℹ️ <strong>Info</strong> — tutorial, disclaimer and support</div>
+      </div>
+      <div style="font-size:12px; color:var(--text3); text-align:center; margin-bottom:16px">
+        Need help? Use <strong>Feedback & Support</strong> in the Info tab — don't be shy! 😊
+      </div>
+      <button class="btn" onclick="finishSetup()">Get started →</button>
+    </div>
   </div>
 </div>
 
@@ -905,53 +927,6 @@ select option { background: white; }
     <div id="homeFltContent"></div>
     <div class="section-title" id="homeSwapTitle"></div>
     <div id="homeSwapContent"></div>
-
-    <!-- Feedback & Support -->
-    <div style="margin:8px 16px 4px">
-      <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
-         target="_blank"
-         style="display:flex; align-items:center; justify-content:center; gap:8px;
-                padding:13px; border-radius:12px; border:1.5px solid #dcfce7;
-                background:#f0fdf4; color:#16a34a; text-decoration:none;
-                font-size:14px; font-weight:600;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
-        </svg>
-        Feedback & Support
-      </a>
-    </div>
-
-    <!-- Disclaimer accordion -->
-    <div style="margin:8px 16px 16px">
-      <div onclick="toggleDisclaimer()"
-           style="display:flex; align-items:center; justify-content:space-between;
-                  padding:13px 16px; border-radius:12px; background:var(--surface);
-                  border:1px solid var(--border); cursor:pointer; box-shadow:var(--shadow)">
-        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--text2)">
-          ℹ️ <span>About & Disclaimer</span>
-        </div>
-        <span id="disclaimerArrow" style="color:var(--text3); font-size:13px">›</span>
-      </div>
-      <div id="disclaimerBody" style="display:none; margin-top:6px; padding:16px;
-           background:var(--surface); border-radius:12px; border:1px solid var(--border);
-           font-size:13px; line-height:1.7; color:var(--text2); box-shadow:var(--shadow)">
-
-        <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇬🇧 English</div>
-        <p><strong>CrewPSR is an independent app</strong>, not affiliated with, endorsed by, or connected to Ryanair in any way. Ryanair® is a registered trademark of Ryanair DAC.</p>
-        <p style="margin-top:8px">This app does <strong>not replace</strong> Ryanair Connect, official crew communications, or any official company procedure. Always refer to official Ryanair channels for binding operational information.</p>
-        <p style="margin-top:8px">Your personal data and your colleagues' contact details are <strong>stored only on your device</strong>. Nothing is shared with Ryanair, third parties, or any server.</p>
-        <p style="margin-top:8px">CrewPSR is a personal productivity tool to help make daily roster management easier. Use it at your own discretion.</p>
-
-        <div style="border-top:1px solid var(--border); margin:14px 0"></div>
-
-        <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇮🇹 Italiano</div>
-        <p><strong>CrewPSR è un'app indipendente</strong>, non affiliata, approvata o connessa a Ryanair in alcun modo. Ryanair® è un marchio registrato di Ryanair DAC.</p>
-        <p style="margin-top:8px">Questa app <strong>non sostituisce</strong> Ryanair Connect, le comunicazioni ufficiali per il personale di cabina, né alcuna procedura ufficiale della compagnia. Per informazioni operative vincolanti, fare sempre riferimento ai canali ufficiali Ryanair.</p>
-        <p style="margin-top:8px">I tuoi dati personali e i contatti dei colleghi sono <strong>salvati esclusivamente sul tuo dispositivo</strong>. Nessuna informazione viene condivisa con Ryanair, terze parti o server esterni.</p>
-        <p style="margin-top:8px">CrewPSR è uno strumento di produttività personale per semplificare la gestione quotidiana del roster. Usalo a tua discrezione.</p>
-      </div>
-    </div>
   </div>
 
   <!-- CALENDAR -->
@@ -1101,7 +1076,7 @@ select option { background: white; }
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
             <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
           </svg>
-          Feedback & Support
+          Feedback & Suggestions
         </a>
       </div>
     </div>
@@ -1139,23 +1114,111 @@ select option { background: white; }
     <div class="section-title">About</div>
     <div class="card">
       <div class="setting-row" style="border:none">
-        <div><div class="setting-label">CrewPSR</div><div class="setting-sub">Pescara Cabin Crew · v1.3</div></div>
+        <div><div class="setting-label">CrewPSR</div><div class="setting-sub">Pescara Cabin Crew · v1.0</div></div>
       </div>
     </div>
     <div style="padding:8px 16px 16px">
       <button class="btn secondary" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset all data</button>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="screen" id="screen-info">
+    <div style="padding:16px 16px 8px">
+      <div style="font-size:22px; font-weight:800; color:var(--text)">Info</div>
+    </div>
+
+    <div class="section-title">Share</div>
+    <div style="padding:0 16px 12px">
+      <button onclick="shareApp()"
+        style="display:flex; align-items:center; justify-content:center; gap:8px;
+               width:100%; padding:14px; border-radius:12px;
+               border:1.5px solid var(--blue-lt); background:var(--blue-lt);
+               color:var(--blue); font-family:'Outfit',sans-serif;
+               font-size:14px; font-weight:600; cursor:pointer">
+        📤 Share CrewPSR with colleagues
+      </button>
+    </div>
+
+    <div class="section-title">Feedback &amp; Support</div>
+    <div style="padding:0 16px 12px">
       <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
          target="_blank"
          style="display:flex; align-items:center; justify-content:center; gap:8px;
-                padding:13px; border-radius:12px; border:1.5px solid #dcfce7;
+                padding:14px; border-radius:12px; border:1.5px solid #dcfce7;
                 background:#f0fdf4; color:#16a34a; text-decoration:none;
-                font-size:14px; font-weight:600; margin-top:8px">
+                font-size:14px; font-weight:600;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
         </svg>
-        Feedback & Support
+        Feedback &amp; Support
       </a>
+    </div>
+
+    <div class="section-title">More</div>
+    <div style="padding:0 16px; display:grid; gap:10px; margin-bottom:16px">
+
+      <!-- Tutorial button -->
+      <div class="card" style="padding:0; overflow:hidden">
+        <button onclick="toggleInfoSection('tutorialContent','tutArrow')"
+          style="display:flex; align-items:center; justify-content:space-between;
+                 width:100%; padding:16px; background:none; border:none;
+                 font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+                 color:var(--text); cursor:pointer">
+          <span>📖 Tutorial</span>
+          <span id="tutArrow" style="color:var(--text3)">›</span>
+        </button>
+        <div id="tutorialContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.8; color:var(--text2)">
+          <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you</div>
+          <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
+          <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
+          <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
+          <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers of colleagues</div>
+          <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
+          <div style="margin-bottom:12px">ℹ️ <strong>Info</strong> — tutorial, disclaimer and support</div>
+          <div style="padding-top:10px; border-top:1px solid var(--border)">
+            <div style="font-weight:700; color:var(--text); margin-bottom:8px">📱 Install on iPhone</div>
+            <ol style="padding-left:18px; margin-bottom:12px">
+              <li>Open <strong>Safari</strong> → crew-psr-wyvq.vercel.app</li>
+              <li>Tap <strong>Share</strong> (□↑) → <strong>"Add to Home Screen"</strong></li>
+              <li>Tap <strong>Add</strong> ✅</li>
+            </ol>
+            <div style="font-weight:700; color:var(--text); margin-bottom:8px">🤖 Install on Android</div>
+            <ol style="padding-left:18px">
+              <li>Open <strong>Chrome</strong> → crew-psr-wyvq.vercel.app</li>
+              <li>Tap <strong>⋮</strong> → <strong>"Add to Home Screen"</strong> → <strong>Install</strong> ✅</li>
+            </ol>
+          </div>
+          <div style="margin-top:10px; font-size:11px; color:var(--text3)">
+            Need help? Use <strong>Feedback &amp; Support</strong> above — don't be shy! 😊
+          </div>
+        </div>
+      </div>
+
+      <!-- Disclaimer button -->
+      <div class="card" style="padding:0; overflow:hidden">
+        <button onclick="toggleInfoSection('disclaimerContent','discArrow')"
+          style="display:flex; align-items:center; justify-content:space-between;
+                 width:100%; padding:16px; background:none; border:none;
+                 font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+                 color:var(--text); cursor:pointer">
+          <span>ℹ️ About &amp; Disclaimer</span>
+          <span id="discArrow" style="color:var(--text3)">›</span>
+        </button>
+        <div id="disclaimerContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.7; color:var(--text2)">
+          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇬🇧 English</div>
+          <p><strong>CrewPSR is an independent app</strong>, not affiliated with, endorsed by, or connected to Ryanair in any way. Ryanair® is a registered trademark of Ryanair DAC.</p>
+          <p style="margin-top:8px">This app does <strong>not replace</strong> Ryanair Connect, official crew communications, or any official company procedure. Always refer to official Ryanair channels for binding operational information.</p>
+          <p style="margin-top:8px">Your personal data and your colleagues' contact details are <strong>stored only on your device</strong>. Nothing is shared with Ryanair, third parties, or any server.</p>
+          <div style="border-top:1px solid var(--border); margin:14px 0"></div>
+          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇮🇹 Italiano</div>
+          <p><strong>CrewPSR è un app indipendente</strong>, non affiliata, approvata o connessa a Ryanair in alcun modo. Ryanair® è un marchio registrato di Ryanair DAC.</p>
+          <p style="margin-top:8px">Questa app <strong>non sostituisce</strong> Ryanair Connect, le comunicazioni ufficiali per il personale di cabina, né alcuna procedura ufficiale della compagnia.</p>
+          <p style="margin-top:8px">I tuoi dati personali e i contatti dei colleghi sono <strong>salvati esclusivamente sul tuo dispositivo</strong>. Nessuna informazione viene condivisa online.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1166,6 +1229,7 @@ select option { background: white; }
     <button class="nav-btn" onclick="nav('swap')" id="nav-swap"><span class="nav-icon">🔄</span><span class="nav-label">Swap</span></button>
     <button class="nav-btn" onclick="nav('crew')" id="nav-crew"><span class="nav-icon">👥</span><span class="nav-label">Crew</span></button>
     <button class="nav-btn" onclick="nav('settings')" id="nav-settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></button>
+    <button class="nav-btn" onclick="nav('info')" id="nav-info"><span class="nav-icon">ℹ️</span><span class="nav-label">Info</span></button>
   </nav>
 </div>
 
@@ -1217,7 +1281,7 @@ select option { background: white; }
 
 <script>
 // ══════════════════════════════════════════════════════════════
-// FLIGHT SCHEDULE DATA — Versione 1 Valid from 01 Apr to 04 May 2026
+// FLIGHT SCHEDULE DATA — V1 01 Apr – 04 May 2026
 // ══════════════════════════════════════════════════════════════
 const SCHEDULE = {
   version: "V1",
@@ -1284,8 +1348,8 @@ const SCHEDULE = {
         late: [
           { route:"PSR-STN", dep:"15:40", arr:"18:15" },
           { route:"STN-PSR", dep:"18:40", arr:"21:05" },
-          { route:"PSR-MLA", dep:"21:30", arr:"23:00" },
-          { route:"MLA-PSR", dep:"23:25", arr:"00:55" },
+          { route:"PSR-MLT", dep:"21:30", arr:"23:00" },
+          { route:"MLT-PSR", dep:"23:25", arr:"00:55" },
         ]
       }
     },
@@ -1420,8 +1484,8 @@ const SCHEDULE = {
         late: [
           { route:"PSR-OTP", dep:"15:40", arr:"17:30" },
           { route:"OTP-PSR", dep:"17:55", arr:"19:45" },
-          { route:"PSR-MLA", dep:"20:10", arr:"21:40" },
-          { route:"MLA-PSR", dep:"22:05", arr:"23:35" },
+          { route:"PSR-MLT", dep:"20:10", arr:"21:40" },
+          { route:"MLT-PSR", dep:"22:05", arr:"23:35" },
         ]
       }
     },
@@ -1470,7 +1534,8 @@ let APP = {
   refDate: null,
   pin: null,
   crew: {},
-  assignments: {}, // { "2026-04-15": "A1E"|"A2E"|"A1L"|"A2L"|"HSBY"|"AD" }
+  assignments: {},    // { "2026-04-15": "A1E"|"A2E"|"A1L"|"A2L"|"HSBY"|"AD" }
+  assignDetails: {},  // { "2026-04-15": { start: "08:00", end: "16:00" } }
 };
 
 const DOW   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1572,14 +1637,19 @@ function setupNext() {
 }
 
 function setupPin(k) {
-  if (k === 'skip') { APP.pin = null; finishSetup(); return; }
+  if (k === 'skip') { APP.pin = null; showWelcome(); return; }
   if (k === 'del')  { setupPinVal = setupPinVal.slice(0,-1); }
   else if (setupPinVal.length < 4) { setupPinVal += k; }
   for (let i = 0; i < 4; i++) {
     const el = document.getElementById('spd' + i);
     if (el) el.classList.toggle('filled', i < setupPinVal.length);
   }
-  if (setupPinVal.length === 4) { APP.pin = setupPinVal; setTimeout(finishSetup, 300); }
+  if (setupPinVal.length === 4) { APP.pin = setupPinVal; setTimeout(showWelcome, 300); }
+}
+
+function showWelcome() {
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.add('active');
 }
 
 function finishSetup() {
@@ -1654,14 +1724,27 @@ function lockCrew() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// DISCLAIMER
+// SHARE & TUTORIAL
 // ══════════════════════════════════════════════════════════════
-function toggleDisclaimer() {
-  const body = document.getElementById('disclaimerBody');
-  const arrow = document.getElementById('disclaimerArrow');
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'CrewPSR',
+      text: 'Pescara cabin crew roster app — installa su iPhone o Android!',
+      url: 'https://crew-psr-wyvq.vercel.app'
+    }).catch(() => {});
+  } else {
+    navigator.clipboard && navigator.clipboard.writeText('https://crew-psr-wyvq.vercel.app');
+    alert('Link copiato! https://crew-psr-wyvq.vercel.app');
+  }
+}
+
+function toggleInfoSection(bodyId, arrowId) {
+  const body = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
   const open = body.style.display !== 'none';
   body.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '›' : '˅';
+  if (arrow) arrow.textContent = open ? '›' : '˅';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1704,22 +1787,32 @@ function renderHome() {
   // Report time based on assignment
   const sched = SCHEDULE.days[dow];
   const assign = APP.assignments[todayStr];
+  const detail = APP.assignDetails?.[todayStr];
   let reportHtml = '';
-  if (sched && assign && assign !== 'HSBY' && assign !== 'AD') {
+
+  if (assign && assign !== 'HSBY' && assign !== 'AD') {
     const useA2 = assign.startsWith('A2');
     const useLate = assign.endsWith('L');
-    const plane = useA2 ? sched.a2 : sched.a1;
-    const t = useLate ? plane.reportLate : plane.reportEarly;
+    const plane = useA2 ? sched?.a2 : sched?.a1;
+    const t = useLate ? plane?.reportLate : plane?.reportEarly;
     const planeLabel = useA2 ? 'Aereo 2' : 'Aereo 1';
     const shiftLabel2 = useLate ? 'Late' : 'Early';
     if (t) reportHtml = `<div class="report-time">🕐 Report ${t} · ${planeLabel} ${shiftLabel2}</div>`;
-  } else if (sched && !assign && type !== 'off') {
+  } else if (assign === 'HSBY') {
+    const timeStr = detail?.start && detail?.end
+      ? `${detail.start} – ${detail.end}`
+      : detail?.start ? `from ${detail.start}` : '';
+    reportHtml = `<div class="report-time">🏠 Home Standby${timeStr ? ' · ' + timeStr : ''}</div>`;
+  } else if (assign === 'AD') {
+    const timeStr = detail?.start && detail?.end
+      ? `${detail.start} – ${detail.end}`
+      : detail?.start ? `from ${detail.start}` : '';
+    reportHtml = `<div class="report-time">🏢 Airport Duty${timeStr ? ' · ' + timeStr : ''}</div>`;
+  } else if (sched && type !== 'off') {
     const isEarly = type === 'early';
     const t = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
     if (t) reportHtml = `<div class="report-time">🕐 Report from ${t}</div>`;
   }
-  if (assign === 'HSBY') reportHtml = `<div class="report-time">🏠 Home Standby</div>`;
-  if (assign === 'AD')   reportHtml = `<div class="report-time">🏢 Airport Duty</div>`;
 
   document.getElementById('todayHero').innerHTML = `
     <div class="shift-type">${type === 'off' ? 'DAY OFF' : type.toUpperCase() + ' SHIFT'}</div>
@@ -1889,23 +1982,61 @@ function openDay(ds) {
     });
   }
 
-  // HSBY / AD always available
+  // HSBY / AD with time inputs when selected
   const hsel = assign === 'HSBY';
   const asel = assign === 'AD';
+  const hData = APP.assignDetails?.[ds];
+
   body += `<div class="assign-option ${hsel ? 'selected-hsby' : ''}" onclick="setAssign('${ds}','HSBY')">
     <div class="assign-label" style="color:var(--yellow)">🏠 Home Standby</div>
     <div class="assign-check">${hsel ? '✓' : ''}</div>
   </div>`;
+
+  if (hsel) {
+    body += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; padding:0 2px">
+      <div>
+        <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">Start</div>
+        <input type="time" id="hsby_start" value="${hData?.start||''}"
+          style="margin-bottom:0; padding:10px 12px; font-size:14px"
+          onchange="saveDetail('${ds}','start',this.value)">
+      </div>
+      <div>
+        <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">End</div>
+        <input type="time" id="hsby_end" value="${hData?.end||''}"
+          style="margin-bottom:0; padding:10px 12px; font-size:14px"
+          onchange="saveDetail('${ds}','end',this.value)">
+      </div>
+    </div>`;
+  }
+
   body += `<div class="assign-option ${asel ? 'selected-ad' : ''}" onclick="setAssign('${ds}','AD')">
     <div class="assign-label" style="color:var(--red)">🏢 Airport Duty</div>
     <div class="assign-check">${asel ? '✓' : ''}</div>
   </div>`;
 
-  if (assign) {
-    body += `<button class="btn secondary" style="margin-top:4px; margin-bottom:16px" onclick="setAssign('${ds}',null)">✕ Clear</button>`;
-  } else {
-    body += `<div style="margin-bottom:16px"></div>`;
+  if (asel) {
+    body += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; padding:0 2px">
+      <div>
+        <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">Start</div>
+        <input type="time" id="ad_start" value="${hData?.start||''}"
+          style="margin-bottom:0; padding:10px 12px; font-size:14px"
+          onchange="saveDetail('${ds}','start',this.value)">
+      </div>
+      <div>
+        <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">End</div>
+        <input type="time" id="ad_end" value="${hData?.end||''}"
+          style="margin-bottom:0; padding:10px 12px; font-size:14px"
+          onchange="saveDetail('${ds}','end',this.value)">
+      </div>
+    </div>`;
   }
+
+  if (assign) {
+    body += `<button class="btn secondary" style="margin-top:4px; margin-bottom:8px" onclick="setAssign('${ds}',null)">✕ Clear</button>`;
+  }
+
+  // Done button
+  body += `<button class="btn" style="margin-bottom:16px" onclick="closeModal('dayModal'); renderHome(); renderCalendar()">✓ Done</button>`;
 
   // Swap candidates
   if (type !== 'off') {
@@ -1922,11 +2053,19 @@ function openDay(ds) {
 function setAssign(ds, val) {
   if (!APP.assignments) APP.assignments = {};
   if (val) APP.assignments[ds] = val;
-  else delete APP.assignments[ds];
+  else { delete APP.assignments[ds]; delete APP.assignDetails?.[ds]; }
   save();
   openDay(ds);
   renderHome();
   renderCalendar();
+}
+
+function saveDetail(ds, field, val) {
+  if (!APP.assignDetails) APP.assignDetails = {};
+  if (!APP.assignDetails[ds]) APP.assignDetails[ds] = {};
+  APP.assignDetails[ds][field] = val;
+  save();
+  renderHome();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2222,6 +2361,7 @@ function initApp() {
     if (!APP.crew[i]) APP.crew[i] = Array.from({length:5}, () => ({code:'',phone:'',name:''}));
   }
   if (!APP.assignments) APP.assignments = {};
+  if (!APP.assignDetails) APP.assignDetails = {};
   renderHome();
   renderSettings();
 }
