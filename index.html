@@ -1156,6 +1156,21 @@ select option { background: white; }
       </a>
     </div>
 
+
+<div class="section-title">App</div>
+<div style="padding:0 16px 12px">
+  <button onclick="checkForUpdates()" id="updateBtn"
+    style="display:flex; align-items:center; justify-content:center; gap:8px;
+           width:100%; padding:14px; border-radius:12px;
+           border:1.5px solid var(--border); background:var(--surface);
+           color:var(--text); font-family:'Outfit',sans-serif;
+           font-size:14px; font-weight:600; cursor:pointer; box-shadow:var(--shadow)">
+    🔄 Check for updates
+  </button>
+  <div id="updateMsg" style="text-align:center; font-size:12px; color:var(--text3); margin-top:8px; display:none"></div>
+</div>
+
+
     <div class="section-title">More</div>
     <div style="padding:0 16px; display:grid; gap:10px; margin-bottom:16px">
 
@@ -1726,6 +1741,27 @@ function lockCrew() {
 // ══════════════════════════════════════════════════════════════
 // SHARE & TUTORIAL
 // ══════════════════════════════════════════════════════════════
+function checkForUpdates() {
+  const btn = document.getElementById('updateBtn');
+  const msg = document.getElementById('updateMsg');
+  btn.textContent = '⏳ Checking...';
+  btn.disabled = true;
+  if (!navigator.onLine) {
+    btn.innerHTML = '🔄 Check for updates';
+    btn.disabled = false;
+    msg.textContent = '⚠️ No internet connection.';
+    msg.style.color = 'var(--yellow)';
+    msg.style.display = 'block';
+    return;
+  }
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
+    setTimeout(() => location.reload(), 2000);
+  } else {
+    location.reload();
+  }
+}
+
 function shareApp() {
   if (navigator.share) {
     navigator.share({
@@ -2379,6 +2415,10 @@ if (load() && APP.roster && APP.refDate) {
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
+navigator.serviceWorker.addEventListener('message', e => {
+  if (e.data === 'RELOAD') location.reload();
+});
+
 }
 </script>
 </body>
