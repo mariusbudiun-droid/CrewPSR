@@ -825,8 +825,67 @@ select option { background: white; }
 .step { display: none; }
 .step.active { display: block; }
 
-/* scrollbar */
-::-webkit-scrollbar { width: 3px; }
+/* ── INFO TILES ── */
+.info-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.1s, opacity 0.1s;
+  box-shadow: var(--shadow);
+}
+.info-tile:active { transform: scale(0.95); opacity: 0.85; }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.info-accordion-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px;
+  background: none;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+/* ── HOME SLIDER DOTS ── */
+.home-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.home-dot.active {
+  background: var(--blue);
+  width: 18px;
+  border-radius: 3px;
+}
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -921,12 +980,13 @@ select option { background: white; }
   </div>
 
   <!-- HOME -->
-  <div class="screen active" id="screen-home">
-    <div class="today-hero" id="todayHero"></div>
-    <div class="section-title" id="homeFltTitle"></div>
-    <div id="homeFltContent"></div>
-    <div class="section-title" id="homeSwapTitle"></div>
-    <div id="homeSwapContent"></div>
+  <div class="screen active" id="screen-home" style="overflow:hidden">
+    <!-- Day indicator dots -->
+    <div id="homeDots" style="display:flex; justify-content:center; gap:6px; padding:10px 0 2px; flex-shrink:0"></div>
+    <!-- Swipeable day slider -->
+    <div id="homeSlider" style="position:relative; flex:1; overflow:hidden">
+      <div id="homeSlides" style="display:flex; height:100%; transition:transform 0.3s ease; will-change:transform"></div>
+    </div>
   </div>
 
   <!-- CALENDAR -->
@@ -1004,12 +1064,30 @@ select option { background: white; }
     <div id="swapResults">
       <div class="empty-state"><div class="big">🔄</div><p>Select roster and shift<br>to find colleagues</p></div>
     </div>
+
+    <!-- Crew section inside Swap -->
+    <div style="margin-top:8px">
+      <button onclick="toggleSwapCrew()"
+        style="display:flex; align-items:center; justify-content:center; gap:8px;
+               width:100%; padding:14px 16px;
+               background:var(--surface); border:1px solid var(--border);
+               border-left:none; border-right:none;
+               font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+               color:var(--text); cursor:pointer">
+        🤝 Crew Directory →
+      </button>
+    </div>
   </div>
 
   <!-- CREW -->
   <div class="screen" id="screen-crew">
     <!-- PIN gate (shown until unlocked) -->
     <div id="crewPinGate" style="padding:40px 24px; text-align:center">
+      <button onclick="nav('swap')" style="position:absolute; top:16px; left:16px; padding:8px 14px;
+        border-radius:10px; border:1.5px solid var(--border); background:var(--bg);
+        font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
+        ← Back
+      </button>
       <div style="font-size:40px; margin-bottom:12px">👥</div>
       <div style="font-size:20px; font-weight:700; margin-bottom:4px">Crew Directory</div>
       <div style="font-size:13px; color:var(--text3); margin-bottom:24px">🔒 Protected — enter your PIN</div>
@@ -1111,12 +1189,6 @@ select option { background: white; }
         <div><div class="setting-label" id="settingSchedVersion">—</div><div class="setting-sub">Current flight schedule version</div></div>
       </div>
     </div>
-    <div class="section-title">About</div>
-    <div class="card">
-      <div class="setting-row" style="border:none">
-        <div><div class="setting-label">CrewPSR</div><div class="setting-sub">Pescara Cabin Crew · v1.7</div></div>
-      </div>
-    </div>
     <div style="padding:8px 16px 16px">
       <button class="btn secondary" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset all data</button>
     </div>
@@ -1128,134 +1200,158 @@ select option { background: white; }
       <div style="font-size:22px; font-weight:800; color:var(--text)">Info</div>
     </div>
 
-    <div class="section-title">Share</div>
-    <div style="padding:0 16px 12px">
-      <button onclick="shareApp()"
-        style="display:flex; align-items:center; justify-content:center; gap:8px;
-               width:100%; padding:14px; border-radius:12px;
-               border:1.5px solid var(--blue-lt); background:var(--blue-lt);
-               color:var(--blue); font-family:'Outfit',sans-serif;
-               font-size:14px; font-weight:600; cursor:pointer">
-        📤 Share CrewPSR with colleagues
-      </button>
-    </div>
+    <div style="padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px">
 
-    <div class="section-title">Feedback &amp; Support</div>
-    <div style="padding:0 16px 12px">
+      <!-- Share -->
+      <button onclick="shareApp()" class="info-tile" style="background:var(--blue-lt); border-color:var(--blue-lt); color:var(--blue)">
+        <span style="font-size:24px">📤</span>
+        <span>Share App</span>
+      </button>
+
+      <!-- Check for updates -->
+      <button onclick="checkForUpdates()" id="updateBtn" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text)">
+        <span style="font-size:24px">🔄</span>
+        <span>Check updates</span>
+      </button>
+
+      <!-- Feedback -->
       <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
-         target="_blank"
-         style="display:flex; align-items:center; justify-content:center; gap:8px;
-                padding:14px; border-radius:12px; border:1.5px solid #dcfce7;
-                background:#f0fdf4; color:#16a34a; text-decoration:none;
-                font-size:14px; font-weight:600;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+         target="_blank" class="info-tile" style="background:#f0fdf4; border-color:#dcfce7; color:#16a34a; text-decoration:none">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
         </svg>
-        Feedback &amp; Support
+        <span>Support</span>
       </a>
-    </div>
 
+      <!-- Tutorial -->
+      <button onclick="toggleInfoSection('tutorialContent','tutArrow')" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text)">
+        <span style="font-size:24px">📖</span>
+        <span>Tutorial <span id="tutArrow" style="font-size:11px">›</span></span>
+      </button>
 
-<div class="section-title">App</div>
-<div style="padding:0 16px 12px">
-  <button onclick="checkForUpdates()" id="updateBtn"
-    style="display:flex; align-items:center; justify-content:center; gap:8px;
-           width:100%; padding:14px; border-radius:12px;
-           border:1.5px solid var(--border); background:var(--surface);
-           color:var(--text); font-family:'Outfit',sans-serif;
-           font-size:14px; font-weight:600; cursor:pointer; box-shadow:var(--shadow)">
-    🔄 Check for updates
-  </button>
-  <div id="updateMsg" style="text-align:center; font-size:12px; color:var(--text3); margin-top:8px; display:none"></div>
-</div>
-
-
-    <div class="section-title">More</div>
-    <div style="padding:0 16px; display:grid; gap:10px; margin-bottom:16px">
-
-      <!-- Tutorial button -->
-      <div class="card" style="padding:0; overflow:hidden">
-        <button onclick="toggleInfoSection('tutorialContent','tutArrow')"
-          style="display:flex; align-items:center; justify-content:space-between;
-                 width:100%; padding:16px; background:none; border:none;
-                 font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
-                 color:var(--text); cursor:pointer">
-          <span>📖 Tutorial</span>
-          <span id="tutArrow" style="color:var(--text3)">›</span>
-        </button>
-        <div id="tutorialContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.8; color:var(--text2)">
-          <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you</div>
-          <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
-          <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
-          <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
-          <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers of colleagues</div>
-          <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
-          <div style="margin-bottom:12px">ℹ️ <strong>Info</strong> — tutorial, disclaimer and support</div>
-          <div style="padding-top:10px; border-top:1px solid var(--border)">
-            <div style="font-weight:700; color:var(--text); margin-bottom:8px">📱 Install on iPhone</div>
-            <ol style="padding-left:18px; margin-bottom:12px">
-              <li>Open <strong>Safari</strong> → crew-psr-wyvq.vercel.app</li>
-              <li>Tap <strong>Share</strong> (□↑) → <strong>"Add to Home Screen"</strong></li>
-              <li>Tap <strong>Add</strong> ✅</li>
-            </ol>
-            <div style="font-weight:700; color:var(--text); margin-bottom:8px">🤖 Install on Android</div>
-            <ol style="padding-left:18px">
-              <li>Open <strong>Chrome</strong> → crew-psr-wyvq.vercel.app</li>
-              <li>Tap <strong>⋮</strong> → <strong>"Add to Home Screen"</strong> → <strong>Install</strong> ✅</li>
-            </ol>
-          </div>
-          <div style="margin-top:10px; font-size:11px; color:var(--text3)">
-            Need help? Use <strong>Feedback &amp; Support</strong> above — don't be shy! 😊
-          </div>
-        </div>
-      </div>
-
-      <!-- Disclaimer button -->
-      <div class="card" style="padding:0; overflow:hidden">
-        <button onclick="toggleInfoSection('disclaimerContent','discArrow')"
-          style="display:flex; align-items:center; justify-content:space-between;
-                 width:100%; padding:16px; background:none; border:none;
-                 font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
-                 color:var(--text); cursor:pointer">
-          <span>ℹ️ About &amp; Disclaimer</span>
-          <span id="discArrow" style="color:var(--text3)">›</span>
-        </button>
-        <div id="disclaimerContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.7; color:var(--text2)">
-          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇬🇧 English</div>
-          <p><strong>CrewPSR is an independent app</strong>, not affiliated with, endorsed by, or connected to Ryanair in any way. Ryanair® is a registered trademark of Ryanair DAC.</p>
-          <p style="margin-top:8px">This app does <strong>not replace</strong> Ryanair Connect, official crew communications, or any official company procedure. Always refer to official Ryanair channels for binding operational information.</p>
-          <p style="margin-top:8px">Your personal data and your colleagues' contact details are <strong>stored only on your device</strong>. Nothing is shared with Ryanair, third parties, or any server.</p>
-          <div style="border-top:1px solid var(--border); margin:14px 0"></div>
-          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇮🇹 Italiano</div>
-          <p><strong>CrewPSR è un app indipendente</strong>, non affiliata, approvata o connessa a Ryanair in alcun modo. Ryanair® è un marchio registrato di Ryanair DAC.</p>
-          <p style="margin-top:8px">Questa app <strong>non sostituisce</strong> Ryanair Connect, le comunicazioni ufficiali per il personale di cabina, né alcuna procedura ufficiale della compagnia.</p>
-          <p style="margin-top:8px">I tuoi dati personali e i contatti dei colleghi sono <strong>salvati esclusivamente sul tuo dispositivo</strong>. Nessuna informazione viene condivisa online.</p>
-        </div>
-      </div>
+      <!-- Disclaimer -->
+      <button onclick="toggleInfoSection('disclaimerContent','discArrow')" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text); grid-column:1/-1">
+        <span style="font-size:24px">ℹ️</span>
+        <span>About &amp; Disclaimer <span id="discArrow" style="font-size:11px">›</span></span>
+      </button>
 
     </div>
+
+    <!-- Update message -->
+    <div id="updateMsg" style="text-align:center; font-size:12px; color:var(--text3); margin:0 16px 8px; display:none"></div>
+
+    <!-- Version -->
+    <div style="text-align:center; font-size:11px; color:var(--text3); padding:4px 16px 8px">
+      CrewPSR · Pescara Cabin Crew · v1.5.1
+    </div>
+
+    <!-- Tutorial content -->
+    <div id="tutorialContent" style="display:none; padding:0 16px 8px; font-size:13px; line-height:1.8; color:var(--text2)">
+      <div class="card">
+        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you. Swipe left/right to browse the week.</div>
+        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
+        <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
+        <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
+        <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers of colleagues</div>
+        <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
+        <div style="margin-bottom:12px">ℹ️ <strong>Info</strong> — this screen</div>
+        <div style="border-top:1px solid var(--border); padding-top:12px">
+          <div style="font-weight:700; color:var(--text); margin-bottom:8px">📱 Install on iPhone</div>
+          <ol style="padding-left:18px; margin-bottom:12px">
+            <li>Open <strong>Safari</strong> → crew-psr-wyvq.vercel.app</li>
+            <li>Tap <strong>Share</strong> (□↑) → <strong>"Add to Home Screen"</strong></li>
+            <li>Tap <strong>Add</strong> ✅</li>
+          </ol>
+          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🤖 Install on Android</div>
+          <ol style="padding-left:18px">
+            <li>Open <strong>Chrome</strong> → crew-psr-wyvq.vercel.app</li>
+            <li>Tap <strong>⋮</strong> → <strong>"Add to Home Screen"</strong> → <strong>Install</strong> ✅</li>
+          </ol>
+        </div>
+        <div style="margin-top:10px; font-size:11px; color:var(--text3)">
+          Need help? Tap <strong>Support</strong> above — don't be shy! 😊
+        </div>
+      </div>
+    </div>
+
+    <!-- Disclaimer content -->
+    <div id="disclaimerContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.7; color:var(--text2)">
+      <div class="card">
+        <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇬🇧 English</div>
+        <p><strong>CrewPSR is an independent app</strong>, not affiliated with, endorsed by, or connected to Ryanair in any way. Ryanair® is a registered trademark of Ryanair DAC.</p>
+        <p style="margin-top:8px">This app does <strong>not replace</strong> Ryanair Connect, official crew communications, or any official company procedure. Always refer to official Ryanair channels for binding operational information.</p>
+        <p style="margin-top:8px">Your personal data and your colleagues' contact details are <strong>stored only on your device</strong>. Nothing is shared with Ryanair, third parties, or any server.</p>
+        <div style="border-top:1px solid var(--border); margin:14px 0"></div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇮🇹 Italiano</div>
+        <p><strong>CrewPSR è un app indipendente</strong>, non affiliata, approvata o connessa a Ryanair in alcun modo. Ryanair® è un marchio registrato di Ryanair DAC.</p>
+        <p style="margin-top:8px">Questa app <strong>non sostituisce</strong> Ryanair Connect, le comunicazioni ufficiali per il personale di cabina, né alcuna procedura ufficiale della compagnia.</p>
+        <p style="margin-top:8px">I tuoi dati personali e i contatti dei colleghi sono <strong>salvati esclusivamente sul tuo dispositivo</strong>. Nessuna informazione viene condivisa online.</p>
+      </div>
+    </div>
+
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="nav('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" onclick="nav('calendar')" id="nav-calendar"><span class="nav-icon">📅</span><span class="nav-label">Calendar</span></button>
-    <button class="nav-btn" onclick="nav('schedule')" id="nav-schedule"><span class="nav-icon">✈️</span><span class="nav-label">Schedule</span></button>
-    <button class="nav-btn" onclick="nav('swap')" id="nav-swap"><span class="nav-icon">🔄</span><span class="nav-label">Swap</span></button>
-    <button class="nav-btn" onclick="nav('crew')" id="nav-crew"><span class="nav-icon">👥</span><span class="nav-label">Crew</span></button>
-    <button class="nav-btn" onclick="nav('settings')" id="nav-settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></button>
-    <button class="nav-btn" onclick="nav('info')" id="nav-info"><span class="nav-icon">ℹ️</span><span class="nav-label">Info</span></button>
+    <button class="nav-btn" onclick="nav('schedule')" id="nav-schedule"><span class="nav-icon">🛫</span><span class="nav-label">Schedule</span></button>
+    <button class="nav-btn" onclick="nav('swap')" id="nav-swap"><span class="nav-icon">🤝</span><span class="nav-label">Swap</span></button>
+    <button class="nav-btn" onclick="toggleMore()" id="nav-more"><span class="nav-icon">⋯</span><span class="nav-label">More</span></button>
   </nav>
+
+  <!-- More drawer -->
+  <div id="moreDrawer" style="display:none; position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+       width:100%; max-width:480px; background:var(--surface); border-top:1px solid var(--border);
+       border-radius:20px 20px 0 0; z-index:200; box-shadow:0 -4px 20px rgba(0,0,0,0.1);
+       padding-bottom:max(16px,env(safe-area-inset-bottom))">
+    <div style="width:36px; height:4px; background:var(--border2); border-radius:2px; margin:12px auto 16px"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border)">
+      <button onclick="nav('settings'); closeMore()"
+        style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:20px;
+               background:var(--surface); border:none; font-family:'Outfit',sans-serif;
+               font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
+        <span style="font-size:28px">⚙️</span>Settings
+      </button>
+      <button onclick="nav('info'); closeMore()"
+        style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:20px;
+               background:var(--surface); border:none; font-family:'Outfit',sans-serif;
+               font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
+        <span style="font-size:28px">ℹ️</span>Info
+      </button>
+    </div>
+    <button onclick="closeMore()"
+      style="width:calc(100% - 32px); margin:12px 16px 0; padding:13px; border-radius:12px;
+             border:1.5px solid var(--border); background:var(--bg); font-family:'Outfit',sans-serif;
+             font-size:14px; font-weight:600; color:var(--text3); cursor:pointer">
+      Cancel
+    </button>
+  </div>
+  <div id="moreOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3);
+       z-index:199; backdrop-filter:blur(2px)" onclick="closeMore()"></div>
 </div>
 
 <!-- ══ MODALS ══ -->
-<div class="modal-backdrop" id="dayModal" onclick="if(event.target===this)closeModal('dayModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="dayModalTitle"></div>
-    <div id="dayModalBadge"></div>
-    <div id="dayModalBody"></div>
+<!-- DAY DETAIL SCREEN (replaces calendar) -->
+<div id="dayDetailScreen" style="display:none; position:fixed; inset:0; background:var(--bg);
+     z-index:150; overflow-y:auto; padding-bottom:max(20px,env(safe-area-inset-bottom))">
+  <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;
+              padding-top:max(14px,env(safe-area-inset-top));
+              background:var(--surface); border-bottom:1px solid var(--border);
+              position:sticky; top:0; z-index:10">
+    <button onclick="closeDayDetail()"
+      style="display:flex; align-items:center; gap:6px; padding:8px 14px;
+             border-radius:10px; border:1.5px solid var(--border); background:var(--bg);
+             font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+             color:var(--text); cursor:pointer">
+      ← Close
+    </button>
+    <div>
+      <div style="font-size:16px; font-weight:700; color:var(--text)" id="dayDetailTitle"></div>
+      <div id="dayDetailBadge" style="margin-top:2px"></div>
+    </div>
   </div>
+  <div id="dayDetailBody" style="padding:16px"></div>
 </div>
 
 <div class="modal-backdrop" id="pinModal" onclick="if(event.target===this)closeModal('pinModal')">
@@ -1601,17 +1697,17 @@ function shiftLabel(day) {
   if (day === 3) return { main: '3rd Early', sub: '' };
   if (day === 4) return { main: '4th Early', sub: '' };
   if (day === 5) return { main: '5th Early', sub: 'last before days off' };
-  if (day === 6) return { main: '1st Day Off', sub: 'after Early' };
-  if (day === 7) return { main: '2nd Day Off', sub: 'after Early' };
-  if (day === 8) return { main: '3rd Day Off', sub: 'after Early' };
+  if (day === 6) return { main: '1st Off', sub: 'after Early' };
+  if (day === 7) return { main: '2nd Off', sub: 'after Early' };
+  if (day === 8) return { main: '3rd Off', sub: 'after Early' };
   if (day === 9) return { main: '1st Late', sub: 'after days off' };
   if (day === 10) return { main: '2nd Late', sub: '' };
   if (day === 11) return { main: '3rd Late', sub: '' };
   if (day === 12) return { main: '4th Late', sub: '' };
   if (day === 13) return { main: '5th Late', sub: 'last before days off' };
-  if (day === 14) return { main: '1st Day Off', sub: 'after Late' };
-  if (day === 15) return { main: '2nd Day Off', sub: 'after Late' };
-  if (day === 16) return { main: '3rd Day Off', sub: 'after Late' };
+  if (day === 14) return { main: '1st Off', sub: 'after Late' };
+  if (day === 15) return { main: '2nd Off', sub: 'after Late' };
+  if (day === 16) return { main: '3rd Off', sub: 'after Late' };
   return { main: '', sub: '' };
 }
 
@@ -1680,13 +1776,17 @@ function finishSetup() {
 let crewPinVal = '';
 
 function nav(id) {
+  closeMore();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
-  document.getElementById('nav-' + id).classList.add('active');
+  const navBtn = document.getElementById('nav-' + id);
+  if (navBtn) navBtn.classList.add('active');
+  else document.getElementById('nav-more').classList.add('active');
   if (id === 'calendar') renderCalendar();
+  if (id === 'home')     { homeCurrentDay = 0; renderHome(); }
   if (id === 'schedule') renderSchedule();
-  if (id === 'swap')     prefillSwap();
+  if (id === 'swap')     { prefillSwap(); }
   if (id === 'settings') renderSettings();
   if (id === 'crew') {
     if (!APP.pin || crewUnlocked) {
@@ -1699,6 +1799,63 @@ function nav(id) {
       document.getElementById('crewPinErr').style.display = 'none';
     }
   }
+}
+
+function toggleMore() {
+  const drawer = document.getElementById('moreDrawer');
+  const overlay = document.getElementById('moreOverlay');
+  const isOpen = drawer.style.display !== 'none';
+  drawer.style.display = isOpen ? 'none' : 'block';
+  overlay.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('nav-more').classList.toggle('active', !isOpen);
+}
+
+function closeMore() {
+  const drawer = document.getElementById('moreDrawer');
+  const overlay = document.getElementById('moreOverlay');
+  if (!drawer || !overlay) return;
+  drawer.style.display = 'none';
+  overlay.style.display = 'none';
+}
+
+function toggleSwapCrew() {
+  // Show crew screen directly (no nav button for it)
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-crew').classList.add('active');
+  // Handle PIN gate
+  if (!APP.pin || crewUnlocked) {
+    showCrewContent();
+  } else {
+    crewPinVal = '';
+    updateCrewPinDots();
+    document.getElementById('crewPinGate').style.display = 'block';
+    document.getElementById('crewContent').style.display = 'none';
+    document.getElementById('crewPinErr').style.display = 'none';
+  }
+}
+
+function renderSwapCrewContent() {
+  const section = document.getElementById('swapCrewSection');
+  if (!section) return;
+  if (!crewUnlocked && APP.pin) {
+    section.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text3); font-size:13px">🔒 Unlock the Crew tab first to view contacts</div>';
+    return;
+  }
+  let html = '';
+  for (let R = 1; R <= 16; R++) {
+    const colleagues = (APP.crew[R] || []).filter(c => c && c.code && c.code.trim());
+    if (colleagues.length === 0) continue;
+    const pills = colleagues.map(c => {
+      const phone = (c.phone||'').replace(/[\s\-\+]/g,'');
+      const name = c.name || c.code;
+      if (phone) return '<a class="wa-pill" href="https://wa.me/' + phone + '" target="_blank" style="margin:2px">' + name + '</a>';
+      return '<span style="font-family:monospace;font-size:12px;background:var(--bg2);padding:3px 8px;border-radius:6px;margin:2px">' + name + '</span>';
+    }).join('');
+    html += '<div style="padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; flex-wrap:wrap; gap:6px">'
+          + '<span style="font-family:monospace;font-size:11px;color:var(--blue);background:var(--blue-lt);padding:2px 8px;border-radius:6px;flex-shrink:0">R' + R + '</span>'
+          + pills + '</div>';
+  }
+  section.innerHTML = html || '<div style="padding:16px; text-align:center; color:var(--text3); font-size:13px">No crew codes added yet</div>';
 }
 
 function crewPinKey(k) {
@@ -1746,14 +1903,17 @@ function checkForUpdates() {
   const msg = document.getElementById('updateMsg');
   btn.textContent = '⏳ Checking...';
   btn.disabled = true;
+  msg.style.display = 'none';
+
   if (!navigator.onLine) {
     btn.innerHTML = '🔄 Check for updates';
     btn.disabled = false;
-    msg.textContent = '⚠️ No internet connection.';
+    msg.textContent = '⚠️ No internet connection. Try again when online.';
     msg.style.color = 'var(--yellow)';
     msg.style.display = 'block';
     return;
   }
+
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
     setTimeout(() => location.reload(), 2000);
@@ -1798,93 +1958,145 @@ function setLang(lang) {
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+function closeDayDetail() {
+  document.getElementById('dayDetailScreen').style.display = 'none';
+  renderHome();
+  renderCalendar();
+}
+
 // ══════════════════════════════════════════════════════════════
-// HOME
+// HOME — SWIPEABLE DAY SLIDER
 // ══════════════════════════════════════════════════════════════
+let homeCurrentDay = 0; // index 0 = today, 1 = tomorrow, etc.
+const HOME_DAYS = 7;
+
 function renderHome() {
   const today = new Date();
   const todayStr = toDateStr(today);
-  const day  = cycleDay(APP.roster, todayStr);
-  const type = shiftType(day);
-  const lbl  = shiftLabel(day);
-  const dow  = today.getDay();
-
-  document.getElementById('topDay').textContent = `${DOW[dow]} ${today.getDate()} ${MONTHS[today.getMonth()]}`;
+  const todayDow = today.getDay();
+  document.getElementById('topDay').textContent = `${DOW[todayDow]} ${today.getDate()} ${MONTHS[today.getMonth()]}`;
   document.getElementById('topRoster').textContent = `Roster ${APP.roster}`;
+  buildHomeSlides();
+  goToHomeDay(homeCurrentDay, false);
+}
 
-  // Cycle pips
-  let pips = '';
-  for (let i = 1; i <= 16; i++) {
-    const t = shiftType(i);
-    const cls = [t, i < day ? 'past' : '', i === day ? 'now' : ''].filter(Boolean).join(' ');
-    pips += `<div class="c-pip ${cls}"></div>`;
+function buildHomeSlides() {
+  const slides = document.getElementById('homeSlides');
+  const dots   = document.getElementById('homeDots');
+  const today  = new Date();
+  slides.innerHTML = '';
+  dots.innerHTML = '';
+
+  for (let i = 0; i < HOME_DAYS; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const ds  = toDateStr(d);
+    const dow = d.getDay();
+    const day = cycleDay(APP.roster, ds);
+    const type = shiftType(day);
+    const lbl  = shiftLabel(day);
+    const sched = SCHEDULE.days[dow];
+    const assign = APP.assignments[ds];
+    const detail = APP.assignDetails?.[ds];
+
+    // Report time — no plane label
+    let reportHtml = '';
+    if (assign && assign !== 'HSBY' && assign !== 'AD') {
+      const useA2 = assign.startsWith('A2');
+      const useLate = assign.endsWith('L');
+      const plane = useA2 ? sched?.a2 : sched?.a1;
+      const t = useLate ? plane?.reportLate : plane?.reportEarly;
+      if (t) reportHtml = `<div class="report-time">🕐 Report ${t}</div>`;
+    } else if (assign === 'HSBY') {
+      const ts = detail?.start && detail?.end ? `${detail.start}–${detail.end}` : detail?.start ? `from ${detail.start}` : '';
+      reportHtml = `<div class="report-time">🏠 Home Standby${ts ? ' · '+ts : ''}</div>`;
+    } else if (assign === 'AD') {
+      const ts = detail?.start && detail?.end ? `${detail.start}–${detail.end}` : detail?.start ? `from ${detail.start}` : '';
+      reportHtml = `<div class="report-time">🏢 Airport Duty${ts ? ' · '+ts : ''}</div>`;
+    }
+
+    // Day label: TODAY / TOMORROW / DOW + date
+    const dateStr2 = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+    const dayLabel = i === 0 ? `TODAY · ${dateStr2}` : i === 1 ? `TOMORROW · ${dateStr2}` : `${DOW[dow].toUpperCase()} · ${dateStr2}`;
+
+    // Flights
+    let flightsHtml = '';
+    let flightsTitle = '';
+    if (assign && assign !== 'HSBY' && assign !== 'AD' && sched) {
+      flightsTitle = i === 0 ? "Today's Flights" : `${DOW[dow]}'s Flights`;
+      const useA2 = assign.startsWith('A2');
+      const useLate = assign.endsWith('L');
+      const plane = useA2 ? sched.a2 : sched.a1;
+      const flights = useLate ? plane.late : plane.early;
+      flightsHtml = buildFlightBlock(flights, useA2 ? 'Aereo 2' : 'Aereo 1', useA2 ? 'a2' : 'a1');
+    }
+
+    // Swap candidates (only on working days)
+    let swapHtml = '';
+    let swapTitle = '';
+    if (type !== 'off') {
+      swapTitle = i === 0 ? 'Available for swap today' : `Available for swap`;
+      const candidates = swapCandidates(APP.roster, day);
+      swapHtml = candidates.map(c => buildSwapCard(c)).join('') ||
+        `<div class="card" style="color:var(--text3);text-align:center;font-size:13px">No colleagues available</div>`;
+    }
+
+    const slide = document.createElement('div');
+    slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:auto; height:100%;';
+    slide.innerHTML = `
+      <div class="today-hero" style="margin-bottom:0">
+        <div class="shift-type">${dayLabel}</div>
+        <div class="shift-name">${lbl.main}</div>
+        ${lbl.sub ? `<div class="cycle-info">${lbl.sub}</div>` : ''}
+        ${reportHtml}
+      </div>
+      ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
+      ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` :
+        type === 'off' ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600">🌿 Enjoy your day off!</div>` : ''}`;
+    slides.appendChild(slide);
+
+    // Dot
+    const dot = document.createElement('div');
+    dot.className = 'home-dot' + (i === homeCurrentDay ? ' active' : '');
+    dot.onclick = () => goToHomeDay(i);
+    dots.appendChild(dot);
   }
 
-  // Report time based on assignment
-  const sched = SCHEDULE.days[dow];
-  const assign = APP.assignments[todayStr];
-  const detail = APP.assignDetails?.[todayStr];
-  let reportHtml = '';
+  // Touch/swipe
+  addSwipeListener(document.getElementById('homeSlider'), (dir) => {
+    const next = homeCurrentDay + dir;
+    if (next >= 0 && next < HOME_DAYS) goToHomeDay(next);
+  });
+}
 
-  if (assign && assign !== 'HSBY' && assign !== 'AD') {
-    const useA2 = assign.startsWith('A2');
-    const useLate = assign.endsWith('L');
-    const plane = useA2 ? sched?.a2 : sched?.a1;
-    const t = useLate ? plane?.reportLate : plane?.reportEarly;
-    const planeLabel = useA2 ? 'Aereo 2' : 'Aereo 1';
-    const shiftLabel2 = useLate ? 'Late' : 'Early';
-    if (t) reportHtml = `<div class="report-time">🕐 Report ${t} · ${planeLabel} ${shiftLabel2}</div>`;
-  } else if (assign === 'HSBY') {
-    const timeStr = detail?.start && detail?.end
-      ? `${detail.start} – ${detail.end}`
-      : detail?.start ? `from ${detail.start}` : '';
-    reportHtml = `<div class="report-time">🏠 Home Standby${timeStr ? ' · ' + timeStr : ''}</div>`;
-  } else if (assign === 'AD') {
-    const timeStr = detail?.start && detail?.end
-      ? `${detail.start} – ${detail.end}`
-      : detail?.start ? `from ${detail.start}` : '';
-    reportHtml = `<div class="report-time">🏢 Airport Duty${timeStr ? ' · ' + timeStr : ''}</div>`;
-  } else if (sched && type !== 'off') {
-    const isEarly = type === 'early';
-    const t = isEarly ? sched.a1.reportEarly : sched.a1.reportLate;
-    if (t) reportHtml = `<div class="report-time">🕐 Report from ${t}</div>`;
-  }
+function goToHomeDay(idx, animate = true) {
+  homeCurrentDay = idx;
+  const slides = document.getElementById('homeSlides');
+  if (!animate) slides.style.transition = 'none';
+  slides.style.transform = `translateX(-${idx * 100}%)`;
+  if (!animate) setTimeout(() => slides.style.transition = 'transform 0.3s ease', 50);
+  document.querySelectorAll('.home-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
 
-  document.getElementById('todayHero').innerHTML = `
-    <div class="shift-type">${type === 'off' ? 'DAY OFF' : type.toUpperCase() + ' SHIFT'}</div>
-    <div class="shift-name">${lbl.main}</div>
-    ${lbl.sub ? `<div class="cycle-info">${lbl.sub}</div>` : ''}
-    <div class="cycle-info" style="margin-top:${lbl.sub?'2px':'0'}">Cycle day ${day} of 16</div>
-    ${reportHtml}
-    <div class="cycle-strip">${pips}</div>`;
-
-  // Today's flights
-  const fTitle = document.getElementById('homeFltTitle');
-  const fContent = document.getElementById('homeFltContent');
-  if (assign && assign !== 'HSBY' && assign !== 'AD' && sched) {
-    fTitle.textContent = "Today's Flights";
-    const useA2 = assign.startsWith('A2');
-    const useLate = assign.endsWith('L');
-    const plane = useA2 ? sched.a2 : sched.a1;
-    const flights = useLate ? plane.late : plane.early;
-    fContent.innerHTML = buildFlightBlock(flights, useA2 ? 'Aereo 2' : 'Aereo 1', useA2 ? 'a2' : 'a1');
-  } else {
-    fTitle.textContent = '';
-    fContent.innerHTML = '';
-  }
-
-  // Swap
-  const sTitle = document.getElementById('homeSwapTitle');
-  const sContent = document.getElementById('homeSwapContent');
-  if (type !== 'off') {
-    sTitle.textContent = 'Available for swap today';
-    const candidates = swapCandidates(APP.roster, day);
-    sContent.innerHTML = candidates.map(c => buildSwapCard(c)).join('') ||
-      `<div class="card" style="color:var(--text3); text-align:center; font-size:13px">No colleagues available today</div>`;
-  } else {
-    sTitle.textContent = '';
-    sContent.innerHTML = `<div class="card" style="text-align:center; color:var(--off); font-weight:600">🌿 Enjoy your day off!</div>`;
-  }
+function addSwipeListener(el, callback) {
+  if (!el) return;
+  let startX = 0, startY = 0, swiped = false;
+  el.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    swiped = false;
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    if (swiped) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      swiped = true;
+      callback(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
 }
 
 function buildFlightBlock(flights, label, cls) {
@@ -1960,9 +2172,19 @@ function renderCalendar() {
       : assign === 'HSBY' ? 'var(--yellow)' : 'var(--red)'
       : 'transparent';
 
-    html += `<div class="cal-day ${type} ${isToday ? 'today-ring' : ''}" onclick="openDay('${ds}')">
+    const assignIcon = assign
+      ? assign.startsWith('A1') || assign.startsWith('A2')
+        ? assign.endsWith('E') ? '☀️' : '🌙'
+        : assign === 'HSBY' ? '🏠' : '🏢'
+      : '';
+    const calType = assign
+      ? assign.endsWith('E') ? 'early'
+      : assign.endsWith('L') ? 'late'
+      : type
+      : type;
+    html += `<div class="cal-day ${calType} ${isToday ? 'today-ring' : ''}" onclick="openDay('${ds}')">
       <div class="dn">${d}</div>
-      <div class="dd" style="background:${dotColor}"></div>
+      ${assignIcon ? `<div style="font-size:9px;line-height:1">${assignIcon}</div>` : `<div class="dd" style="background:transparent"></div>`}
     </div>`;
   }
 
@@ -1974,6 +2196,21 @@ function calNav(d) {
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
   renderCalendar();
+}
+
+// Swipe-down to close modal
+function initModalSwipe() {
+  document.querySelectorAll('.modal').forEach(modal => {
+    let startY = 0;
+    modal.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    modal.addEventListener('touchend', e => {
+      const dy = e.changedTouches[0].clientY - startY;
+      if (dy > 60) {
+        const backdrop = modal.closest('.modal-backdrop');
+        if (backdrop) backdrop.classList.remove('open');
+      }
+    }, { passive: true });
+  });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1988,9 +2225,9 @@ function openDay(ds) {
   const assign = APP.assignments[ds];
   const isEarly = type === 'early';
 
-  document.getElementById('dayModalTitle').textContent =
+  document.getElementById('dayDetailTitle').textContent =
     `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
-  document.getElementById('dayModalBadge').innerHTML =
+  document.getElementById('dayDetailBadge').innerHTML =
     `<div class="shift-pill ${type}">${shiftLabelStr(day)}</div>`;
 
   let body = '';
@@ -2072,7 +2309,7 @@ function openDay(ds) {
   }
 
   // Done button
-  body += `<button class="btn" style="margin-bottom:16px" onclick="closeModal('dayModal'); renderHome(); renderCalendar()">✓ Done</button>`;
+  body += `<button class="btn" style="margin-bottom:16px" onclick="closeDayDetail()">✓ Done</button>`;
 
   // Swap candidates
   if (type !== 'off') {
@@ -2082,8 +2319,9 @@ function openDay(ds) {
       `<div style="font-size:13px; color:var(--text3)">No colleagues available</div>`;
   }
 
-  document.getElementById('dayModalBody').innerHTML = body;
-  document.getElementById('dayModal').classList.add('open');
+  document.getElementById('dayDetailBody').innerHTML = body;
+  document.getElementById('dayDetailScreen').style.display = 'block';
+  document.getElementById('dayDetailScreen').scrollTop = 0;
 }
 
 function setAssign(ds, val) {
@@ -2092,7 +2330,6 @@ function setAssign(ds, val) {
   else { delete APP.assignments[ds]; delete APP.assignDetails?.[ds]; }
   save();
   openDay(ds);
-  renderHome();
   renderCalendar();
 }
 
@@ -2400,6 +2637,7 @@ function initApp() {
   if (!APP.assignDetails) APP.assignDetails = {};
   renderHome();
   renderSettings();
+  setTimeout(() => { initModalSwipe(); }, 100);
 }
 
 // Boot
@@ -2415,10 +2653,9 @@ if (load() && APP.roster && APP.refDate) {
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-navigator.serviceWorker.addEventListener('message', e => {
-  if (e.data === 'RELOAD') location.reload();
-});
-
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data === 'RELOAD') location.reload();
+  });
 }
 </script>
 </body>
