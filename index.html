@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>CrewPSR</title>
 <meta name="description" content="Pescara Cabin Crew Roster App">
 <link rel="manifest" href="manifest.json">
@@ -44,12 +44,75 @@
   --radius:   14px;
 }
 
+/* ── DARK MODE ── */
+[data-theme="dark"] {
+  --bg:       #0f1117;
+  --bg2:      #161922;
+  --bg3:      #1c2030;
+  --surface:  #1e2235;
+  --blue:     #4d85f5;
+  --blue2:    #5b9cf6;
+  --blue-lt:  #1a2a44;
+  --sky:      #60a5fa;
+  --yellow:   #fbbf24;
+  --yellow-lt:#2a1f0a;
+  --green:    #34d399;
+  --green-lt: #0f2820;
+  --red:      #f87171;
+  --red-lt:   #2a0f0f;
+  --text:     #e8ecf4;
+  --text2:    #8892a4;
+  --text3:    #4a5568;
+  --border:   #2a3048;
+  --border2:  #3a4060;
+  --early:    #5b9cf6;
+  --early-lt: #1a2a44;
+  --late:     #a78bfa;
+  --late-lt:  #2a1f44;
+  --off:      #34d399;
+  --off-lt:   #0f2820;
+  --shadow:   0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow2:  0 4px 16px rgba(0,0,0,0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --bg:       #0f1117;
+    --bg2:      #161922;
+    --bg3:      #1c2030;
+    --surface:  #1e2235;
+    --blue:     #4d85f5;
+    --blue2:    #5b9cf6;
+    --blue-lt:  #1a2a44;
+    --sky:      #60a5fa;
+    --yellow:   #fbbf24;
+    --yellow-lt:#2a1f0a;
+    --green:    #34d399;
+    --green-lt: #0f2820;
+    --red:      #f87171;
+    --red-lt:   #2a0f0f;
+    --text:     #e8ecf4;
+    --text2:    #8892a4;
+    --text3:    #4a5568;
+    --border:   #2a3048;
+    --border2:  #3a4060;
+    --early:    #5b9cf6;
+    --early-lt: #1a2a44;
+    --late:     #a78bfa;
+    --late-lt:  #2a1f44;
+    --off:      #34d399;
+    --off-lt:   #0f2820;
+    --shadow:   0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    --shadow2:  0 4px 16px rgba(0,0,0,0.4);
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
 
 body {
-  background: #f0f4ff;
-  color: #0f172a;
+  background: var(--bg);
+  color: var(--text);
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   height: 100%;
   overflow: hidden;
@@ -173,6 +236,21 @@ body {
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(26,79,186,0.3);
   min-height: 120px;
+}
+
+[data-theme="dark"] .today-hero,
+[data-theme="system"] .today-hero {
+  background: linear-gradient(135deg, #1a2d5a 0%, #1e3a7a 60%, #2952a3 100%);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  border: 1px solid #2a3a5a;
+}
+
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] .today-hero {
+    background: linear-gradient(135deg, #1a4fba 0%, #2563eb 60%, #3b82f6 100%);
+    box-shadow: 0 4px 20px rgba(26,79,186,0.3);
+    border: none;
+  }
 }
 
 .today-hero::after {
@@ -397,11 +475,13 @@ body {
 
 .cal-day {
   aspect-ratio: 1;
+  min-height: unset;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 5px 2px 4px;
   cursor: pointer;
   gap: 2px;
   transition: transform 0.1s;
@@ -410,8 +490,28 @@ body {
 .cal-day:active { transform: scale(0.9); }
 .cal-day.empty { cursor: default; }
 
-.cal-day .dn { font-size: 13px; font-weight: 500; }
+.cal-day .dn { font-size: 13px; font-weight: 500; line-height: 1; }
 .cal-day .dd { width: 5px; height: 5px; border-radius: 50%; }
+.cal-day .dest {
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+  opacity: 0.85;
+  padding: 0 2px;
+}
+.cal-day .duty-icon {
+  font-size: 16px;
+  line-height: 1;
+  filter: grayscale(1);
+}
+.cal-day .off-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--off);
+  opacity: 0.7;
+}
 
 .cal-day.early { background: var(--early-lt); }
 .cal-day.late  { background: var(--late-lt); }
@@ -605,7 +705,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus { border-color: var(--blue); background: var(--surface); }
 input::placeholder, textarea::placeholder { color: var(--text3); }
-select option { background: white; }
+select option { background: var(--surface); color: var(--text); }
 
 .btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -888,6 +988,22 @@ select option { background: white; }
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── TOGGLE SWITCH ── */
+.toggle { position:relative; display:inline-block; width:44px; height:26px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; inset:0; cursor:pointer;
+  background:var(--border2); border-radius:26px; transition:0.2s;
+}
+.toggle-slider::before {
+  content:''; position:absolute;
+  width:20px; height:20px; left:3px; bottom:3px;
+  background:white; border-radius:50%; transition:0.2s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle input:checked + .toggle-slider { background:var(--blue); }
+.toggle input:checked + .toggle-slider::before { transform:translateX(18px); }
 </style>
 </head>
 <body>
@@ -1189,6 +1305,49 @@ select option { background: white; }
         <div><div class="setting-label" id="settingSchedVersion">—</div><div class="setting-sub">Current flight schedule version</div></div>
       </div>
     </div>
+    <div class="section-title">Appearance</div>
+    <div class="card">
+      <div class="setting-row" style="border:none">
+        <div><div class="setting-label">Theme</div><div class="setting-sub">App colour scheme</div></div>
+        <select id="themeSelect" onchange="setTheme(this.value)"
+          style="width:auto; margin-bottom:0; padding:7px 12px; font-size:13px; font-weight:600">
+          <option value="light">☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+          <option value="system">📱 System</option>
+        </select>
+      </div>
+    </div>
+    <div class="section-title">Notifications</div>
+    <div class="card" id="notifCard">
+      <div class="setting-row">
+        <div><div class="setting-label">Enable notifications</div><div class="setting-sub">Alerts for your duty day</div></div>
+        <label class="toggle"><input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="notifOptions" style="display:none">
+        <div class="setting-row">
+          <div><div class="setting-label">⏰ Report time</div><div class="setting-sub">45 min before first departure</div></div>
+          <label class="toggle"><input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">🛫 Departures</div><div class="setting-sub">Alert before each flight</div></div>
+          <select id="notifDep" onchange="setNotifPref('dep',this.value)"
+            style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
+            <option value="none">Off</option>
+            <option value="first">First only</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+        <div class="setting-row" style="border:none">
+          <div><div class="setting-label">🛬 Arrivals</div><div class="setting-sub">Alert at each landing</div></div>
+          <select id="notifArr" onchange="setNotifPref('arr',this.value)"
+            style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
+            <option value="none">Off</option>
+            <option value="last">Last only</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <div style="padding:8px 16px 16px">
       <button class="btn secondary" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset all data</button>
     </div>
@@ -1243,7 +1402,7 @@ select option { background: white; }
 
     <!-- Version -->
     <div style="text-align:center; font-size:11px; color:var(--text3); padding:4px 16px 8px">
-      CrewPSR · Pescara Cabin Crew · v1.5.1
+      CrewPSR · Pescara Cabin Crew · v1.5.2 beta
     </div>
 
     <!-- Tutorial content -->
@@ -1352,6 +1511,26 @@ select option { background: white; }
     </div>
   </div>
   <div id="dayDetailBody" style="padding:16px"></div>
+</div>
+
+<!-- CUSTOM FLIGHTS SCREEN -->
+<div id="customFlightsScreen" style="display:none; position:fixed; inset:0; background:var(--bg);
+     z-index:160; overflow-y:auto; padding-bottom:max(20px,env(safe-area-inset-bottom))">
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+              padding-top:max(14px,env(safe-area-inset-top));
+              background:var(--surface); border-bottom:1px solid var(--border);
+              position:sticky; top:0; z-index:10">
+    <button onclick="closeCustomFlights()"
+      style="display:flex; align-items:center; gap:6px; padding:8px 14px;
+             border-radius:10px; border:1.5px solid var(--border); background:var(--bg);
+             font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+             color:var(--text); cursor:pointer">
+      ← Close
+    </button>
+    <div style="font-size:16px; font-weight:700; color:var(--text)" id="customFlightsTitle"></div>
+    <div style="width:80px"></div>
+  </div>
+  <div id="customFlightsBody" style="padding:16px"></div>
 </div>
 
 <div class="modal-backdrop" id="pinModal" onclick="if(event.target===this)closeModal('pinModal')">
@@ -1645,7 +1824,13 @@ let APP = {
   refDate: null,
   pin: null,
   crew: {},
-  assignments: {},    // { "2026-04-15": "A1E"|"A2E"|"A1L"|"A2L"|"HSBY"|"AD" }
+  notif: {
+    enabled: false,
+    report: true,
+    dep: 'first',   // 'none' | 'first' | 'all'
+    arr: 'last',    // 'none' | 'last' | 'all'
+  },
+  customFlights: {},  // { '2026-04-15': [{from,to,dep,arr}] }
   assignDetails: {},  // { "2026-04-15": { start: "08:00", end: "16:00" } }
 };
 
@@ -2001,12 +2186,16 @@ function buildHomeSlides() {
 
     // Report time — no plane label
     let reportHtml = '';
-    if (assign && assign !== 'HSBY' && assign !== 'AD') {
+    if (assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM') {
       const useA2 = assign.startsWith('A2');
       const useLate = assign.endsWith('L');
       const plane = useA2 ? sched?.a2 : sched?.a1;
       const t = useLate ? plane?.reportLate : plane?.reportEarly;
       if (t) reportHtml = `<div class="report-time">🕐 Report ${t}</div>`;
+    } else if (assign === 'CUSTOM') {
+      const cfl = APP.customFlights?.[ds] || [];
+      const report = cfl.length ? calcReport(cfl) : null;
+      if (report && report !== '—') reportHtml = `<div class="report-time">🕐 Report ${report}</div>`;
     } else if (assign === 'HSBY') {
       const ts = detail?.start && detail?.end ? `${detail.start}–${detail.end}` : detail?.start ? `from ${detail.start}` : '';
       reportHtml = `<div class="report-time">🏠 Home Standby${ts ? ' · '+ts : ''}</div>`;
@@ -2022,13 +2211,25 @@ function buildHomeSlides() {
     // Flights
     let flightsHtml = '';
     let flightsTitle = '';
-    if (assign && assign !== 'HSBY' && assign !== 'AD' && sched) {
+    if (assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM' && sched) {
       flightsTitle = i === 0 ? "Today's Flights" : `${DOW[dow]}'s Flights`;
       const useA2 = assign.startsWith('A2');
       const useLate = assign.endsWith('L');
       const plane = useA2 ? sched.a2 : sched.a1;
       const flights = useLate ? plane.late : plane.early;
       flightsHtml = buildFlightBlock(flights, useA2 ? 'Aereo 2' : 'Aereo 1', useA2 ? 'a2' : 'a1');
+    } else if (assign === 'CUSTOM') {
+      const cfl = APP.customFlights?.[ds] || [];
+      if (cfl.length) {
+        flightsTitle = i === 0 ? "Today's Flights" : `${DOW[dow]}'s Flights`;
+        const rows = cfl.filter(f => f.from && f.to).map(f =>
+          `<div class="flight-row">
+            <div class="flight-route">${f.from}-${f.to}</div>
+            <div class="flight-times">${f.dep||'—'} → ${f.arr||'—'}</div>
+          </div>`
+        ).join('');
+        flightsHtml = `<div class="flight-block"><div class="flight-block-header"><span class="plane-badge a1">Custom</span></div>${rows}</div>`;
+      }
     }
 
     // Swap candidates (only on working days)
@@ -2166,25 +2367,50 @@ function renderCalendar() {
     const type = shiftType(day);
     const isToday = ds === todayStr;
     const assign = APP.assignments[ds];
-    const dotColor = assign
-      ? assign.startsWith('A1') ? 'var(--early)'
-      : assign.startsWith('A2') ? 'var(--late)'
-      : assign === 'HSBY' ? 'var(--yellow)' : 'var(--red)'
-      : 'transparent';
 
-    const assignIcon = assign
-      ? assign.startsWith('A1') || assign.startsWith('A2')
-        ? assign.endsWith('E') ? '☀️' : '🌙'
-        : assign === 'HSBY' ? '🏠' : '🏢'
-      : '';
+    const dow = new Date(ds).getDay();
+    const sched = SCHEDULE.days[dow];
+
+    // Build cell content based on assignment
+    let cellContent = '';
+    if (assign && (assign.startsWith('A1') || assign.startsWith('A2'))) {
+      const useA2 = assign.startsWith('A2');
+      const useLate = assign.endsWith('L');
+      const plane = useA2 ? sched?.a2 : sched?.a1;
+      const flights = useLate ? plane?.late : plane?.early;
+      const dests = flights
+        ? flights.filter(f => f.route.startsWith('PSR-'))
+                 .map(f => f.route.replace('PSR-',''))
+        : [];
+      cellContent = dests.length
+        ? dests.map(d => `<div class="dest">${d}</div>`).join('')
+        : '';
+    } else if (assign === 'CUSTOM') {
+      const cfl = APP.customFlights?.[ds] || [];
+      const dests = [...new Set(
+        cfl.filter(f => f.to && f.to !== 'PSR').map(f => f.to)
+      )];
+      cellContent = dests.length
+        ? dests.map(d => `<div class="dest">${d}</div>`).join('')
+        : `<div class="dest" style="font-size:10px">✏️</div>`;
+    } else if (assign === 'HSBY') {
+      cellContent = `<div class="duty-icon">☎️</div>`;
+    } else if (assign === 'AD') {
+      cellContent = `<div class="duty-icon">🏢</div>`;
+    } else if (type === 'off') {
+      cellContent = `<div class="off-label">OFF</div>`;
+    }
+
     const calType = assign
       ? assign.endsWith('E') ? 'early'
       : assign.endsWith('L') ? 'late'
+      : assign === 'CUSTOM' ? 'early'
       : type
       : type;
+
     html += `<div class="cal-day ${calType} ${isToday ? 'today-ring' : ''}" onclick="openDay('${ds}')">
       <div class="dn">${d}</div>
-      ${assignIcon ? `<div style="font-size:9px;line-height:1">${assignIcon}</div>` : `<div class="dd" style="background:transparent"></div>`}
+      ${cellContent}
     </div>`;
   }
 
@@ -2238,11 +2464,11 @@ function openDay(ds) {
   if (sched) {
     const options = [
       { id:'A1E', label:'Aereo 1 · Early', color:'var(--early)', report: sched.a1.reportEarly, flights: sched.a1.early },
-      { id:'A1L', label:'Aereo 1 · Late',  color:'var(--early)', report: sched.a1.reportLate,  flights: sched.a1.late  },
-      { id:'A2E', label:'Aereo 2 · Early', color:'var(--late)',  report: sched.a2.reportEarly, flights: sched.a2.early },
+      { id:'A1L', label:'Aereo 1 · Late',  color:'var(--late)',  report: sched.a1.reportLate,  flights: sched.a1.late  },
+      { id:'A2E', label:'Aereo 2 · Early', color:'var(--early)', report: sched.a2.reportEarly, flights: sched.a2.early },
       { id:'A2L', label:'Aereo 2 · Late',  color:'var(--late)',  report: sched.a2.reportLate,  flights: sched.a2.late  },
     ];
-    const selClass = { A1E:'selected-a1', A1L:'selected-a1', A2E:'selected-a2', A2L:'selected-a2' };
+    const selClass = { A1E:'selected-a1', A1L:'selected-a2', A2E:'selected-a1', A2L:'selected-a2' };
     options.forEach(opt => {
       const sel = assign === opt.id;
       body += `<div class="assign-option ${sel ? selClass[opt.id] : ''}" onclick="setAssign('${ds}','${opt.id}')">
@@ -2269,15 +2495,17 @@ function openDay(ds) {
     body += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; padding:0 2px">
       <div>
         <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">Start</div>
-        <input type="time" id="hsby_start" value="${hData?.start||''}"
-          style="margin-bottom:0; padding:10px 12px; font-size:14px"
-          onchange="saveDetail('${ds}','start',this.value)">
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="06:00"
+          value="${hData?.start||''}"
+          oninput="handleTimeInput(this,'${ds}',null,'start')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
       </div>
       <div>
         <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">End</div>
-        <input type="time" id="hsby_end" value="${hData?.end||''}"
-          style="margin-bottom:0; padding:10px 12px; font-size:14px"
-          onchange="saveDetail('${ds}','end',this.value)">
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="14:00"
+          value="${hData?.end||''}"
+          oninput="handleTimeInput(this,'${ds}',null,'end')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
       </div>
     </div>`;
   }
@@ -2291,16 +2519,41 @@ function openDay(ds) {
     body += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; padding:0 2px">
       <div>
         <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">Start</div>
-        <input type="time" id="ad_start" value="${hData?.start||''}"
-          style="margin-bottom:0; padding:10px 12px; font-size:14px"
-          onchange="saveDetail('${ds}','start',this.value)">
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="06:00"
+          value="${hData?.start||''}"
+          oninput="handleTimeInput(this,'${ds}',null,'start')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
       </div>
       <div>
         <div style="font-size:10px; color:var(--text3); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px">End</div>
-        <input type="time" id="ad_end" value="${hData?.end||''}"
-          style="margin-bottom:0; padding:10px 12px; font-size:14px"
-          onchange="saveDetail('${ds}','end',this.value)">
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="14:00"
+          value="${hData?.end||''}"
+          oninput="handleTimeInput(this,'${ds}',null,'end')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
       </div>
+    </div>`;
+  }
+
+  // Custom flight option
+  const cFlights = APP.customFlights?.[ds] || [];
+  const csel = assign === 'CUSTOM';
+  body += `<div class="assign-option ${csel ? 'selected-a1' : ''}" onclick="setAssign('${ds}','CUSTOM')">
+    <div>
+      <div class="assign-label" style="color:var(--blue)">✏️ Custom flights</div>
+      ${csel && cFlights.length > 0 ? `<div class="assign-flights">${cFlights.filter(f=>f.from&&f.to).map(f=>f.from+'-'+f.to).join(' · ')}</div>` : ''}
+    </div>
+    <div class="assign-check">${csel ? '✓' : ''}</div>
+  </div>`;
+
+  if (csel) {
+    const report = cFlights.length ? calcReport(cFlights) : null;
+    body += `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 2px">
+      ${report && report !== '—' ? `<div style="display:inline-flex; align-items:center; gap:6px; background:var(--blue-lt); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:600; color:var(--blue)">🕐 Report ${report}</div>` : '<div></div>'}
+      <button onclick="openCustomFlights('${ds}')"
+        style="padding:8px 16px; border-radius:10px; border:1.5px solid var(--blue); background:var(--blue-lt);
+               font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; color:var(--blue); cursor:pointer">
+        ${cFlights.length > 0 ? '✏️ Edit flights' : '+ Add flights'}
+      </button>
     </div>`;
   }
 
@@ -2327,10 +2580,153 @@ function openDay(ds) {
 function setAssign(ds, val) {
   if (!APP.assignments) APP.assignments = {};
   if (val) APP.assignments[ds] = val;
-  else { delete APP.assignments[ds]; delete APP.assignDetails?.[ds]; }
+  else {
+    delete APP.assignments[ds];
+    if (APP.customFlights) delete APP.customFlights[ds];
+    if (APP.assignDetails) delete APP.assignDetails[ds];
+  }
   save();
   openDay(ds);
   renderCalendar();
+  if (APP.notif?.enabled) scheduleAllNotifications();
+}
+
+function openCustomFlights(ds) {
+  const date = new Date(ds);
+  const dow = date.getDay();
+  document.getElementById('customFlightsTitle').textContent =
+    `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  renderCustomFlightsBody(ds);
+  document.getElementById('customFlightsScreen').style.display = 'block';
+  document.getElementById('customFlightsScreen').scrollTop = 0;
+}
+
+function closeCustomFlights() {
+  const screen = document.getElementById('customFlightsScreen');
+  // Get the ds from the current body
+  const ds = screen.getAttribute('data-ds');
+  screen.style.display = 'none';
+  if (ds) openDay(ds);
+}
+
+function renderCustomFlightsBody(ds) {
+  const screen = document.getElementById('customFlightsScreen');
+  screen.setAttribute('data-ds', ds);
+  const cFlights = APP.customFlights?.[ds] || [];
+  const report = cFlights.length ? calcReport(cFlights) : null;
+
+  let html = '';
+
+  if (report && report !== '—') {
+    html += `<div style="display:flex; align-items:center; gap:8px; background:var(--blue-lt);
+               border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:15px; font-weight:700; color:var(--blue)">
+      🕐 Report ${report}
+    </div>`;
+  }
+
+  cFlights.forEach((f, idx) => {
+    html += buildCustomFlightRow(ds, idx, f);
+  });
+
+  html += `<button class="btn secondary" style="margin-top:4px" onclick="addCustomFlight('${ds}')">+ Add leg</button>`;
+  if (cFlights.length > 0) {
+    html += `<button class="btn" style="margin-top:8px" onclick="closeCustomFlights()">✓ Done</button>`;
+  }
+
+  document.getElementById('customFlightsBody').innerHTML = html;
+}
+
+function buildCustomFlightRow(ds, idx, f) {
+  return `<div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; position:relative; box-shadow:var(--shadow)">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+      <div style="font-size:12px; font-weight:700; letter-spacing:1px; color:var(--text3); text-transform:uppercase">Leg ${idx+1}</div>
+      <button onclick="removeCustomFlight('${ds}',${idx})"
+        style="background:var(--red-lt); border:none; border-radius:8px; color:var(--red);
+               font-size:12px; font-weight:700; padding:4px 10px; cursor:pointer">Remove</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+      <div>
+        <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:4px; text-transform:uppercase">From</div>
+        <input type="text" maxlength="4" placeholder="PSR" value="${f.from||''}"
+          oninput="updateCustomFlight('${ds}',${idx},'from',this.value.toUpperCase()); this.value=this.value.toUpperCase()"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; letter-spacing:3px; text-align:center; text-transform:uppercase">
+      </div>
+      <div>
+        <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:4px; text-transform:uppercase">To</div>
+        <input type="text" maxlength="4" placeholder="FCO" value="${f.to||''}"
+          oninput="updateCustomFlight('${ds}',${idx},'to',this.value.toUpperCase()); this.value=this.value.toUpperCase()"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; letter-spacing:3px; text-align:center; text-transform:uppercase">
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+      <div>
+        <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:4px; text-transform:uppercase">Dep</div>
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="06:00" value="${f.dep||''}"
+          oninput="handleTimeInput(this,'${ds}',${idx},'dep')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
+      </div>
+      <div>
+        <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:4px; text-transform:uppercase">Arr</div>
+        <input type="text" inputmode="numeric" maxlength="5" placeholder="07:30" value="${f.arr||''}"
+          oninput="handleTimeInput(this,'${ds}',${idx},'arr')"
+          style="margin-bottom:0; font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; text-align:center; letter-spacing:2px">
+      </div>
+    </div>
+  </div>`;
+}
+
+function handleTimeInput(el, ds, idx, field) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
+  el.value = v;
+  if (v.length === 5) {
+    if (idx !== null) {
+      updateCustomFlight(ds, idx, field, v);
+    } else {
+      saveDetail(ds, field, v);
+    }
+  }
+}
+
+function calcReport(flights) {
+  const first = flights.find(f => f.dep);
+  if (!first) return '—';
+  const [h, m] = first.dep.split(':').map(Number);
+  let total = h * 60 + m - 45;
+  if (total < 0) total += 1440;
+  return String(Math.floor(total/60)).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
+}
+
+function addCustomFlight(ds) {
+  if (!APP.customFlights) APP.customFlights = {};
+  if (!APP.customFlights[ds]) APP.customFlights[ds] = [];
+  APP.customFlights[ds].push({from:'PSR', to:'', dep:'', arr:''});
+  save();
+  renderCustomFlightsBody(ds);
+}
+
+function removeCustomFlight(ds, idx) {
+  if (!APP.customFlights?.[ds]) return;
+  APP.customFlights[ds].splice(idx, 1);
+  if (APP.customFlights[ds].length === 0) delete APP.customFlights[ds];
+  save();
+  renderCustomFlightsBody(ds);
+}
+
+function updateCustomFlight(ds, idx, field, val) {
+  if (!APP.customFlights) APP.customFlights = {};
+  if (!APP.customFlights[ds]) APP.customFlights[ds] = [];
+  if (!APP.customFlights[ds][idx]) APP.customFlights[ds][idx] = {};
+  APP.customFlights[ds][idx][field] = val;
+  save();
+  // Refresh report pill if on custom screen
+  const screen = document.getElementById('customFlightsScreen');
+  if (screen && screen.style.display !== 'none') {
+    const cFlights = APP.customFlights[ds] || [];
+    const report = calcReport(cFlights);
+    const pill = screen.querySelector('[data-report]');
+    if (pill && report && report !== '—') pill.textContent = '🕐 Report ' + report;
+  }
 }
 
 function saveDetail(ds, field, val) {
@@ -2363,42 +2759,54 @@ function renderSchedContent() {
   const sched = SCHEDULE.days[d];
   if (!sched) { document.getElementById('schedContent').innerHTML = ''; return; }
 
-  const buildPlane = (plane, label) => {
-    const earlyFlights = plane.early.map(f =>
-      `<div class="seg-flight">
-        <div class="seg-route">${f.route}</div>
-        <div class="seg-times">${f.dep} → ${f.arr}</div>
-        ${f.note ? `<div class="seg-note">⚠️ ${f.note}</div>` : ''}
-      </div>`
-    ).join('');
+  const buildFlights = (flights) => flights.map(f =>
+    `<div class="seg-flight">
+      <div class="seg-route">${f.route}</div>
+      <div class="seg-times">${f.dep} → ${f.arr}</div>
+      ${f.note ? `<div class="seg-note">⚠️ ${f.note}</div>` : ''}
+    </div>`
+  ).join('');
 
-    const lateFlights = plane.late.map(f =>
-      `<div class="seg-flight">
-        <div class="seg-route">${f.route}</div>
-        <div class="seg-times">${f.dep} → ${f.arr}</div>
-        ${f.note ? `<div class="seg-note">⚠️ ${f.note}</div>` : ''}
-      </div>`
-    ).join('');
-
-    return `<div style="padding:12px 14px">
-      <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:4px">${label}</div>
-      <div class="seg-report"><span>☀️ Report</span><strong>${plane.reportEarly}</strong></div>
-      ${earlyFlights}
-      <div style="height:10px"></div>
-      <div class="seg-report"><span>🌙 Report</span><strong>${plane.reportLate}</strong></div>
-      ${lateFlights}
-    </div>`;
-  };
-
-  document.getElementById('schedContent').innerHTML = `
+  // Group by Early/Late, show Aereo 1 + Aereo 2 side-by-side within each
+  const earlyBlock = `
     <div class="flight-segment">
-      <div class="seg-header early">✈ Aereo 1</div>
-      ${buildPlane(sched.a1, '')}
-    </div>
-    <div class="flight-segment">
-      <div class="seg-header late">✈ Aereo 2</div>
-      ${buildPlane(sched.a2, '')}
+      <div class="seg-header early" style="font-size:14px; letter-spacing:0; padding:12px 14px">
+        ☀️ Early
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border)">
+        <div style="padding:10px 12px; border-right:1px solid var(--border)">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 1</div>
+          <div class="seg-report"><span>🕐</span><strong>${sched.a1.reportEarly}</strong></div>
+          ${buildFlights(sched.a1.early)}
+        </div>
+        <div style="padding:10px 12px">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 2</div>
+          <div class="seg-report"><span>🕐</span><strong>${sched.a2.reportEarly}</strong></div>
+          ${buildFlights(sched.a2.early)}
+        </div>
+      </div>
     </div>`;
+
+  const lateBlock = `
+    <div class="flight-segment">
+      <div class="seg-header late" style="font-size:14px; letter-spacing:0; padding:12px 14px">
+        🌙 Late
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border)">
+        <div style="padding:10px 12px; border-right:1px solid var(--border)">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 1</div>
+          <div class="seg-report"><span>🕐</span><strong>${sched.a1.reportLate}</strong></div>
+          ${buildFlights(sched.a1.late)}
+        </div>
+        <div style="padding:10px 12px">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 2</div>
+          <div class="seg-report"><span>🕐</span><strong>${sched.a2.reportLate}</strong></div>
+          ${buildFlights(sched.a2.late)}
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('schedContent').innerHTML = earlyBlock + lateBlock;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2574,10 +2982,166 @@ function importCrew() {
 // ══════════════════════════════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════════════════════════════
+function setNotifPref(key, val) {
+  if (!APP.notif) APP.notif = {};
+  if (key === 'enabled' && val) {
+    // Request permission first
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        APP.notif.enabled = true;
+        save();
+        renderSettings();
+        scheduleAllNotifications();
+      } else {
+        APP.notif.enabled = false;
+        save();
+        renderSettings();
+        alert('Please enable notifications for CrewPSR in your device settings.');
+      }
+    });
+    return;
+  }
+  APP.notif[key] = val;
+  if (key === 'enabled' && !val) {
+    // Cancel all scheduled notifications
+    cancelAllNotifications();
+  }
+  save();
+  renderSettings();
+  if (APP.notif.enabled) scheduleAllNotifications();
+}
+
+function scheduleAllNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  cancelAllNotifications();
+  // Schedule for today and next 7 days
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const ds = toDateStr(d);
+    const assign = APP.assignments[ds];
+    if (!assign) continue;
+    const dow = d.getDay();
+    const sched = SCHEDULE.days[dow];
+    scheduleNotificationsForDay(ds, assign, sched);
+  }
+}
+
+function scheduleNotificationsForDay(ds, assign, sched) {
+  const n = APP.notif || {};
+  let flights = [];
+
+  if (assign === 'CUSTOM') {
+    const cf = APP.customFlights?.[ds] || [];
+    flights = cf.filter(f => f.from && f.to && f.dep).map(f => ({
+      route: f.from + '-' + f.to, dep: f.dep, arr: f.arr
+    }));
+  } else if (assign.startsWith('A') && sched) {
+    const useA2 = assign.startsWith('A2');
+    const useLate = assign.endsWith('L');
+    const plane = useA2 ? sched.a2 : sched.a1;
+    flights = (useLate ? plane.late : plane.early) || [];
+  }
+
+  if (flights.length === 0) return;
+
+  const datePrefix = ds; // YYYY-MM-DD
+
+  // Report notification
+  if (n.report !== false) {
+    const firstDep = flights[0].dep;
+    if (firstDep) {
+      const reportTime = subtractMinutes(firstDep, 45);
+      scheduleAt(datePrefix, reportTime,
+        '⏰ Report time',
+        `Report ${reportTime} · ${flights.map(f => f.route).join(' · ')}`,
+        ds + '_report'
+      );
+    }
+  }
+
+  // Departure notifications
+  if (n.dep === 'first' && flights[0]?.dep) {
+    scheduleAt(datePrefix, flights[0].dep,
+      `🛫 ${flights[0].route}`,
+      `Departure ${flights[0].dep}`,
+      ds + '_dep0'
+    );
+  } else if (n.dep === 'all') {
+    flights.forEach((f, i) => {
+      if (f.dep) scheduleAt(datePrefix, f.dep, `🛫 ${f.route}`, `Departure ${f.dep}`, ds + '_dep' + i);
+    });
+  }
+
+  // Arrival notifications
+  if (n.arr === 'last' && flights[flights.length-1]?.arr) {
+    const last = flights[flights.length-1];
+    scheduleAt(datePrefix, last.arr, `🛬 ${last.route}`, `Arrived ${last.arr}`, ds + '_arr_last');
+  } else if (n.arr === 'all') {
+    flights.forEach((f, i) => {
+      if (f.arr) scheduleAt(datePrefix, f.arr, `🛬 ${f.route}`, `Arrived ${f.arr}`, ds + '_arr' + i);
+    });
+  }
+}
+
+function scheduleAt(dateStr, timeStr, title, body, id) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const target = new Date(y, mo - 1, d, h, m, 0);
+  const now = new Date();
+  const delay = target - now;
+  if (delay <= 0) return; // Already passed
+  const tid = setTimeout(() => {
+    if (Notification.permission === 'granted') {
+      new Notification('CrewPSR · ' + title, { body, icon: 'icon-192.png', tag: id });
+    }
+  }, delay);
+  // Store timeout id for cancellation
+  if (!window._notifTimers) window._notifTimers = {};
+  window._notifTimers[id] = tid;
+}
+
+function cancelAllNotifications() {
+  if (!window._notifTimers) return;
+  Object.values(window._notifTimers).forEach(tid => clearTimeout(tid));
+  window._notifTimers = {};
+}
+
+function subtractMinutes(timeStr, mins) {
+  const [h, m] = timeStr.split(':').map(Number);
+  let total = h * 60 + m - mins;
+  if (total < 0) total += 1440;
+  return String(Math.floor(total/60)).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
+}
+
+function setTheme(t) {
+  APP.theme = t;
+  save();
+  applyTheme();
+  renderSettings();
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', APP.theme || 'system');
+}
+
 function renderSettings() {
   document.getElementById('settingRoster').textContent = APP.roster ? `Roster ${APP.roster}` : '—';
   document.getElementById('settingDate').textContent = APP.refDate || '—';
   document.getElementById('settingSchedVersion').textContent = `${SCHEDULE.version} · ${SCHEDULE.period}`;
+  const sel = document.getElementById('themeSelect');
+  if (sel) sel.value = APP.theme || 'system';
+  // Notifications
+  const n = APP.notif || {};
+  const enabled = document.getElementById('notifEnabled');
+  if (enabled) {
+    enabled.checked = !!n.enabled;
+    document.getElementById('notifOptions').style.display = n.enabled ? 'block' : 'none';
+    document.getElementById('notifReport').checked = n.report !== false;
+    document.getElementById('notifDep').value = n.dep || 'first';
+    document.getElementById('notifArr').value = n.arr || 'last';
+  }
 }
 
 function changeSetting(type) {
@@ -2635,9 +3199,12 @@ function initApp() {
   }
   if (!APP.assignments) APP.assignments = {};
   if (!APP.assignDetails) APP.assignDetails = {};
+  if (!APP.customFlights) APP.customFlights = {};
+  if (!APP.notif) APP.notif = { enabled: false, report: true, dep: 'first', arr: 'last' };
+  applyTheme();
   renderHome();
   renderSettings();
-  setTimeout(() => { initModalSwipe(); }, 100);
+  setTimeout(() => { initModalSwipe(); if (APP.notif?.enabled) scheduleAllNotifications(); }, 100);
 }
 
 // Boot
@@ -2657,6 +3224,20 @@ if ('serviceWorker' in navigator) {
     if (e.data === 'RELOAD') location.reload();
   });
 }
+
+// Apply theme immediately to avoid flash
+(function() {
+  try {
+    const saved = localStorage.getItem('crewpsr_v1');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.theme) document.documentElement.setAttribute('data-theme', d.theme);
+    }
+  } catch(e) {}
+  if (!document.documentElement.getAttribute('data-theme')) {
+    document.documentElement.setAttribute('data-theme', 'system');
+  }
+})();
 </script>
 </body>
 </html>
