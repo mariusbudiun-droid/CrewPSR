@@ -2404,7 +2404,20 @@ function renderCalendar() {
     const calType = assign
       ? assign.endsWith('E') ? 'early'
       : assign.endsWith('L') ? 'late'
-      : assign === 'CUSTOM' ? 'early'
+      : assign === 'CUSTOM' ? (() => {
+          const cfl = APP.customFlights?.[ds] || [];
+          const withTimes = cfl.filter(f => f.dep && f.arr);
+          if (!withTimes.length) return 'early';
+          // Find first dep and last arr
+          const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+          const start = toMins(withTimes[0].dep);
+          const end   = toMins(withTimes[withTimes.length-1].arr);
+          const noon  = 12 * 60;
+          // Minutes before and after noon within duty window
+          const beforeNoon = Math.max(0, Math.min(noon, end) - start);
+          const afterNoon  = Math.max(0, end - Math.max(noon, start));
+          return afterNoon > beforeNoon ? 'late' : 'early';
+        })()
       : type
       : type;
 
