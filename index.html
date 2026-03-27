@@ -2099,13 +2099,25 @@ function checkForUpdates() {
     return;
   }
 
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
-    setTimeout(() => location.reload(), 2000);
-  } else {
-    location.reload();
-  }
+  fetch(location.href, { method: 'HEAD', cache: 'no-store' })
+    .then(res => {
+      if (!res.ok) throw new Error('Server unreachable');
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
+        setTimeout(() => location.reload(), 2000);
+      } else {
+        location.reload();
+      }
+    })
+    .catch(() => {
+      btn.innerHTML = '🔄 Check for updates';
+      btn.disabled = false;
+      msg.textContent = '⚠️ Cannot reach server. Check your connection and try again.';
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    });
 }
+
 
 function shareApp() {
   if (navigator.share) {
