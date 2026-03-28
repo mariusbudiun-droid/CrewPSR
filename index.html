@@ -2150,15 +2150,19 @@ function checkForUpdates() {
   if (!navigator.onLine) {
     btn.innerHTML = '🔄 Check for updates';
     btn.disabled = false;
-    msg.textContent = '⚠️ No internet connection. Try again when online.';
+    msg.textContent = '✈️ Sei offline — sei già alla versione più recente installata!';
     msg.style.color = 'var(--yellow)';
     msg.style.display = 'block';
     return;
   }
 
-  fetch(location.href, { method: 'HEAD', cache: 'no-store' })
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  fetch(location.href, { method: 'HEAD', cache: 'no-store', signal: controller.signal })
     .then(res => {
-      if (!res.ok) throw new Error('Server unreachable');
+      clearTimeout(timeout);
+      if (!res || !res.ok) throw new Error('null or bad response');
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
         setTimeout(() => location.reload(), 2000);
@@ -2166,14 +2170,19 @@ function checkForUpdates() {
         location.reload();
       }
     })
-    .catch(() => {
+    .catch(err => {
+      clearTimeout(timeout);
       btn.innerHTML = '🔄 Check for updates';
       btn.disabled = false;
-      msg.textContent = '⚠️ Cannot reach server. Check your connection and try again.';
-      msg.style.color = 'var(--red)';
+      const isOffline = err.name === 'AbortError' || !navigator.onLine;
+      msg.textContent = isOffline
+        ? '✈️ Sei offline — sei già alla versione più recente installata!'
+        : '⚠️ Impossibile raggiungere il server. Riprova quando sei connesso.';
+      msg.style.color = 'var(--yellow)';
       msg.style.display = 'block';
     });
 }
+
 
 
 function shareApp() {
