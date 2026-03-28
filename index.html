@@ -1875,7 +1875,7 @@ function cycleDay(rosterNum, dateStr) {
   const ref = new Date(APP.refDate); ref.setHours(0,0,0,0);
   const d   = new Date(dateStr);     d.setHours(0,0,0,0);
   const diff = Math.round((d - ref) / 86400000);
-  const offset = rosterNum - APP.roster;
+  const offset = APP.roster - rosterNum;
   return ((diff + offset) % 16 + 16) % 16 + 1;
 }
 
