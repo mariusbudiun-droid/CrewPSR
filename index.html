@@ -393,6 +393,11 @@ body {
   animation: fadeUp 0.2s ease forwards;
 }
 
+.swap-card.maybe {
+  border-left: 3px dashed var(--yellow);
+  opacity: 0.85;
+}
+
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(5px); }
   to   { opacity:1; transform:translateY(0); }
@@ -1924,8 +1929,12 @@ function swapCandidates(myRoster, myDay) {
   const N = isEarly ? myDay : myDay - 8;
   const r1 = isEarly ? mod16(myRoster + 8 + N)  : mod16(myRoster + N);
   const r2 = isEarly ? mod16(myRoster + 10 + N) : mod16(myRoster + 2 + N);
-  return [r1, r2].filter(r => r !== myRoster).map(r => ({ roster: r }));
+  const r3 = isEarly ? mod16(r1 + 8) : mod16(r2 + 8);
+  const certain = [r1, r2].filter(r => r !== myRoster).map(r => ({ roster: r, certain: true }));
+  const maybe   = [r3].filter(r => r !== myRoster && r !== r1 && r !== r2).map(r => ({ roster: r, certain: false }));
+  return [...certain, ...maybe];
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // SETUP
@@ -2457,7 +2466,7 @@ function buildSwapCard(c) {
       }).join('')
     : `<div class="swap-codes empty">No crew codes yet</div>`;
 
-  return `<div class="swap-card">
+    return `<div class="swap-card${c.certain === false ? ' maybe' : ''}">
     <div class="swap-roster-badge">
       <span class="srb-label">Roster</span>
       <span class="srb-num">${c.roster}</span>
