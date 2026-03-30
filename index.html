@@ -1143,9 +1143,8 @@ select option { background: var(--surface); color: var(--text); }
   <div class="screen" id="screen-schedule">
     <div style="padding:16px 16px 8px">
       <div style="font-size:22px; font-weight:800; color:var(--text)">Flight Schedule</div>
-      <div style="font-size:13px; color:var(--text2); margin-top:2px">Pescara · PSR</div>
+           <div style="font-size:13px; color:var(--text2); margin-top:2px; display:flex; align-items:center; gap:8px;">Pescara · PSR <span id="schedVersion"></span></div>
     </div>
-    <div class="version-badge" id="schedVersion"></div>
     <div style="padding:0 16px 12px">
       <select id="schedDaySelect" onchange="setSchedDay(parseInt(this.value))" style="margin-bottom:0">
         <option value="1">Monday</option>
