@@ -3557,13 +3557,8 @@ async function handleRosterPDF(input) {
   try {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const arrayBuffer = await new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = e => resolve(e.target.result);
-  reader.onerror = reject;
-  reader.readAsArrayBuffer(file);
-});
-const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+const arrayBuffer = await file.arrayBuffer();
+const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
 const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
 const pdf = await loadingTask.promise;
