@@ -1021,6 +1021,68 @@ select option { background: var(--surface); color: var(--text); }
 .toggle input:checked + .toggle-slider { background:var(--blue); }
 .toggle input:checked + .toggle-slider::before { transform:translateX(18px); }
 </style>
+  <!-- PDF.js per importazione roster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  .roster-import-btn {
+    display: flex; align-items: center; gap: 8px;
+    margin: 16px auto 0; padding: 12px 20px;
+    background: #f0f9ff; border: 1.5px dashed #0ea5e9;
+    border-radius: 10px; color: #0369a1;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    width: 100%; max-width: 400px; justify-content: center;
+    transition: background 0.2s;
+  }
+  .roster-import-btn:hover { background: #e0f2fe; }
+  #roster-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 9999;
+    align-items: flex-end; justify-content: center;
+  }
+  #roster-modal-overlay.active { display: flex; }
+  #roster-modal {
+    background: #fff; border-radius: 16px 16px 0 0;
+    width: 100%; max-width: 480px; max-height: 80vh;
+    overflow-y: auto; padding: 20px;
+  }
+  #roster-modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  #roster-modal .subtitle { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+  .roster-day-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .roster-day-date { font-weight: 600; font-size: 14px; min-width: 90px; }
+  .roster-day-type {
+    font-size: 12px; padding: 2px 8px; border-radius: 20px;
+    background: #e0f2fe; color: #0369a1; font-weight: 500;
+  }
+  .roster-day-type.off { background: #f1f5f9; color: #64748b; }
+  .roster-day-type.hsby { background: #fef9c3; color: #854d0e; }
+  .roster-combo-select {
+    flex: 1; font-size: 13px; padding: 4px 8px;
+    border: 1px solid #e2e8f0; border-radius: 6px;
+    background: #f8fafc; color: #1e293b;
+  }
+  .roster-modal-actions {
+    display: flex; gap: 10px; margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .roster-btn-cancel {
+    flex: 1; padding: 12px; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; font-size: 15px; cursor: pointer;
+    background: #fff; color: #475569;
+  }
+  .roster-btn-save {
+    flex: 2; padding: 12px; border: none;
+    border-radius: 10px; font-size: 15px; font-weight: 600;
+    cursor: pointer; background: #0ea5e9; color: #fff;
+  }
+  .roster-btn-save:hover { background: #0284c7; }
+  .roster-loading {
+    text-align: center; padding: 30px;
+    color: #64748b; font-size: 14px;
+  }
+</style>
 </head>
 <body>
 
@@ -1131,6 +1193,25 @@ select option { background: var(--surface); color: var(--text); }
       </div>
     </div>
     <div class="cal-grid" id="calGrid"></div>
+
+<!-- IMPORTA ROSTER PDF -->
+<button class="roster-import-btn" onclick="document.getElementById('roster-pdf-input').click()">
+  📥 Importa Roster PDF
+</button>
+<input type="file" id="roster-pdf-input" accept=".pdf" style="display:none" onchange="handleRosterPDF(this)">
+
+<!-- MODAL ANTEPRIMA -->
+<div id="roster-modal-overlay">
+  <div id="roster-modal">
+    <h3>Anteprima Roster</h3>
+    <p class="subtitle">Controlla i giorni trovati, poi tocca Salva</p>
+    <div id="roster-days-list"></div>
+    <div class="roster-modal-actions">
+      <button class="roster-btn-cancel" onclick="closeRosterModal()">Annulla</button>
+      <button class="roster-btn-save" onclick="saveRosterToCalendar()">✓ Salva nel calendario</button>
+    </div>
+  </div>
+</div>
     <div style="display:flex; gap:12px; flex-wrap:wrap; padding:10px 16px 6px">
       <span style="font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--early-lt);display:inline-block"></span> Early</span>
       <span style="font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--late-lt);display:inline-block"></span> Late</span>
@@ -1417,7 +1498,7 @@ select option { background: var(--surface); color: var(--text); }
 
     <!-- Version -->
     <div style="text-align:center; font-size:11px; color:var(--text3); padding:4px 16px 8px">
-      CrewPSR · Pescara Cabin Crew · v1.6.5 beta
+      CrewPSR · Pescara Cabin Crew · v1.7.1 beta
     </div>
 
     <!-- Tutorial content -->
@@ -3456,6 +3537,229 @@ if ('serviceWorker' in navigator) {
     document.documentElement.setAttribute('data-theme', 'system');
   }
 })();
+</script>
+<script>
+// ============================================================
+// IMPORTAZIONE ROSTER PDF
+// ============================================================
+let parsedRosterDays = [];
+
+async function handleRosterPDF(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const modal = document.getElementById('roster-modal-overlay');
+  const list = document.getElementById('roster-days-list');
+  list.innerHTML = '<div class="roster-loading">📄 Analisi PDF in corso...</div>';
+  modal.classList.add('active');
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(' ') + '\n';
+    }
+
+    parsedRosterDays = parseRosterText(fullText);
+
+    if (parsedRosterDays.length === 0) {
+      list.innerHTML = '<div class="roster-loading">⚠️ Nessun giorno trovato. Assicurati di usare il PDF da "Print Roster" di Ryanair Connect.</div>';
+      return;
+    }
+
+    renderRosterPreview(parsedRosterDays, list);
+
+  } catch (err) {
+    list.innerHTML = `<div class="roster-loading">❌ Errore nella lettura del PDF.<br><small>${err.message}</small></div>`;
+  }
+}
+
+function parseRosterText(text) {
+  const days = [];
+  // Mappa mesi italiani/inglesi
+  const monthMap = {
+    'gen':0,'feb':1,'mar':2,'apr':3,'mag':4,'giu':5,
+    'lug':6,'ago':7,'set':8,'ott':9,'nov':10,'dic':11,
+    'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,
+    'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11
+  };
+
+  // Pattern per righe con data (es: "Lun 31 Mar" o "Mon 31 Mar")
+  const lines = text.split(/\n|\r/);
+  const currentYear = new Date().getFullYear();
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Cerca pattern data: giorno_settimana numero mese
+    const dateMatch = trimmed.match(
+      /(?:lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)[.,]?\s*(\d{1,2})\s+([a-z]{3})/i
+    );
+    if (!dateMatch) continue;
+
+    const dayNum = parseInt(dateMatch[1]);
+    const monthStr = dateMatch[2].toLowerCase();
+    const monthNum = monthMap[monthStr];
+    if (monthNum === undefined) continue;
+
+    const dateObj = new Date(currentYear, monthNum, dayNum);
+    const dateKey = `${currentYear}-${String(monthNum+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+
+    // Determina tipo giorno
+    let dayType = 'volo';
+    let reportTime = null;
+
+    const upperLine = trimmed.toUpperCase();
+
+    if (/\bOFF\b/.test(upperLine)) {
+      dayType = 'off';
+    } else if (/\bHSBY\b|\bHOME\s*STANDBY\b/.test(upperLine)) {
+      dayType = 'hsby';
+    } else if (/\bAD\b|\bAIRPORT\s*DUTY\b|\bSBY\b|\bSTANDBY\b/.test(upperLine)) {
+      dayType = 'hsby';
+    } else {
+      // Cerca report time (formato HH:MM)
+      const repMatch = trimmed.match(/(\d{2}:\d{2})\s*(?:REP|RPT|REPORT)/i)
+                    || trimmed.match(/REP[.\s]*(\d{2}:\d{2})/i);
+      if (repMatch) reportTime = repMatch[1];
+    }
+
+    // Estrai rotte dal testo della riga (es: PSR-CRL)
+    const routes = [];
+    const routeMatches = [...trimmed.matchAll(/([A-Z]{3})[\/\-]([A-Z]{3})/g)];
+    for (const rm of routeMatches) {
+      routes.push({ from: rm[1], to: rm[2] });
+    }
+
+    days.push({ dateKey, dateObj, dayType, reportTime, routes, rawLine: trimmed });
+  }
+
+  return days;
+}
+
+function renderRosterPreview(days, container) {
+  // Prendi le combinazioni dall'app (variabile globale)
+  const combos = (typeof combinations !== 'undefined') ? combinations : [];
+
+  let html = '';
+  days.forEach((day, idx) => {
+    const dateLabel = day.dateObj.toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' });
+    const typeBadgeClass = day.dayType === 'off' ? 'off' : day.dayType === 'hsby' ? 'hsby' : '';
+    const typeLabel = day.dayType === 'off' ? 'OFF' : day.dayType === 'hsby' ? 'HSBY' : 'VOLO';
+
+    let comboSelect = '';
+    if (day.dayType === 'volo') {
+      // Prova match automatico
+      const bestMatch = findBestComboMatch(day, combos);
+      comboSelect = `<select class="roster-combo-select" id="combo-select-${idx}">
+        <option value="">-- Nessuna --</option>
+        ${combos.map(c => `<option value="${c.id}" ${bestMatch && bestMatch.id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+      </select>`;
+    }
+
+    html += `
+      <div class="roster-day-row">
+        <span class="roster-day-date">${dateLabel}</span>
+        <span class="roster-day-type ${typeBadgeClass}">${typeLabel}</span>
+        ${comboSelect}
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function findBestComboMatch(day, combos) {
+  if (!combos || combos.length === 0) return null;
+
+  // Match per report time + rotte
+  for (const combo of combos) {
+    let score = 0;
+
+    // Match report time
+    if (day.reportTime && combo.reportTime) {
+      const rt = combo.reportTime.replace(/\s/g,'');
+      if (rt === day.reportTime) score += 3;
+    }
+
+    // Match rotte
+    if (day.routes && day.routes.length > 0 && combo.segments && combo.segments.length > 0) {
+      let routeMatches = 0;
+      day.routes.forEach(r => {
+        const found = combo.segments.some(s =>
+          s.from === r.from && s.to === r.to
+        );
+        if (found) routeMatches++;
+      });
+      if (routeMatches === day.routes.length && routeMatches > 0) score += 5;
+      else if (routeMatches > 0) score += 2;
+    }
+
+    combo._matchScore = score;
+  }
+
+  const best = combos.filter(c => c._matchScore > 0).sort((a,b) => b._matchScore - a._matchScore)[0];
+  combos.forEach(c => delete c._matchScore);
+  return best || null;
+}
+
+function saveRosterToCalendar() {
+  let saved = 0;
+
+  parsedRosterDays.forEach((day, idx) => {
+    if (day.dayType === 'off') {
+      // Salva giorno OFF
+      if (typeof calendarData !== 'undefined') {
+        calendarData[day.dateKey] = { type: 'off', combinationId: null, notes: '' };
+        saved++;
+      }
+    } else if (day.dayType === 'hsby') {
+      // Salva HSBY
+      if (typeof calendarData !== 'undefined') {
+        calendarData[day.dateKey] = { type: 'hsby', combinationId: null, notes: '' };
+        saved++;
+      }
+    } else {
+      // Salva VOLO con combinazione selezionata
+      const sel = document.getElementById(`combo-select-${idx}`);
+      const comboId = sel ? sel.value : '';
+      if (typeof calendarData !== 'undefined') {
+        calendarData[day.dateKey] = {
+          type: 'volo',
+          combinationId: comboId || null,
+          notes: ''
+        };
+        saved++;
+      }
+    }
+  });
+
+  closeRosterModal();
+
+  // Aggiorna il calendario a schermo se esiste la funzione
+  if (typeof renderCalendar === 'function') renderCalendar();
+  else if (typeof updateCalendar === 'function') updateCalendar();
+  else if (typeof refreshCalendar === 'function') refreshCalendar();
+
+  alert(`✅ ${saved} giorni salvati nel calendario!`);
+}
+
+function closeRosterModal() {
+  document.getElementById('roster-modal-overlay').classList.remove('active');
+  parsedRosterDays = [];
+}
+
+// Chiudi modal toccando fuori
+document.getElementById('roster-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeRosterModal();
+});
 </script>
 </body>
 </html>
