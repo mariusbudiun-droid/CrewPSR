@@ -198,9 +198,23 @@ async function readPdfAndImport(file) {
       if (rowText.trim()) fullText += rowText.trim() + '\n';
     }
 
+    // MOSTRA IL TESTO ESTRATTO
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'position:fixed;inset:0;z-index:999;background:white;color:black;font-size:11px;padding:16px;overflow:auto;white-space:pre-wrap';
+    pre.textContent = fullText;
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Close';
+    closeBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1000;padding:8px 14px;background:red;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700';
+    closeBtn.onclick = () => { pre.remove(); closeBtn.remove(); };
+    document.body.appendChild(pre);
+    document.body.appendChild(closeBtn);
+
+  } catch(err) {
+    if (msgEl) { msgEl.textContent = '❌ ' + err.message; msgEl.style.color='var(--red)'; msgEl.style.display='block'; }
+  }
+}
+
     const parsed = parseRosterText(fullText);
-    console.log('--- FULL TEXT ---');
-console.log(fullText);
     const keys = Object.keys(parsed);
 
     if (keys.length === 0) {
