@@ -1846,4 +1846,3 @@ if (load() && APP.roster && APP.refDate) {
 } else {
   document.getElementById('setupDate').value = new Date().toISOString().split('T')[0];
 }
-</script>
