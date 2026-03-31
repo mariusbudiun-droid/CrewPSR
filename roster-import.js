@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════════
-// ROSTER IMPORT — Ryanair Connect PDF parser
-// Requires PDF.js loaded via CDN in index.html
+// ROSTER IMPORT — Ryanair Connect PDF + Screenshot OCR
+// Requires PDF.js + Tesseract.js loaded via CDN in index.html
 // ══════════════════════════════════════════════════════════════
 
 // Italy DST: +2 (last Sun Mar → last Sun Oct), else +1
@@ -155,70 +155,100 @@ function parseRosterText(text) {
 function triggerRosterImport() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = 'application/pdf';
-  input.onchange = e => {
+  input.accept = 'image/*,application/pdf,text/plain';
+  input.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     showImportLoading();
-    readPdfAndImport(file);
+
+    try {
+      let text = '';
+
+      if (file.type === 'application/pdf') {
+        text = await readPdfText(file);
+      } else if (file.type.startsWith('image/')) {
+        showImportLoading('Reading screenshot with OCR...');
+        const { data: { text: ocrText } } = await Tesseract.recognize(file, 'eng+ita', {
+          logger: m => {
+            const msgEl = document.getElementById('rosterImportMsg');
+            if (!msgEl) return;
+            if (m.status === 'recognizing text') {
+              msgEl.textContent = `⏳ OCR ${Math.round(m.progress * 100)}%`;
+              msgEl.style.color = 'var(--text2)';
+              msgEl.style.display = 'block';
+            }
+          }
+        });
+        text = ocrText;
+        console.log('OCR extracted:', text.substring(0, 500));
+      } else if (file.type === 'text/plain') {
+        text = await file.text();
+      } else {
+        showImportError('Unsupported file type.');
+        return;
+      }
+
+      const parsed = parseRosterText(text);
+
+      if (Object.keys(parsed).length > 0) {
+        showImportPreview(parsed);
+      } else {
+        showImportError('No roster data found. Try a clearer screenshot or the Ryanair Connect PDF.');
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      showImportError('Error processing file: ' + (err.message || 'Unknown error'));
+    }
   };
   input.click();
 }
 
-function showImportLoading() {
-  const el = document.getElementById('rosterImportMsg');
-  if (el) { el.textContent = '⏳ Reading PDF...'; el.style.display = 'block'; }
+async function readPdfText(file) {
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  let fullText = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    let lastY = null;
+    let rowText = '';
+
+    for (const item of content.items) {
+      const y = Math.round(item.transform[5]);
+      if (lastY !== null && y !== lastY) {
+        fullText += rowText.trim() + '\n';
+        rowText = '';
+      }
+      rowText += item.str + ' ';
+      lastY = y;
+    }
+
+    if (rowText.trim()) fullText += rowText.trim() + '\n';
+  }
+
+  return fullText;
 }
 
-async function readPdfAndImport(file) {
-  const msgEl = document.getElementById('rosterImportMsg');
-  try {
-    const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+function showImportLoading(msg = 'Processing file...') {
+  const el = document.getElementById('rosterImportMsg');
+  if (el) {
+    el.textContent = `⏳ ${msg}`;
+    el.style.color = 'var(--text2)';
+    el.style.display = 'block';
+  }
+}
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    let fullText = '';
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      let lastY = null;
-      let rowText = '';
-      for (const item of content.items) {
-        const y = Math.round(item.transform[5]);
-        if (lastY !== null && y !== lastY) {
-          fullText += rowText.trim() + '\n';
-          rowText = '';
-        }
-        rowText += item.str + ' ';
-        lastY = y;
-      }
-      if (rowText.trim()) fullText += rowText.trim() + '\n';
-    }
-
-const parsed = parseRosterText(fullText);
-    const keys = Object.keys(parsed);
-
-    if (keys.length === 0) {
-      if (msgEl) {
-        msgEl.textContent = '❌ No duties found. Make sure it\'s a Ryanair Connect roster PDF.';
-        msgEl.style.color = 'var(--red)';
-        msgEl.style.display = 'block';
-      }
-      return;
-    }
-
-    showImportPreview(parsed);
-
-  } catch(err) {
-    console.error('PDF import error:', err);
-    if (msgEl) {
-      msgEl.textContent = '❌ Could not read PDF. ' + (err.message || '');
-      msgEl.style.color = 'var(--red)';
-      msgEl.style.display = 'block';
-    }
+function showImportError(msg) {
+  const el = document.getElementById('rosterImportMsg');
+  if (el) {
+    el.textContent = `❌ ${msg}`;
+    el.style.color = 'var(--red)';
+    el.style.display = 'block';
   }
 }
 
@@ -234,8 +264,7 @@ function showImportPreview(parsed) {
                   padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top));
                   background:var(--surface);border-bottom:1px solid var(--border);
                   position:sticky;top:0;z-index:10">
-        <button onclick="document.getElementById('importPreviewScreen').remove();
-                         document.getElementById('rosterImportMsg').style.display='none'"
+        <button onclick="closeImportPreview()"
           style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);
                  background:var(--bg);font-family:'Outfit',sans-serif;font-size:14px;
                  font-weight:600;color:var(--text);cursor:pointer">✕ Cancel</button>
@@ -246,7 +275,7 @@ function showImportPreview(parsed) {
                  color:white;cursor:pointer">✅ Import</button>
       </div>
       <div style="padding:12px 16px 6px;font-size:12px;color:var(--text3)">
-        ${keys.length} days found · Times converted to Italian time (UTC+2)
+        ${keys.length} days found · Times converted to Italian time
       </div>`;
 
   for (const ds of keys) {
@@ -261,22 +290,27 @@ function showImportPreview(parsed) {
 
     if (entry.duty === 'OFF') {
       dutyHtml = `<span style="color:var(--off);font-weight:700">🌿 Day Off</span>`;
-      bg = 'var(--off-lt)'; borderColor = 'var(--off)';
+      bg = 'var(--off-lt)';
+      borderColor = 'var(--off)';
     } else if (entry.duty === 'HSBY') {
       dutyHtml = `<span style="color:var(--yellow);font-weight:700">☎️ HSBY</span>
-        <span style="font-size:12px;color:var(--text2);margin-left:8px">${entry.start||''}–${entry.end||''}</span>`;
-      bg = 'var(--yellow-lt)'; borderColor = 'var(--yellow)';
+        <span style="font-size:12px;color:var(--text2);margin-left:8px">${entry.start || ''}–${entry.end || ''}</span>`;
+      bg = 'var(--yellow-lt)';
+      borderColor = 'var(--yellow)';
     } else if (entry.duty === 'AD') {
       dutyHtml = `<span style="color:var(--red);font-weight:700">🏢 Airport Duty</span>
-        <span style="font-size:12px;color:var(--text2);margin-left:8px">${entry.start||''}–${entry.end||''}</span>`;
-      bg = 'var(--red-lt)'; borderColor = 'var(--red)';
+        <span style="font-size:12px;color:var(--text2);margin-left:8px">${entry.start || ''}–${entry.end || ''}</span>`;
+      bg = 'var(--red-lt)';
+      borderColor = 'var(--red)';
     } else if (entry.duty === 'CUSTOM') {
-      const routes = entry.flights.map(f =>
-        `<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)">
+      const routes = entry.flights.map(f => `
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)">
           ${f.from}-${f.to} &nbsp; ${f.dep}→${f.arr}
-        </div>`).join('');
+        </div>
+      `).join('');
       dutyHtml = `<span style="color:var(--blue);font-weight:700">✈️ Flights</span>${routes}`;
-      bg = 'var(--early-lt)'; borderColor = 'var(--early)';
+      bg = 'var(--early-lt)';
+      borderColor = 'var(--early)';
     }
 
     html += `
@@ -305,11 +339,21 @@ function showImportPreview(parsed) {
   if (msgEl) msgEl.style.display = 'none';
 }
 
+function closeImportPreview() {
+  const screen = document.getElementById('importPreviewScreen');
+  if (screen) screen.remove();
+
+  const msgEl = document.getElementById('rosterImportMsg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  window._pendingImport = null;
+}
+
 function confirmRosterImport() {
   const parsed = window._pendingImport;
   if (!parsed) return;
 
-  if (!APP.assignments)   APP.assignments   = {};
+  if (!APP.assignments) APP.assignments = {};
   if (!APP.customFlights) APP.customFlights = {};
   if (!APP.assignDetails) APP.assignDetails = {};
 
@@ -317,23 +361,24 @@ function confirmRosterImport() {
     if (entry.duty === 'OFF') {
       delete APP.assignments[ds];
       delete APP.customFlights[ds];
+      delete APP.assignDetails[ds];
     } else if (entry.duty === 'HSBY') {
       APP.assignments[ds] = 'HSBY';
       APP.assignDetails[ds] = { start: entry.start, end: entry.end };
+      delete APP.customFlights[ds];
     } else if (entry.duty === 'AD') {
       APP.assignments[ds] = 'AD';
       APP.assignDetails[ds] = { start: entry.start, end: entry.end };
+      delete APP.customFlights[ds];
     } else if (entry.duty === 'CUSTOM') {
       APP.assignments[ds] = 'CUSTOM';
       APP.customFlights[ds] = entry.flights;
+      delete APP.assignDetails[ds];
     }
   }
 
   save();
-
-  const screen = document.getElementById('importPreviewScreen');
-  if (screen) screen.remove();
-
+  closeImportPreview();
   renderCalendar();
   renderHome();
 
