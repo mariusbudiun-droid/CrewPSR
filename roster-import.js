@@ -173,7 +173,8 @@ function showImportLoading() {
 async function readPdfAndImport(file) {
   const msgEl = document.getElementById('rosterImportMsg');
   try {
-    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    const pdfjsLib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+if (!pdfjsLib) throw new Error('PDF.js non caricato');
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
