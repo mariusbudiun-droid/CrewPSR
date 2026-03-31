@@ -153,6 +153,7 @@ function parseRosterText(text) {
 // ── UI ──────────────────────────────────────────────────────
 
 function triggerRosterImport() {
+  alert('triggerRosterImport chiamata!');
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'application/pdf';
