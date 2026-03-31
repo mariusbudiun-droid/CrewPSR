@@ -1,3 +1,6 @@
+// ══════════════════════════════════════════════════════════════
+// ROSTER LOGIC
+// ══════════════════════════════════════════════════════════════
 function cycleDay(rosterNum, dateStr) {
   if (!APP.refDate || !APP.roster) return null;
   const ref = new Date(APP.refDate); ref.setHours(0,0,0,0);
