@@ -153,7 +153,6 @@ function parseRosterText(text) {
 // ── UI ──────────────────────────────────────────────────────
 
 function triggerRosterImport() {
-  alert('triggerRosterImport chiamata!');
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'application/pdf';
@@ -174,8 +173,7 @@ function showImportLoading() {
 async function readPdfAndImport(file) {
   const msgEl = document.getElementById('rosterImportMsg');
   try {
-    const pdfjsLib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
-if (!pdfjsLib) throw new Error('PDF.js non caricato');
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -199,22 +197,6 @@ if (!pdfjsLib) throw new Error('PDF.js non caricato');
       }
       if (rowText.trim()) fullText += rowText.trim() + '\n';
     }
-
-    // MOSTRA IL TESTO ESTRATTO
-    const pre = document.createElement('pre');
-    pre.style.cssText = 'position:fixed;inset:0;z-index:999;background:white;color:black;font-size:11px;padding:16px;overflow:auto;white-space:pre-wrap';
-    pre.textContent = fullText;
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Close';
-    closeBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1000;padding:8px 14px;background:red;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700';
-    closeBtn.onclick = () => { pre.remove(); closeBtn.remove(); };
-    document.body.appendChild(pre);
-    document.body.appendChild(closeBtn);
-
-  } catch(err) {
-    if (msgEl) { msgEl.textContent = '❌ ' + err.message; msgEl.style.color='var(--red)'; msgEl.style.display='block'; }
-  }
-}
 
     const parsed = parseRosterText(fullText);
     const keys = Object.keys(parsed);
