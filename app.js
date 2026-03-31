@@ -1845,4 +1845,8 @@ if (load() && APP.roster && APP.refDate) {
   initApp();
 } else {
   document.getElementById('setupDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.remove('active');
 }
