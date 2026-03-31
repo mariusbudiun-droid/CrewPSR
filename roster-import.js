@@ -199,6 +199,8 @@ async function readPdfAndImport(file) {
     }
 
     const parsed = parseRosterText(fullText);
+    console.log('--- FULL TEXT ---');
+console.log(fullText);
     const keys = Object.keys(parsed);
 
     if (keys.length === 0) {
