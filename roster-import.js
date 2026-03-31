@@ -198,18 +198,6 @@ async function readPdfAndImport(file) {
       if (rowText.trim()) fullText += rowText.trim() + '\n';
     }
 
-    // DEBUG — mostra testo grezzo
-const pre = document.createElement('pre');
-pre.style.cssText = 'position:fixed;inset:0;z-index:999;background:white;color:black;font-size:11px;padding:16px;overflow:auto;white-space:pre-wrap';
-pre.textContent = fullText;
-const closeBtn = document.createElement('button');
-closeBtn.textContent = '✕ Close';
-closeBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:1000;padding:8px 14px;background:red;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700';
-closeBtn.onclick = () => { pre.remove(); closeBtn.remove(); };
-document.body.appendChild(pre);
-document.body.appendChild(closeBtn);
-return;
-
 const parsed = parseRosterText(fullText);
     const keys = Object.keys(parsed);
 
