@@ -13,7 +13,7 @@ function renderCalendar() {
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const grid = document.getElementById('calGrid');
 
-  const MON_FIRST = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const MON_FIRST = ['M','T','W','T','F','S','S'];
   let html = MON_FIRST.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
   for (let i = 0; i < offset; i++) {
@@ -143,15 +143,21 @@ function openDay(ds) {
   const type = shiftType(day);
   const sched = SCHEDULE.days[dow];
   const assign = APP.assignments[ds];
-  const sameShiftList = getSameShiftCrew(ds);
 
   document.getElementById('dayDetailTitle').textContent =
-    `${DAYSFULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+    `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
 
   document.getElementById('dayDetailBadge').innerHTML =
     `<div class="shift-pill ${type}">${shiftLabelStr(day)}</div>`;
 
   let body = '';
+
+  body += `
+    <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:16px 0 10px;">
+      Crew on this day
+    </div>
+    ${buildDayContacts(ds)}
+  `;
 
   if (assign) {
     body += `
@@ -192,6 +198,7 @@ function openDay(ds) {
 
   if (type !== 'off') {
     const candidates = swapCandidates(APP.roster, day);
+    const sameShiftList = getSameShiftCrew(ds);
 
     body += `
       <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:24px 0 10px;">
@@ -202,15 +209,15 @@ function openDay(ds) {
         : `<div class="card" style="text-align:center; color:var(--text3); font-size:13px;">No colleagues available</div>`
       }
     `;
-  }
 
-  if (sameShiftList.length) {
-    body += `
-      <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:24px 0 10px;">
-        Same shift today
-      </div>
-      ${buildSameShiftCards(sameShiftList)}
-    `;
+    if (sameShiftList.length) {
+      body += `
+        <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:24px 0 10px;">
+          Same shift today
+        </div>
+        ${buildSameShiftCards(sameShiftList)}
+      `;
+    }
   }
 
   body += `<button class="btn" style="margin:16px 0;" onclick="closeDayDetail()">✓ Done</button>`;
@@ -218,12 +225,6 @@ function openDay(ds) {
   document.getElementById('dayDetailBody').innerHTML = body;
   document.getElementById('dayDetailScreen').style.display = 'block';
   document.getElementById('dayDetailScreen').scrollTop = 0;
-}
-
-function closeDayDetail() {
-  document.getElementById('dayDetailScreen').style.display = 'none';
-  renderHome();
-  renderCalendar();
 }
 
 function toggleDaySection(id) {
@@ -250,7 +251,11 @@ function getSameShiftCrew(ds) {
 }
 
 function buildDayContacts(ds) {
-  return '';
+  const sameShiftList = getSameShiftCrew(ds);
+  if (sameShiftList.length) {
+    return buildSameShiftCards(sameShiftList);
+  }
+  return `<div class="card" style="text-align:center; color:var(--text3); font-size:13px;">No crew on shift today</div>`;
 }
 
 function getAssignDisplay(assign) {
@@ -303,9 +308,9 @@ function buildDutyOptions(ds, sched) {
   if (sched) {
     const options = [
       { id: 'A1E', label: 'Aereo 1 · Early', color: 'var(--early)', report: sched.a1.reportEarly, flights: sched.a1.early, sel: 'selected-a1' },
-      { id: 'A1L', label: 'Aereo 1 · Late', color: 'var(--late)', report: sched.a1.reportLate, flights: sched.a1.late, sel: 'selected-a2' },
+      { id: 'A1L', label: 'Aereo 1 · Late',  color: 'var(--late)',  report: sched.a1.reportLate,  flights: sched.a1.late,  sel: 'selected-a2' },
       { id: 'A2E', label: 'Aereo 2 · Early', color: 'var(--early)', report: sched.a2.reportEarly, flights: sched.a2.early, sel: 'selected-a1' },
-      { id: 'A2L', label: 'Aereo 2 · Late', color: 'var(--late)', report: sched.a2.reportLate, flights: sched.a2.late, sel: 'selected-a2' }
+      { id: 'A2L', label: 'Aereo 2 · Late',  color: 'var(--late)',  report: sched.a2.reportLate,  flights: sched.a2.late,  sel: 'selected-a2' }
     ];
 
     options.forEach(opt => {
@@ -377,11 +382,11 @@ function buildLeaveOptions(ds) {
   const assign = APP.assignments[ds];
 
   const options = [
-    { id: 'AL', label: 'Annual Leave (AL)', icon: '🏖️', color: 'var(--off)', className: 'selected-al' },
-    { id: 'VTO', label: 'VTO · Voluntary Time Off', icon: '🌿', color: 'var(--off)', className: 'selected-vto' },
-    { id: 'SICK', label: 'Sick Leave (SICK)', icon: '🏥', color: '#e11d48', className: 'selected-sick' },
-    { id: 'UL', label: 'Unpaid Leave (UL)', icon: '💸', color: 'var(--off)', className: 'selected-ul' },
-    { id: 'PL', label: 'Parental Leave (PL)', icon: '🧑‍🧑‍🧒‍🧒', color: 'var(--off)', className: 'selected-pl' }
+    { id: 'AL',   label: 'Annual Leave (AL)',        icon: '🏖️', color: 'var(--off)', className: 'selected-al' },
+    { id: 'VTO',  label: 'VTO · Voluntary Time Off', icon: '🌿', color: 'var(--off)', className: 'selected-vto' },
+    { id: 'SICK', label: 'Sick Leave (SICK)',        icon: '🏥', color: '#e11d48', className: 'selected-sick' },
+    { id: 'UL',   label: 'Unpaid Leave (UL)',        icon: '💸', color: 'var(--off)', className: 'selected-ul' },
+    { id: 'PL',   label: 'Parental Leave (PL)',      icon: '🧑‍🧑‍🧒‍🧒', color: 'var(--off)', className: 'selected-pl' }
   ];
 
   return options.map(opt => {
@@ -417,7 +422,7 @@ function openCustomFlights(ds) {
   const dow = date.getDay();
 
   document.getElementById('customFlightsTitle').textContent =
-    `${DAYSFULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+    `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
 
   renderCustomFlightsBody(ds);
   document.getElementById('customFlightsScreen').style.display = 'block';
