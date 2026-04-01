@@ -16,7 +16,7 @@ let APP = {
   assignDetails: {},  // { "2026-04-15": { start: "08:00", end: "16:00" } }
 };
 
-const DOW   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -30,25 +30,46 @@ let setupPinVal = '';
 function setupNext() {
   const r = document.getElementById('setupRoster').value;
   const d = document.getElementById('setupDate').value;
-  if (!r || !d) { alert('Please fill in both fields.'); return; }
+  if (!r || !d) {
+    alert('Please fill in both fields.');
+    return;
+  }
+
   APP.roster = parseInt(r);
   APP.refDate = d;
+
   for (let i = 1; i <= 16; i++) {
-    if (!APP.crew[i]) APP.crew[i] = Array.from({length:5}, () => ({code:'',phone:'',name:''}));
+    if (!APP.crew[i]) {
+      APP.crew[i] = Array.from({ length: 5 }, () => ({ code: '', phone: '', name: '' }));
+    }
   }
+
   document.getElementById('step1').classList.remove('active');
   document.getElementById('step2').classList.add('active');
 }
 
 function setupPin(k) {
-  if (k === 'skip') { APP.pin = null; showWelcome(); return; }
-  if (k === 'del')  { setupPinVal = setupPinVal.slice(0,-1); }
-  else if (setupPinVal.length < 4) { setupPinVal += k; }
+  if (k === 'skip') {
+    APP.pin = null;
+    showWelcome();
+    return;
+  }
+
+  if (k === 'del') {
+    setupPinVal = setupPinVal.slice(0, -1);
+  } else if (setupPinVal.length < 4) {
+    setupPinVal += k;
+  }
+
   for (let i = 0; i < 4; i++) {
     const el = document.getElementById('spd' + i);
     if (el) el.classList.toggle('filled', i < setupPinVal.length);
   }
-  if (setupPinVal.length === 4) { APP.pin = setupPinVal; setTimeout(showWelcome, 300); }
+
+  if (setupPinVal.length === 4) {
+    APP.pin = setupPinVal;
+    setTimeout(showWelcome, 300);
+  }
 }
 
 function showWelcome() {
@@ -64,13 +85,13 @@ function finishSetup() {
 }
 
 
-
 // ══════════════════════════════════════════════════════════════
 // SHARE & TUTORIAL
 // ══════════════════════════════════════════════════════════════
 function checkForUpdates() {
   const btn = document.getElementById('updateBtn');
   const msg = document.getElementById('updateMsg');
+
   btn.textContent = '⏳ Checking...';
   btn.disabled = true;
   msg.style.display = 'none';
@@ -91,6 +112,7 @@ function checkForUpdates() {
     .then(res => {
       clearTimeout(timeout);
       if (!res || !res.ok) throw new Error('null or bad response');
+
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
         setTimeout(() => location.reload(), 2000);
@@ -102,6 +124,7 @@ function checkForUpdates() {
       clearTimeout(timeout);
       btn.innerHTML = '🔄 Check for updates';
       btn.disabled = false;
+
       const isOffline = err.name === 'AbortError' || !navigator.onLine;
       msg.textContent = isOffline
         ? '✈️ Sei offline — sei già alla versione più recente installata!'
@@ -111,8 +134,6 @@ function checkForUpdates() {
     });
 }
 
-
-
 function shareApp() {
   if (navigator.share) {
     navigator.share({
@@ -121,7 +142,9 @@ function shareApp() {
       url: 'https://crew-psr-wyvq.vercel.app'
     }).catch(() => {});
   } else {
-    navigator.clipboard && navigator.clipboard.writeText('https://crew-psr-wyvq.vercel.app');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText('https://crew-psr-wyvq.vercel.app');
+    }
     alert('Link copiato! https://crew-psr-wyvq.vercel.app');
   }
 }
@@ -130,9 +153,11 @@ function toggleInfoSection(bodyId, arrowId) {
   const body = document.getElementById(bodyId);
   const arrow = document.getElementById(arrowId);
   const open = body.style.display !== 'none';
+
   body.style.display = open ? 'none' : 'block';
   if (arrow) arrow.textContent = open ? '›' : '˅';
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // LANGUAGE
@@ -143,56 +168,18 @@ function setLang(lang) {
   renderSettings();
 }
 
-// ══════════════════════════════════════════════════════════════
-// NAV (defined above, this is placeholder — actual nav defined above)
-// ══════════════════════════════════════════════════════════════
 
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// ══════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
 
 function closeDayDetail() {
   document.getElementById('dayDetailScreen').style.display = 'none';
   renderHome();
   renderCalendar();
-}
-
-// ══════════════════════════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════════════════════════
-function exportCrew() {
-  crewSave();
-  const enc = btoa(unescape(encodeURIComponent(JSON.stringify(APP.crew))));
-  document.getElementById('exportText').value = enc;
-  document.getElementById('exportBox').style.display = 'block';
-  document.getElementById('importBox').style.display = 'none';
-}
-
-function copyExport() {
-  const t = document.getElementById('exportText').value;
-  navigator.clipboard ? navigator.clipboard.writeText(t) : document.execCommand('copy');
-  const m = document.getElementById('exportMsg');
-  m.style.display = 'block';
-  setTimeout(() => m.style.display = 'none', 2000);
-}
-
-function showImport() {
-  document.getElementById('importBox').style.display = 'block';
-  document.getElementById('exportBox').style.display = 'none';
-}
-
-function importCrew() {
-  const raw = document.getElementById('importText').value.trim();
-  const msg = document.getElementById('importMsg');
-  try {
-    const data = JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if (typeof data !== 'object' || !data[1]) throw new Error();
-    APP.crew = data;
-    save(); renderCrewList();
-    msg.textContent = '✅ Imported!'; msg.style.color = 'var(--blue)'; msg.style.display = 'block';
-    document.getElementById('importText').value = '';
-    setTimeout(() => { document.getElementById('importBox').style.display='none'; msg.style.display='none'; }, 2000);
-  } catch(e) {
-    msg.textContent = '❌ Invalid code.'; msg.style.color = 'var(--red)'; msg.style.display = 'block';
-  }
 }
 
 
@@ -201,19 +188,30 @@ function importCrew() {
 // ══════════════════════════════════════════════════════════════
 function initApp() {
   for (let i = 1; i <= 16; i++) {
-    if (!APP.crew[i]) APP.crew[i] = Array.from({length:5}, () => ({code:'',phone:'',name:''}));
+    if (!APP.crew[i]) {
+      APP.crew[i] = Array.from({ length: 5 }, () => ({ code: '', phone: '', name: '' }));
+    }
   }
+
   if (!APP.assignments) APP.assignments = {};
   if (!APP.assignDetails) APP.assignDetails = {};
   if (!APP.customFlights) APP.customFlights = {};
   if (!APP.notif) APP.notif = { enabled: false, report: true, dep: 'first', arr: 'last' };
+
   applyTheme();
   renderHome();
   renderSettings();
-  setTimeout(() => { initModalSwipe(); if (APP.notif?.enabled) scheduleAllNotifications(); }, 100);
+
+  setTimeout(() => {
+    initModalSwipe();
+    if (APP.notif?.enabled) scheduleAllNotifications();
+  }, 100);
 }
 
-// Boot
+
+// ══════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════
 if (load() && APP.roster && APP.refDate) {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
