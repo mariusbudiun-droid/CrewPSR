@@ -161,8 +161,9 @@ function buildHomeSlides() {
       }
     }
 
-    const slide = document.createElement('div');
-    slide.className = 'home-slide';
+   const slide = document.createElement('div');
+slide.className = 'home-slide';
+slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; min-height:100%;';
     slide.innerHTML = `
       <div class="today-hero" style="margin-bottom:0">
         <div class="shift-type">${dayLabel}</div>
