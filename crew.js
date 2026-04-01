@@ -257,6 +257,16 @@ function importCrew() {
       msg.style.display = 'none';
     }, 2000);
   } catch (e) {
+
+    // Fix globale per onclick inline
+window.toggleCrewCard = toggleCrewCard;
+window.crewSave = crewSave;
+window.openCrewEdit = openCrewEdit;
+window.loginPin = loginPin;
+window.exportCrew = exportCrew;
+window.copyExport = copyExport;
+window.showImport = showImport;
+window.importCrew = importCrew;
     msg.textContent = 'Invalid code.';
     msg.style.color = 'var(--red)';
     msg.style.display = 'block';
