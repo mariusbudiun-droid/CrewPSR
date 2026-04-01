@@ -293,22 +293,16 @@ function buildFlightBlock(flights, label, cls) {
 
 function buildSameShiftCards(rosterList) {
   return rosterList.map(r => {
-    const members = (APP.crew?.[r] || []).filter(m => m.name || m.phone);
+    const members = (APP.crew?.[r] || []).filter(m => m && (m.name || m.phone || (m.code && m.code.trim())));
 
     const peopleHtml = members.length
       ? members.map(info => {
-          const name = info.name || '';
+          const name = info.name || info.code || '';
           const phone = (info.phone || '').replace(/\D/g, '');
-          const waBtn = phone
-            ? `<a href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:3px;background:#25d366;color:white;border-radius:14px;font-size:10px;font-weight:600;padding:3px 8px;text-decoration:none;">WA</a>`
-            : '';
 
-          return `
-            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-              <span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</span>
-              ${waBtn}
-            </div>
-          `;
+          return phone
+            ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
+            : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</span>`;
         }).join('')
       : `<span style="font-size:11px;color:var(--text3);">No contacts</span>`;
 
@@ -333,14 +327,14 @@ function buildSwapCard(c) {
           ? `
             <div style="margin-top:4px">
               <a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"></path><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1 1 12 21.818z"></path></svg>
                 ${name}
               </a>
             </div>
-            <div style="font-family:JetBrains Mono,monospace;font-size:13px;margin-top:2px;">${x.code}${x.name ? ` • ${x.name}` : ''}</div>
           `
           : `
-            <div style="font-family:JetBrains Mono,monospace;font-size:13px;margin-top:2px;">${x.code}${x.name ? ` • ${x.name}` : ''}</div>
+            <div style="font-family:JetBrains Mono,monospace;font-size:13px;margin-top:4px;">
+              ${name}
+            </div>
           `;
       }).join('')
     : `<div class="swap-codes empty">No crew codes yet</div>`;
