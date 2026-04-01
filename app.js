@@ -155,11 +155,9 @@ function closeDayDetail() {
   renderCalendar();
 }
 
-
-
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // EXPORT / IMPORT
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function exportCrew() {
   crewSave();
   const enc = btoa(unescape(encodeURIComponent(JSON.stringify(APP.crew))));
