@@ -405,7 +405,7 @@ function setAssign(ds, val) {
   }
 
   save();
-  openDay(ds);
+  closeDayDetail();
   renderCalendar();
   if (APP.notif?.enabled) scheduleAllNotifications();
 }
