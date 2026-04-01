@@ -405,8 +405,13 @@ function setAssign(ds, val) {
   }
 
   save();
-  openDay(ds);
+
+  const dayScreen = document.getElementById('dayDetailScreen');
+  if (dayScreen) dayScreen.style.display = 'none';
+
   renderCalendar();
+  renderHome();
+
   if (APP.notif?.enabled) scheduleAllNotifications();
 }
 
