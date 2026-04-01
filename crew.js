@@ -2,6 +2,47 @@ let crewPinVal = '';
 let loginPinVal = '';
 let crewUnlocked = false;
 
+function openCrewScreen() {
+  const gate = document.getElementById('crewPinGate');
+  const content = document.getElementById('crewContent');
+  const err = document.getElementById('crewPinErr');
+
+  if (!gate || !content) return;
+
+  if (!APP.pin && !APP.usePassword) {
+    crewUnlocked = true;
+    showCrewContent();
+    return;
+  }
+
+  if (APP.usePassword) {
+    crewUnlocked = false;
+    gate.style.display = 'block';
+    content.style.display = 'none';
+    gate.innerHTML = `
+      <button onclick="nav('swap')" style="position:absolute; top:16px; left:16px; padding:8px 14px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg); font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
+        ← Back
+      </button>
+      <div style="font-size:40px; margin-bottom:12px">👥</div>
+      <div style="font-size:20px; font-weight:700; margin-bottom:4px">Crew Directory</div>
+      <div style="font-size:13px; color:var(--text3); margin-bottom:20px">Inserisci la password</div>
+      <input type="password" id="crewPasswordInput" placeholder="Password" style="max-width:260px; text-align:center; font-size:16px; margin-bottom:12px; letter-spacing:2px" onkeydown="if(event.key==='Enter') checkCrewPassword()">
+      <button class="btn" style="max-width:260px; margin:0 auto" onclick="checkCrewPassword()">Sblocca</button>
+      <div class="pin-error" id="crewPinErr" style="margin-top:8px; display:none">Password errata</div>
+    `;
+    return;
+  }
+
+  crewUnlocked = false;
+  crewPinVal = '';
+  updateCrewPinDots();
+
+  gate.style.display = 'block';
+  content.style.display = 'none';
+
+  if (err) err.style.display = 'none';
+}
+
 function crewPinKey(k) {
   if (k === 'del') crewPinVal = crewPinVal.slice(0, -1);
   else if (crewPinVal.length < 4) crewPinVal += k;
@@ -288,6 +329,7 @@ function importCrew() {
   }
 }
 
+window.openCrewScreen = openCrewScreen;
 window.toggleCrewCard = toggleCrewCard;
 window.crewPinKey = crewPinKey;
 window.checkCrewPassword = checkCrewPassword;
