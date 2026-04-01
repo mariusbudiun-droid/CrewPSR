@@ -984,19 +984,21 @@ select option { background: var(--surface); color: var(--text); }
   flex-shrink: 0;
 }
 
-.home-dot {
-  width: 6px;
-  height: 6px;
+..home-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--border2);
+  background: var(--blue);
+  opacity: 0.35;
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .home-dot.active {
   background: var(--blue);
+  opacity: 1;
   width: 18px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
