@@ -22,8 +22,6 @@ const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 
 let calYear, calMonth;
 let setupPinVal = '';
-let loginPinVal = '';
-let crewUnlocked = false;
 
 
 // ══════════════════════════════════════════════════════════════
@@ -65,62 +63,7 @@ function finishSetup() {
   initApp();
 }
 
-// ══════════════════════════════════════════════════════════════
-// CREW PIN GATE
-// ══════════════════════════════════════════════════════════════
-let crewPinVal = '';
 
-function crewPinKey(k) {
-  if (k === 'del') crewPinVal = crewPinVal.slice(0,-1);
-  else if (crewPinVal.length < 4) crewPinVal += k;
-  updateCrewPinDots();
-  if (crewPinVal.length === 4) {
-    if (crewPinVal === APP.pin) {
-      crewUnlocked = true;
-      showCrewContent();
-    } else {
-      document.getElementById('crewPinErr').style.display = 'block';
-      crewPinVal = '';
-      setTimeout(() => { updateCrewPinDots(); document.getElementById('crewPinErr').style.display='none'; }, 1000);
-    }
-  }
-}
-
-function checkCrewPassword() {
-  const input = document.getElementById('crewPasswordInput');
-  if (!input) return;
-  const v = input.value;
-  if (v === APP.password) {
-    crewUnlocked = true;
-    showCrewContent();
-  } else {
-    const err = document.getElementById('crewPinErr');
-    if (err) { err.style.display = 'block'; }
-    input.value = '';
-    input.focus();
-  }
-}
-
-function updateCrewPinDots() {
-  for (let i = 0; i < 4; i++) {
-    const el = document.getElementById('cpd' + i);
-    if (el) el.classList.toggle('filled', i < crewPinVal.length);
-  }
-}
-
-function showCrewContent() {
-  document.getElementById('crewPinGate').style.display = 'none';
-  document.getElementById('crewContent').style.display = 'block';
-  renderCrewList();
-}
-
-function lockCrew() {
-  crewUnlocked = false;
-  crewPinVal = '';
-  document.getElementById('crewPinGate').style.display = 'block';
-  document.getElementById('crewContent').style.display = 'none';
-  updateCrewPinDots();
-}
 
 // ══════════════════════════════════════════════════════════════
 // SHARE & TUTORIAL
@@ -212,113 +155,7 @@ function closeDayDetail() {
   renderCalendar();
 }
 
-// ══════════════════════════════════════════════════════════════
-// CREW DIRECTORY
-// ══════════════════════════════════════════════════════════════
-function renderCrewList() {
-  const el = document.getElementById('crewList');
-  let html = '';
-  for (let R = 1; R <= 16; R++) {
-    const colleagues = (APP.crew[R] || []).filter(c => c && c.code && c.code.trim());
-    const pills = colleagues.map(c => {
-      const phone = (c.phone||'').replace(/[\s\-\+]/g,'');
-      const name = c.name || c.code;
-      return phone
-        ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" style="margin:2px">${name}</a>`
-        : `<span style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--bg2); padding:3px 8px; border-radius:6px; margin:2px">${name}</span>`;
-    }).join('');
-    html += `<div class="crew-roster-card">
-      <div class="crew-roster-header" onclick="toggleCrewCard(${R})">
-        <div style="display:flex; align-items:center; gap:10px">
-          <span class="roster-pill">Roster ${R}</span>
-          <span style="font-size:12px; color:var(--text3)">${colleagues.length ? colleagues.length + ' crew' : 'empty'}</span>
-        </div>
-        <span id="ca-${R}" style="color:var(--text3); font-size:13px">›</span>
-      </div>
-      <div class="crew-roster-body" id="cb-${R}">
-        ${pills || '<div style="font-size:12px; color:var(--text3)">No crew added yet</div>'}
-      </div>
-    </div>`;
-  }
-  el.innerHTML = html;
-}
-
-function toggleCrewCard(R) {
-  const b = document.getElementById('cb-' + R);
-  const a = document.getElementById('ca-' + R);
-  b.classList.toggle('open');
-  a.textContent = b.classList.contains('open') ? '˅' : '›';
-}
-
-function openCrewEdit() {
-  showCrewEditModal();
-}
-
-function loginPin(k) {
-  if (k === 'del') loginPinVal = loginPinVal.slice(0,-1);
-  else if (loginPinVal.length < 4) loginPinVal += k;
-  updateLoginDots();
-  if (loginPinVal.length === 4) {
-    if (loginPinVal === APP.pin) {
-      crewUnlocked = true;
-      closeModal('pinModal');
-      showCrewEditModal();
-    } else {
-      document.getElementById('pinModalErr').style.display = 'block';
-      loginPinVal = '';
-      setTimeout(() => { updateLoginDots(); document.getElementById('pinModalErr').style.display='none'; }, 1000);
-    }
-  }
-}
-
-function updateLoginDots() {
-  for (let i = 0; i < 4; i++) {
-    const el = document.getElementById('lpd' + i);
-    if (el) el.classList.toggle('filled', i < loginPinVal.length);
-  }
-}
-
-function showCrewEditModal() {
-  let html = '';
-  for (let R = 1; R <= 16; R++) {
-    const colleagues = APP.crew[R] || [];
-    const rows = [0,1,2,3,4].map(k => {
-      const c = colleagues[k] || {code:'',phone:'',name:''};
-      return `<div class="colleague-edit-row" data-r="${R}" data-k="${k}">
-        <input class="code-inp" data-r="${R}" data-k="${k}" data-f="code" value="${c.code||''}" placeholder="Code" oninput="crewSave()">
-        <input class="phone-inp" data-r="${R}" data-k="${k}" data-f="phone" value="${c.phone||''}" placeholder="+39..." oninput="crewSave()">
-        <input data-r="${R}" data-k="${k}" data-f="name" value="${c.name||''}" placeholder="Name" oninput="crewSave()">
-      </div>`;
-    }).join('');
-    html += `<div style="margin-bottom:18px">
-      <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--blue); margin-bottom:6px">Roster ${R}</div>
-      <div style="font-size:10px; color:var(--text3); display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:4px"><span>Code</span><span>WhatsApp</span><span>Name</span></div>
-      ${rows}
-    </div>`;
-  }
-
-  document.getElementById('settingModalTitle').textContent = 'Edit Crew Directory';
-  document.getElementById('settingModalBody').innerHTML =
-    `<div style="max-height:62vh; overflow-y:auto">${html}</div>
-     <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal'); renderCrewList(); runSwap()">Done</button>`;
-  document.getElementById('settingModal').classList.add('open');
-}
-
-function crewSave() {
-  document.querySelectorAll('.colleague-edit-row').forEach(row => {
-    const R = parseInt(row.dataset.r);
-    const k = parseInt(row.dataset.k);
-    if (!APP.crew[R]) APP.crew[R] = Array.from({length:5}, () => ({code:'',phone:'',name:''}));
-    ['code','phone','name'].forEach(f => {
-      const inp = row.querySelector(`input[data-f="${f}"]`);
-      if (inp) {
-        if (!APP.crew[R][k]) APP.crew[R][k] = {};
-        APP.crew[R][k][f] = f === 'code' ? inp.value.trim().toUpperCase() : inp.value.trim();
-      }
-    });
-  });
-  save();
-}
+══════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
