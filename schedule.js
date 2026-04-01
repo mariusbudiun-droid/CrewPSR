@@ -67,7 +67,7 @@ const SCHEDULE = {
           { route:"PSR-STN", dep:"15:40", arr:"18:15" },
           { route:"STN-PSR", dep:"18:40", arr:"21:05" },
           { route:"PSR-MLA", dep:"21:30", arr:"23:00" },
-          { route:"MLa-PSR", dep:"23:25", arr:"00:55" },
+          { route:"MLA-PSR", dep:"23:25", arr:"00:55" },
         ]
       }
     },
