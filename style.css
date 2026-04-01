@@ -973,44 +973,30 @@ select option { background: var(--surface); color: var(--text); }
   text-align: left;
 }
 
-/* ── HOME SLIDE ── */
-.home-slide {
-  min-width: 100%;
-  width: 100%;
-  flex-shrink: 0;
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  
 /* ── HOME SLIDER DOTS ── */
 #homeDots {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px 8px;
-  min-height: 20px;
+  padding: 10px 0 6px;
+  min-height: 18px;
   flex-shrink: 0;
 }
 
 .home-dot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--text3);
-  opacity: 0.9;
-  transition: all 0.2s ease;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all 0.2s;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .home-dot.active {
-  width: 20px;
-  height: 8px;
-  border-radius: 999px;
   background: var(--blue);
-  opacity: 1;
+  width: 18px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
