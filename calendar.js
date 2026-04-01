@@ -152,13 +152,6 @@ function openDay(ds) {
 
   let body = '';
 
-  body += `
-    <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:16px 0 10px;">
-      Crew on this day
-    </div>
-    ${buildDayContacts(ds)}
-  `;
-
   if (assign) {
     body += `
       <div class="card" style="margin-bottom:16px;">
