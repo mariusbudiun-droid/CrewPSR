@@ -243,3 +243,83 @@ const SCHEDULE = {
     }
   }
 };
+
+// ══════════════════════════════════════════════════════════════
+// SCHEDULE UI
+// ══════════════════════════════════════════════════════════════
+
+let activeSchedDay = null;
+
+function renderSchedule() {
+  document.getElementById('schedVersion').innerHTML =
+    `✈ ${SCHEDULE.version} &nbsp;·&nbsp; ${SCHEDULE.period}`;
+
+  if (activeSchedDay === null) activeSchedDay = new Date().getDay();
+  document.getElementById('schedDaySelect').value = activeSchedDay;
+  renderSchedContent();
+}
+
+function setSchedDay(d) {
+  activeSchedDay = d;
+  renderSchedContent();
+}
+
+function renderSchedContent() {
+  const d = activeSchedDay;
+  const sched = SCHEDULE.days[d];
+
+  if (!sched) {
+    document.getElementById('schedContent').innerHTML = '';
+    return;
+  }
+
+  const buildFlights = flights => flights.map(f => `
+    <div class="seg-flight">
+      <div class="seg-route">${f.route}</div>
+      <div class="seg-times">${f.dep} → ${f.arr}</div>
+      ${f.note ? `<div class="seg-note">⚠️ ${f.note}</div>` : ''}
+    </div>
+  `).join('');
+
+  const earlyBlock = `
+    <div class="flight-segment">
+      <div class="seg-header early" style="font-size:14px; letter-spacing:0; padding:12px 14px">
+        ☀️ Early
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border)">
+        <div style="padding:10px 12px; border-right:1px solid var(--border)">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 1</div>
+          <div class="seg-report"><span>Report</span><strong>${sched.a1.reportEarly}</strong></div>
+          ${buildFlights(sched.a1.early)}
+        </div>
+        <div style="padding:10px 12px">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 2</div>
+          <div class="seg-report"><span>Report</span><strong>${sched.a2.reportEarly}</strong></div>
+          ${buildFlights(sched.a2.early)}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const lateBlock = `
+    <div class="flight-segment">
+      <div class="seg-header late" style="font-size:14px; letter-spacing:0; padding:12px 14px">
+        🌙 Late
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border)">
+        <div style="padding:10px 12px; border-right:1px solid var(--border)">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 1</div>
+          <div class="seg-report"><span>Report</span><strong>${sched.a1.reportLate}</strong></div>
+          ${buildFlights(sched.a1.late)}
+        </div>
+        <div style="padding:10px 12px">
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:6px; text-transform:uppercase">Aereo 2</div>
+          <div class="seg-report"><span>Report</span><strong>${sched.a2.reportLate}</strong></div>
+          ${buildFlights(sched.a2.late)}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('schedContent').innerHTML = earlyBlock + lateBlock;
+}
