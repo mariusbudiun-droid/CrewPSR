@@ -13,11 +13,12 @@ function crewPinKey(k) {
       crewUnlocked = true;
       showCrewContent();
     } else {
-      document.getElementById('crewPinErr').style.display = 'block';
+      const err = document.getElementById('crewPinErr');
+      if (err) err.style.display = 'block';
       crewPinVal = '';
       setTimeout(() => {
         updateCrewPinDots();
-        document.getElementById('crewPinErr').style.display = 'none';
+        if (err) err.style.display = 'none';
       }, 1000);
     }
   }
@@ -48,21 +49,27 @@ function updateCrewPinDots() {
 }
 
 function showCrewContent() {
-  document.getElementById('crewPinGate').style.display = 'none';
-  document.getElementById('crewContent').style.display = 'block';
+  const gate = document.getElementById('crewPinGate');
+  const content = document.getElementById('crewContent');
+  if (gate) gate.style.display = 'none';
+  if (content) content.style.display = 'block';
   renderCrewList();
 }
 
 function lockCrew() {
   crewUnlocked = false;
   crewPinVal = '';
-  document.getElementById('crewPinGate').style.display = 'block';
-  document.getElementById('crewContent').style.display = 'none';
+  const gate = document.getElementById('crewPinGate');
+  const content = document.getElementById('crewContent');
+  if (gate) gate.style.display = 'block';
+  if (content) content.style.display = 'none';
   updateCrewPinDots();
 }
 
 function renderCrewList() {
   const el = document.getElementById('crewList');
+  if (!el) return;
+
   let html = '';
 
   for (let R = 1; R <= 16; R++) {
@@ -99,6 +106,7 @@ function renderCrewList() {
 function toggleCrewCard(R) {
   const b = document.getElementById('cb-' + R);
   const a = document.getElementById('ca-' + R);
+  if (!b || !a) return;
   b.classList.toggle('open');
   a.textContent = b.classList.contains('open') ? '⌄' : '›';
 }
@@ -111,16 +119,25 @@ function openCrewEdit() {
 
   loginPinVal = '';
   updateLoginDots();
-  document.getElementById('pinModalErr').style.display = 'none';
-  document.getElementById('pinModalSub').textContent = APP.usePassword
-    ? 'Enter your password to edit'
-    : 'Enter your PIN to edit';
-  document.getElementById('pinModal').classList.add('open');
+
+  const err = document.getElementById('pinModalErr');
+  const sub = document.getElementById('pinModalSub');
+  const modal = document.getElementById('pinModal');
+
+  if (err) err.style.display = 'none';
+  if (sub) {
+    sub.textContent = APP.usePassword
+      ? 'Enter your password to edit'
+      : 'Enter your PIN to edit';
+  }
 
   if (APP.usePassword) {
     showCrewEditModal();
-    closeModal('pinModal');
+    if (modal) modal.classList.remove('open');
+    return;
   }
+
+  if (modal) modal.classList.add('open');
 }
 
 function loginPin(k) {
@@ -135,11 +152,12 @@ function loginPin(k) {
       closeModal('pinModal');
       showCrewEditModal();
     } else {
-      document.getElementById('pinModalErr').style.display = 'block';
+      const err = document.getElementById('pinModalErr');
+      if (err) err.style.display = 'block';
       loginPinVal = '';
       setTimeout(() => {
         updateLoginDots();
-        document.getElementById('pinModalErr').style.display = 'none';
+        if (err) err.style.display = 'none';
       }, 1000);
     }
   }
@@ -194,13 +212,17 @@ function crewSave() {
     const R = parseInt(row.dataset.r);
     const k = parseInt(row.dataset.k);
 
-    if (!APP.crew[R]) APP.crew[R] = Array.from({ length: 5 }, () => ({ code: '', phone: '', name: '' }));
+    if (!APP.crew[R]) {
+      APP.crew[R] = Array.from({ length: 5 }, () => ({ code: '', phone: '', name: '' }));
+    }
 
     ['code', 'phone', 'name'].forEach(f => {
       const inp = row.querySelector(`input[data-f="${f}"]`);
       if (inp) {
         if (!APP.crew[R][k]) APP.crew[R][k] = {};
-        APP.crew[R][k][f] = f === 'code' ? inp.value.trim().toUpperCase() : inp.value.trim();
+        APP.crew[R][k][f] = f === 'code'
+          ? inp.value.trim().toUpperCase()
+          : inp.value.trim();
       }
     });
   });
@@ -226,8 +248,10 @@ function copyExport() {
   }
 
   const m = document.getElementById('exportMsg');
-  m.style.display = 'block';
-  setTimeout(() => m.style.display = 'none', 2000);
+  if (m) {
+    m.style.display = 'block';
+    setTimeout(() => { m.style.display = 'none'; }, 2000);
+  }
 }
 
 function showImport() {
@@ -246,6 +270,7 @@ function importCrew() {
     APP.crew = data;
     save();
     renderCrewList();
+    runSwap();
 
     msg.textContent = 'Imported!';
     msg.style.color = 'var(--blue)';
@@ -257,18 +282,20 @@ function importCrew() {
       msg.style.display = 'none';
     }, 2000);
   } catch (e) {
-
-    // Fix globale per onclick inline
-window.toggleCrewCard = toggleCrewCard;
-window.crewSave = crewSave;
-window.openCrewEdit = openCrewEdit;
-window.loginPin = loginPin;
-window.exportCrew = exportCrew;
-window.copyExport = copyExport;
-window.showImport = showImport;
-window.importCrew = importCrew;
     msg.textContent = 'Invalid code.';
     msg.style.color = 'var(--red)';
     msg.style.display = 'block';
   }
 }
+
+window.toggleCrewCard = toggleCrewCard;
+window.crewPinKey = crewPinKey;
+window.checkCrewPassword = checkCrewPassword;
+window.lockCrew = lockCrew;
+window.openCrewEdit = openCrewEdit;
+window.loginPin = loginPin;
+window.crewSave = crewSave;
+window.exportCrew = exportCrew;
+window.copyExport = copyExport;
+window.showImport = showImport;
+window.importCrew = importCrew;
