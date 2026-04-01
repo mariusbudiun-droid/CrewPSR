@@ -127,8 +127,8 @@ const SCHEDULE = {
         early: [
           { route:"PSR-BGY", dep:"07:25", arr:"08:40" },
           { route:"BGY-PSR", dep:"09:05", arr:"10:15" },
-          { route:"PSR-OTP", dep:"10:40", arr:"12:30", note:"Da confermare" },
-          { route:"OTP-PSR", dep:"12:55", arr:"14:45", note:"Da confermare" },
+          { route:"PSR-OTP", dep:"10:40", arr:"12:30" },
+          { route:"OTP-PSR", dep:"12:55", arr:"14:45" },
         ],
         reportLate: "15:25",
         late: [
