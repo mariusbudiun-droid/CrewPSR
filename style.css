@@ -1007,7 +1007,7 @@ select option { background: var(--surface); color: var(--text); }
   flex: 0 0 100%;
   box-sizing: border-box;
 }
-..home-dot {
+.home-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
