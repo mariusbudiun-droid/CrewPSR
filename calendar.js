@@ -412,6 +412,10 @@ function setAssign(ds, val) {
   renderCalendar();
   renderHome();
 
+  if (val === 'CUSTOM') {
+    openCustomFlights(ds);
+  }
+
   if (APP.notif?.enabled) scheduleAllNotifications();
 }
 
