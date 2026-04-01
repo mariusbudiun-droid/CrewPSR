@@ -169,9 +169,9 @@ function openDay(ds) {
 
   body += `
     <div class="card" style="margin-bottom:12px;">
-      <button class="btn" onclick="toggleDaySection('duty-${ds}')" style="width:100%; justify-content:center;">
-        ➕ Add Duty
-      </button>
+      <button class="btn" onclick="nav('calendar')" style="width:100%; justify-content:center;">
+  ➕ Add Duty
+</button>
       <div id="duty-${ds}" style="display:none; margin-top:12px;">
         ${buildDutyOptions(ds, sched)}
       </div>
