@@ -209,15 +209,6 @@ function openDay(ds) {
         : `<div class="card" style="text-align:center; color:var(--text3); font-size:13px;">No colleagues available</div>`
       }
     `;
-
-    if (sameShiftList.length) {
-      body += `
-        <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin:24px 0 10px;">
-          Same shift today
-        </div>
-        ${buildSameShiftCards(sameShiftList)}
-      `;
-    }
   }
 
   body += `<button class="btn" style="margin:16px 0;" onclick="closeDayDetail()">✓ Done</button>`;
