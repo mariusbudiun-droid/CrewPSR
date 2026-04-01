@@ -1007,21 +1007,24 @@ select option { background: var(--surface); color: var(--text); }
   flex: 0 0 100%;
   box-sizing: border-box;
 }
+
 .home-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--blue);
-  opacity: 0.35;
-  transition: all 0.2s;
+  background: rgba(77, 133, 245, 0.35);
+  border: 1px solid rgba(77, 133, 245, 0.45);
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .home-dot.active {
-  background: var(--blue);
-  opacity: 1;
   width: 18px;
-  border-radius: 4px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  box-shadow: 0 0 0 1px rgba(77, 133, 245, 0.15);
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
