@@ -1,5 +1,25 @@
-const CACHE = 'crewpsr-v3'; // ← bump versione ad ogni deploy!
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'crewpsr-v4';
+
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/style.css',
+  '/app.js',
+  '/home.js',
+  '/calendar.js',
+  '/crew.js',
+  '/roster.js',
+  '/roster-import.js',
+  '/schedule.js',
+  '/settings.js',
+  '/storage.js',
+  '/navigation.js',
+  '/notifications.js',
+  '/swap.js',
+  '/icon-192.png',
+  '/icon-512.png',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -20,7 +40,6 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Ignora richieste non-GET e richieste cross-origin
   if (e.request.method !== 'GET') return;
   if (!e.request.url.startsWith(self.location.origin)) return;
 
