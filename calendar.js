@@ -596,10 +596,21 @@ function _renderDayDetail() {
       `;
     }
 
-    if (sameList.length) {
-      const pills = sameList.map(r => {
+    const ownCrew = (APP.crew?.[APP.roster] || []).filter(m => m && m.code && m.code.trim());
+
+    if (ownCrew.length || sameList.length) {
+      const ownPills = ownCrew.map(m => {
+        const name = m.name || m.code;
+        const phone = (m.phone || '').replace(/\D/g, '');
+        const inner = `<span class="dd-pill-r" style="color:var(--green)">R${APP.roster}</span>${name}`;
+        return phone
+          ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="border-left:2px solid var(--green)">${inner}</a>`
+          : `<span class="dd-pill" style="border-left:2px solid var(--green)">${inner}</span>`;
+      }).join('');
+
+      const otherPills = sameList.map(r => {
         const members = (APP.crew?.[r] || []).filter(m => m && (m.name || (m.code && m.code.trim())));
-        const name = members.length ? (members[0].name || members[0].code) : `R${r}`;
+        const name = members.length ? (members[0].name || members[0].code) : `Roster ${r}`;
         const phone = members.length ? (members[0].phone || '').replace(/\D/g, '') : '';
         const inner = `<span class="dd-pill-r">R${r}</span>${name}`;
         return phone
@@ -610,7 +621,7 @@ function _renderDayDetail() {
       crewHtml += `
         <div class="dd-section">
           <div class="dd-section-label">Same shift</div>
-          <div class="dd-pills">${pills}</div>
+          <div class="dd-pills">${ownPills}${otherPills}</div>
         </div>
       `;
     }

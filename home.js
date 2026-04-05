@@ -155,9 +155,11 @@ function buildHomeSlides() {
         if (isLate && theirDay >= 9 && theirDay <= 13) sameShiftList.push(r);
       }
 
-      if (sameShiftList.length) {
+      const ownCrew = (APP.crew?.[APP.roster] || []).filter(c => c && c.code && c.code.trim());
+
+      if (ownCrew.length || sameShiftList.length) {
         sameShiftTitle = 'Same shift';
-        sameShiftHtml = buildSameShiftCards(sameShiftList);
+        sameShiftHtml = buildOwnCrewCard(APP.roster, ownCrew) + buildSameShiftCards(sameShiftList);
       }
     }
 
@@ -287,6 +289,31 @@ function buildFlightBlock(flights, label, cls) {
         <span class="plane-badge ${cls}">${label}</span>
       </div>
       ${rows}
+    </div>
+  `;
+}
+
+function buildOwnCrewCard(rosterNum, members) {
+  if (!members.length) return '';
+  const pills = members.map(m => {
+    const name = m.name || m.code;
+    const phone = (m.phone || '').replace(/\D/g, '');
+    return phone
+      ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
+      : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap">${name}</span>`;
+  }).join('');
+
+  return `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);
+                border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;
+                margin:0 16px 6px">
+      <div style="background:var(--green);color:white;width:30px;height:30px;border-radius:8px;
+                  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
+                  flex-shrink:0">${rosterNum}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <span style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:0.5px;text-transform:uppercase">You</span>
+        ${pills}
+      </div>
     </div>
   `;
 }
