@@ -578,3 +578,13 @@ setTimeout(() => toast.remove(), 3000);
 window._pendingImport = null;
 if (APP.notif?.enabled) scheduleAllNotifications();
 }
+
+// ── Expose all functions to global scope (required for inline onclick) ──
+window.triggerRosterImport  = triggerRosterImport;
+window.showPasteModal       = showPasteModal;
+window.closePasteModal      = closePasteModal;
+window.processPastedRoster  = processPastedRoster;
+window.triggerFileImport    = triggerFileImport;
+window.showImportPreview    = showImportPreview;
+window.closeImportPreview   = closeImportPreview;
+window.confirmRosterImport  = confirmRosterImport;
