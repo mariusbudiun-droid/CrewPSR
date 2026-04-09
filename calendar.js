@@ -833,9 +833,9 @@ function buildCustomFlightRow(ds,idx,f) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);margin-bottom:4px;text-transform:uppercase">From</div>
-      <input type="text" maxlength="4" placeholder="PSR" value="${f.from||''}" oninput="updateCustomFlight('${ds}',${idx},'from',this.value.toUpperCase());this.value=this.value.toUpperCase()" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;letter-spacing:3px;text-align:center;text-transform:uppercase"></div>
+      <input type="text" maxlength="4" placeholder="PSR" value="${f.from||''}" oninput="updateCustomFlight('${ds}',${idx},'from',this.value.toUpperCase())" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;letter-spacing:3px;text-align:center;text-transform:uppercase"></div>
       <div><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);margin-bottom:4px;text-transform:uppercase">To</div>
-      <input type="text" maxlength="4" placeholder="FCO" value="${f.to||''}" oninput="updateCustomFlight('${ds}',${idx},'to',this.value.toUpperCase());this.value=this.value.toUpperCase()" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;letter-spacing:3px;text-align:center;text-transform:uppercase"></div>
+      <input type="text" maxlength="4" placeholder="" value="${f.to||''}" oninput="updateCustomFlight('${ds}',${idx},'to',this.value.toUpperCase())" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;letter-spacing:3px;text-align:center;text-transform:uppercase"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Dep</div>
