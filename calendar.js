@@ -126,8 +126,11 @@
     #screen-calendar.active { display: flex !important; flex-direction: column; overflow: hidden; }
     .cal-month-block { margin-bottom: 20px; }
     .cal-month-sentinel {
-      height: 1px; margin: 0; padding: 0;
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 14px 16px 6px;
     }
+    .cal-month-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .cal-month-hours { font-size: 12px; font-weight: 600; color: var(--blue); font-family: 'JetBrains Mono', monospace; }
     .cal-dow-row {
       display: grid; grid-template-columns: repeat(7, 1fr);
       padding: 4px 8px 2px;
@@ -275,12 +278,18 @@ function _buildMonthBlock(year, month, todayStr) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
+  const monthHrs    = _calcMonthHours(year, month);
+  const hrsLabel    = monthHrs > 0 ? monthHrs.toFixed(1) + ' h' : '';
 
-  // Sentinel for IntersectionObserver
+  // Visible month header — also acts as sentinel for scroll tracking
   const sentinel = document.createElement('div');
   sentinel.className = 'cal-month-sentinel';
   sentinel.dataset.year  = year;
   sentinel.dataset.month = month;
+  sentinel.innerHTML = `
+    <span class="cal-month-name">${MONTHS[month]} ${year}</span>
+    ${hrsLabel ? `<span class="cal-month-hours">${hrsLabel}</span>` : '<span></span>'}
+  `;
   block.appendChild(sentinel);
 
   // DOW row
