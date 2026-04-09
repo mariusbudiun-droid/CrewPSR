@@ -6,6 +6,7 @@
   const s = document.createElement('style');
   s.id = 'dd-styles';
   s.textContent = `
+    /* ── Day Detail ── */
     #dayDetailScreen {
       position: fixed; inset: 0; background: var(--bg);
       z-index: 200; display: flex; flex-direction: column; overflow: hidden;
@@ -29,10 +30,7 @@
       font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
       color: var(--text2); cursor: pointer; padding: 5px 10px; white-space: nowrap;
     }
-    .dd-body {
-      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: 20px 16px 8px;
-    }
+    .dd-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 16px 8px; }
     .dd-date-block { margin-bottom: 20px; }
     .dd-date { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.2; }
     .dd-cycle-badge {
@@ -52,56 +50,31 @@
       display: flex; align-items: baseline; gap: 10px;
       padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 2px;
     }
-    .dd-report-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--text3); padding-bottom: 3px;
-    }
-    .dd-report-time {
-      font-size: 28px; font-weight: 800; color: var(--blue);
-      font-variant-numeric: tabular-nums;
-      font-family: 'JetBrains Mono', monospace; letter-spacing: -1px;
-    }
-    .dd-hours-badge {
-      margin-left: auto; font-size: 13px; font-weight: 700;
-      color: var(--text3); font-family: 'JetBrains Mono', monospace;
-    }
-    .dd-plane-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--text3); margin: 12px 0 0;
-    }
-    .dd-flight-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 9px 0; border-bottom: 1px solid var(--border);
-    }
+    .dd-report-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); }
+    .dd-report-time { font-size: 28px; font-weight: 800; color: var(--blue); font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
+    .dd-hours-badge { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+    .dd-plane-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text3); margin: 12px 0 0; }
+    .dd-flight-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
     .dd-flight-row:last-child { border-bottom: none; }
-    .dd-flight-route {
-      font-family: 'JetBrains Mono', monospace; font-size: 13px;
-      font-weight: 700; color: var(--text);
-    }
+    .dd-flight-route { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text); }
     .dd-flight-times { font-size: 13px; color: var(--text2); font-variant-numeric: tabular-nums; }
     .dd-hsby  { border-left: 3px solid var(--yellow); }
     .dd-ad    { border-left: 3px solid var(--red);    }
     .dd-leave { border-left: 3px solid var(--off);    }
     .dd-sick  { border-left: 3px solid #e11d48;       }
     .dd-duty-name { font-size: 16px; font-weight: 700; color: var(--text); }
-    .dd-duty-time {
-      font-size: 14px; color: var(--text2); margin-top: 4px;
-      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;
-    }
+    .dd-duty-time { font-size: 14px; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
     .dd-section { margin-bottom: 16px; }
-    .dd-section-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
-    }
+    .dd-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
     .dd-pills { display: flex; flex-wrap: wrap; gap: 6px; }
     .dd-pill {
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 10px 5px 8px; border-radius: 8px; font-size: 12px;
-      font-weight: 600; text-decoration: none; cursor: default;
-      color: var(--text2); background: var(--surface); border: 1px solid var(--border);
+      padding: 5px 10px 5px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      text-decoration: none; cursor: default; color: var(--text2);
+      background: var(--surface); border: 1px solid var(--border);
     }
     a.dd-pill { cursor: pointer; }
-    .dd-pill.swap { background: var(--blue-lt); color: var(--blue); border-color: var(--border); }
+    .dd-pill.swap { background: var(--blue-lt); color: var(--blue); }
     .dd-pill.maybe { opacity: 0.55; }
     .dd-pill-r { font-size: 10px; font-weight: 800; opacity: 0.55; }
     .dd-actions {
@@ -112,65 +85,58 @@
     .dd-action-btn {
       flex: 1; padding: 10px 12px; border-radius: 10px;
       font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700;
-      cursor: pointer; border: 1.5px solid var(--blue);
-      background: var(--blue); color: white; white-space: nowrap;
+      cursor: pointer; border: 1.5px solid var(--blue); background: var(--blue); color: white; white-space: nowrap;
     }
-    .dd-action-btn.ghost {
-      background: transparent; color: var(--text2); border-color: var(--border);
-      font-size: 12px; font-weight: 600; padding: 9px 12px;
-    }
+    .dd-action-btn.ghost { background: transparent; color: var(--text2); border-color: var(--border); font-size: 12px; font-weight: 600; padding: 9px 12px; }
     .dd-action-btn.outline { background: transparent; color: var(--blue); border-color: var(--blue); }
-    .dd-action-btn.danger {
-      flex: 0 0 auto; background: transparent; color: var(--red);
-      border-color: var(--border); font-size: 12px; padding: 9px 12px;
-    }
+    .dd-action-btn.danger { flex: 0 0 auto; background: transparent; color: var(--red); border-color: var(--border); font-size: 12px; padding: 9px 12px; }
     .dd-empty { text-align: center; padding: 24px 0 8px; color: var(--text3); font-size: 14px; }
 
-    /* ── Calendar scroll ── */
-    #screen-calendar { display: flex; flex-direction: column; overflow: hidden; }
+    /* ── Calendar — NO display override on #screen-calendar ── */
     .cal-topbar {
+      display: flex; flex-direction: column; flex-shrink: 0;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .cal-topbar-row1 {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 16px;
-      padding-top: env(safe-area-inset-top);
       height: max(52px, calc(44px + env(safe-area-inset-top)));
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      padding-top: env(safe-area-inset-top);
     }
     .cal-topbar-title { font-size: 17px; font-weight: 700; color: var(--text); }
     .cal-import-btn {
-      padding: 6px 12px; border-radius: 8px;
-      border: 1.5px solid var(--border); background: var(--bg);
-      font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
-      color: var(--text2); cursor: pointer; white-space: nowrap;
+      padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--bg); font-family: 'Outfit', sans-serif; font-size: 12px;
+      font-weight: 600; color: var(--text2); cursor: pointer; white-space: nowrap;
+    }
+    .cal-topbar-row2 {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 16px 10px;
+    }
+    .cal-month-indicator {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      transition: opacity 0.2s;
+    }
+    .cal-month-hours-indicator {
+      font-size: 12px; font-weight: 600; color: var(--blue);
+      font-family: 'JetBrains Mono', monospace;
     }
     .cal-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .cal-month-block { margin-bottom: 24px; }
-    .cal-month-sticky {
-      position: sticky;
-      top: max(52px, calc(44px + env(safe-area-inset-top)));
-      z-index: 10; background: var(--bg);
-      display: flex; align-items: baseline; justify-content: space-between;
-      padding: 10px 16px 6px;
-      border-bottom: 1px solid var(--border);
+    /* screen-calendar must be flex col to allow topbar + scroll layout */
+    #screen-calendar.active { display: flex !important; flex-direction: column; overflow: hidden; }
+    .cal-month-block { margin-bottom: 20px; }
+    .cal-month-sentinel {
+      height: 1px; margin: 0; padding: 0;
     }
-    .cal-month-name { font-size: 15px; font-weight: 700; color: var(--text); }
-    .cal-month-hours { font-size: 12px; font-weight: 600; color: var(--blue); font-family: 'JetBrains Mono', monospace; }
     .cal-dow-row {
       display: grid; grid-template-columns: repeat(7, 1fr);
       padding: 4px 8px 2px;
     }
-    .cal-dow {
-      text-align: center; font-size: 10px; font-weight: 700;
-      letter-spacing: 0.5px; text-transform: uppercase; color: var(--text3); padding: 2px 0;
-    }
-    .cal-grid-inner {
-      display: grid; grid-template-columns: repeat(7, 1fr);
-      gap: 3px; padding: 0 8px 4px;
-    }
+    .cal-dow { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text3); padding: 2px 0; }
+    .cal-grid-inner { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 0 8px 4px; }
     .cal-day {
       aspect-ratio: 1; border-radius: 8px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; padding: 2px; min-height: 40px;
     }
     .cal-day.empty { background: transparent; cursor: default; }
@@ -181,41 +147,60 @@
     .cal-day.today-ring { outline: 2px solid var(--blue); outline-offset: -2px; }
     .cal-dn { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1; }
     .cal-sub {
-      font-size: 8px; font-weight: 700; letter-spacing: 0.3px;
-      color: var(--text2); line-height: 1.1; text-align: center;
-      max-width: 100%; overflow: hidden;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: var(--text2);
+      line-height: 1.1; text-align: center; max-width: 100%;
+      overflow: hidden; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     }
     .cal-day.early .cal-sub { color: var(--early); }
     .cal-day.late  .cal-sub { color: var(--late);  }
     .cal-day.off   .cal-sub { color: var(--off);   }
     .cal-day.sick  .cal-sub { color: var(--red);   }
+
+    /* ── Shift-type picker (for HSBY / AD) ── */
+    .shift-type-picker {
+      display: flex; gap: 8px; margin-top: 10px; margin-bottom: 4px;
+    }
+    .shift-type-btn {
+      flex: 1; padding: 9px 8px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: var(--bg); font-family: 'Outfit', sans-serif; font-size: 13px;
+      font-weight: 600; color: var(--text2); cursor: pointer; text-align: center;
+    }
+    .shift-type-btn.active-early { background: var(--early-lt); border-color: var(--early); color: var(--early); }
+    .shift-type-btn.active-late  { background: var(--late-lt);  border-color: var(--late);  color: var(--late);  }
   `;
   document.head.appendChild(s);
 })();
 
 
 // ══════════════════════════════════════════════════════════════
-// CALENDAR — 37-month infinite scroll
+// CALENDAR — 37-month scroll
 // ══════════════════════════════════════════════════════════════
 const CAL_PAST   = 12;
 const CAL_FUTURE = 24;
+let _calObserver = null;
 
 function renderCalendar() {
   const screen = document.getElementById('screen-calendar');
   if (!screen) return;
 
-  const today     = new Date();
-  const todayStr  = toDateStr(today);
-  const originY   = today.getFullYear();
-  const originM   = today.getMonth();
+  const today    = new Date();
+  const todayStr = toDateStr(today);
+  const originY  = today.getFullYear();
+  const originM  = today.getMonth();
 
-  // Rebuild structure once
+  // Build structure once
   if (!screen.querySelector('.cal-topbar')) {
     screen.innerHTML = `
       <div class="cal-topbar">
-        <span class="cal-topbar-title">Calendar</span>
-        <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import Roster</button>
+        <div class="cal-topbar-row1">
+          <span class="cal-topbar-title">Calendar</span>
+          <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import Roster</button>
+        </div>
+        <div class="cal-topbar-row2">
+          <span class="cal-month-indicator" id="calMonthIndicator"></span>
+          <span class="cal-month-hours-indicator" id="calMonthHoursIndicator"></span>
+        </div>
       </div>
       <div class="cal-scroll" id="calScroll"></div>
     `;
@@ -223,8 +208,11 @@ function renderCalendar() {
 
   const scrollEl = document.getElementById('calScroll');
   scrollEl.innerHTML = '';
-  const frag = document.createDocumentFragment();
 
+  // Disconnect old observer
+  if (_calObserver) { _calObserver.disconnect(); _calObserver = null; }
+
+  const frag = document.createDocumentFragment();
   for (let offset = -CAL_PAST; offset <= CAL_FUTURE; offset++) {
     let y = originY, m = originM + offset;
     while (m < 0)  { m += 12; y--; }
@@ -233,13 +221,62 @@ function renderCalendar() {
     if (offset === 0) block.id = 'cal-current-month';
     frag.appendChild(block);
   }
-
   scrollEl.appendChild(frag);
 
+  // Scroll to current month
   requestAnimationFrame(() => {
     const cur = document.getElementById('cal-current-month');
     if (cur) cur.scrollIntoView({ block: 'start' });
+    _setupMonthObserver();
   });
+}
+
+function _setupMonthObserver() {
+  if (_calObserver) _calObserver.disconnect();
+
+  const topbarH = document.querySelector('.cal-topbar')?.offsetHeight || 88;
+
+  _calObserver = new IntersectionObserver(entries => {
+    // Find the topmost visible sentinel
+    let best = null, bestTop = Infinity;
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const top = e.boundingClientRect.top;
+        if (top >= 0 && top < bestTop) { bestTop = top; best = e.target; }
+      }
+    });
+    // Among all sentinels, find highest one past the topbar
+    const all = document.querySelectorAll('.cal-month-sentinel');
+    let current = null;
+    all.forEach(s => {
+      const rect = s.getBoundingClientRect();
+      if (rect.top <= topbarH + 20) current = s;
+    });
+    if (current) {
+      const y = current.dataset.year, m = current.dataset.month;
+      const hrs = _calcMonthHours(parseInt(y), parseInt(m));
+      document.getElementById('calMonthIndicator').textContent = `${MONTHS[parseInt(m)]} ${y}`;
+      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? hrs.toFixed(1) + ' h' : '';
+    }
+  }, {
+    root: document.getElementById('calScroll'),
+    threshold: 0,
+    rootMargin: '0px 0px -80% 0px'
+  });
+
+  document.querySelectorAll('.cal-month-sentinel').forEach(s => _calObserver.observe(s));
+
+  // Set initial month label
+  const cur = document.getElementById('cal-current-month');
+  if (cur) {
+    const s = cur.querySelector('.cal-month-sentinel');
+    if (s) {
+      const y = parseInt(s.dataset.year), m = parseInt(s.dataset.month);
+      const hrs = _calcMonthHours(y, m);
+      document.getElementById('calMonthIndicator').textContent = `${MONTHS[m]} ${y}`;
+      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? hrs.toFixed(1) + ' h' : '';
+    }
+  }
 }
 
 function _buildMonthBlock(year, month, todayStr) {
@@ -249,25 +286,20 @@ function _buildMonthBlock(year, month, todayStr) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
-  const monthHrs    = _calcMonthHours(year, month);
-  const hrsLabel    = monthHrs > 0 ? monthHrs.toFixed(1) + ' h' : '';
 
-  // Sticky header
-  const sticky = document.createElement('div');
-  sticky.className = 'cal-month-sticky';
-  sticky.innerHTML = `
-    <span class="cal-month-name">${MONTHS[month]} ${year}</span>
-    ${hrsLabel ? `<span class="cal-month-hours">${hrsLabel}</span>` : '<span></span>'}
-  `;
-  block.appendChild(sticky);
+  // Sentinel for IntersectionObserver
+  const sentinel = document.createElement('div');
+  sentinel.className = 'cal-month-sentinel';
+  sentinel.dataset.year  = year;
+  sentinel.dataset.month = month;
+  block.appendChild(sentinel);
 
   // DOW row
   const dowRow = document.createElement('div');
   dowRow.className = 'cal-dow-row';
   ['M','T','W','T','F','S','S'].forEach(d => {
     const el = document.createElement('div');
-    el.className = 'cal-dow';
-    el.textContent = d;
+    el.className = 'cal-dow'; el.textContent = d;
     dowRow.appendChild(el);
   });
   block.appendChild(dowRow);
@@ -278,8 +310,7 @@ function _buildMonthBlock(year, month, todayStr) {
 
   for (let i = 0; i < offset; i++) {
     const e = document.createElement('div');
-    e.className = 'cal-day empty';
-    grid.appendChild(e);
+    e.className = 'cal-day empty'; grid.appendChild(e);
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -288,20 +319,12 @@ function _buildMonthBlock(year, month, todayStr) {
     const day    = cycleDay(APP.roster, ds);
     const type   = shiftType(day);
     const assign = APP.assignments?.[ds];
+    const detail = APP.assignDetails?.[ds];
     const sched  = SCHEDULE.days[dow];
     const isToday = ds === todayStr;
 
-    let cellClass = type;
-    if (assign) {
-      if (assign === 'A1E' || assign === 'A2E') cellClass = 'early';
-      else if (assign === 'A1L' || assign === 'A2L') cellClass = 'late';
-      else if (assign === 'SICK') cellClass = 'sick';
-      else if (assign === 'AD')   cellClass = 'sick';
-      else if (assign === 'CUSTOM') cellClass = _customClass(ds);
-      else if (['AL','VTO','UL','PL','HSBY'].includes(assign)) cellClass = 'off';
-    }
-
-    const sub = _cellSub(ds, assign, type, sched);
+    const cellClass = _cellClass(assign, type, ds, detail);
+    const sub       = _cellSub(ds, assign, type, sched);
 
     const cell = document.createElement('div');
     cell.className = `cal-day ${cellClass}${isToday ? ' today-ring' : ''}`;
@@ -312,6 +335,24 @@ function _buildMonthBlock(year, month, todayStr) {
 
   block.appendChild(grid);
   return block;
+}
+
+function _cellClass(assign, type, ds, detail) {
+  if (!assign) return type; // early | late | off
+
+  if (assign === 'A1E' || assign === 'A2E') return 'early';
+  if (assign === 'A1L' || assign === 'A2L') return 'late';
+  if (assign === 'SICK') return 'sick';
+  if (assign === 'AD' || assign === 'HSBY') {
+    // Use stored shiftType if available
+    const st = detail?.shiftType;
+    if (st === 'early') return 'early';
+    if (st === 'late')  return 'late';
+    return 'off'; // unset → neutral
+  }
+  if (assign === 'CUSTOM') return _customClass(ds);
+  if (['AL','VTO','UL','PL'].includes(assign)) return 'off';
+  return type;
 }
 
 function _customClass(ds) {
@@ -326,7 +367,7 @@ function _customClass(ds) {
 function _cellSub(ds, assign, type, sched) {
   if (!assign) return type === 'off' ? 'OFF' : '';
 
-  if (assign === 'A1E' || assign === 'A1L' || assign === 'A2E' || assign === 'A2L') {
+  if (['A1E','A1L','A2E','A2L'].includes(assign)) {
     const useA2 = assign.startsWith('A2'), useLate = assign.endsWith('L');
     const plane = useA2 ? sched?.a2 : sched?.a1;
     const flights = (useLate ? plane?.late : plane?.early) || [];
@@ -341,13 +382,12 @@ function _cellSub(ds, assign, type, sched) {
   return { HSBY:'HSBY', AD:'AD', AL:'AL', VTO:'VTO', SICK:'SICK', UL:'UL', PL:'PL' }[assign] || assign;
 }
 
-// ── Hours calculation ─────────────────────────────────────────
+// ── Hours ──────────────────────────────────────────────────────
 function _calcMonthHours(year, month) {
   let total = 0;
   const days = new Date(year, month + 1, 0).getDate();
   for (let d = 1; d <= days; d++) {
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    total += calcDayHours(ds);
+    total += calcDayHours(`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
   }
   return total;
 }
@@ -358,7 +398,6 @@ function calcDayHours(ds) {
   const dow = new Date(ds + 'T12:00:00').getDay();
   const sched = SCHEDULE.days[dow];
   let flights = [];
-
   if (assign === 'CUSTOM') {
     flights = (APP.customFlights?.[ds] || []).filter(f => f.dep && f.arr);
   } else if (['A1E','A1L','A2E','A2L'].includes(assign)) {
@@ -366,7 +405,6 @@ function calcDayHours(ds) {
     const plane = useA2 ? sched?.a2 : sched?.a1;
     flights = ((useLate ? plane?.late : plane?.early) || []).filter(f => f.dep && f.arr);
   }
-
   return flights.reduce((sum, f) => {
     const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     let diff = toM(f.arr) - toM(f.dep);
@@ -375,8 +413,7 @@ function calcDayHours(ds) {
   }, 0);
 }
 
-// ── calNav stub (kept for compatibility) ──────────────────────
-function calNav(d) {}
+function calNav(d) {} // kept for compatibility
 
 function initModalSwipe() {
   document.querySelectorAll('.modal').forEach(modal => {
@@ -425,20 +462,19 @@ function _navDay(dir) {
 function _bindDetailSwipe(el) {
   if (_detailSwipeBound) return;
   _detailSwipeBound = true;
-  let sx = 0, sy = 0, tracking = false, horiz = false;
+  let sx=0, sy=0, tracking=false, horiz=false;
   el.addEventListener('touchstart', e => { sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true; horiz=false; }, { passive:true });
   el.addEventListener('touchmove', e => {
     if (!tracking) return;
     const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
     if (!horiz) {
-      if (Math.abs(dx)>12 && Math.abs(dx)>Math.abs(dy)) horiz=true;
+      if (Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)) horiz=true;
       else if (Math.abs(dy)>12) tracking=false;
     }
   }, { passive:true });
   el.addEventListener('touchend', e => {
     if (!horiz||!tracking) { tracking=false; return; }
-    const dx=e.changedTouches[0].clientX-sx;
-    if (Math.abs(dx)>55) _navDay(dx<0?1:-1);
+    if (Math.abs(e.changedTouches[0].clientX-sx)>55) _navDay(e.changedTouches[0].clientX-sx<0?1:-1);
     tracking=false;
   });
   el.addEventListener('touchcancel', () => { tracking=false; });
@@ -458,15 +494,13 @@ function _renderDayDetail() {
 
   const prevD = new Date(date); prevD.setDate(prevD.getDate()-1);
   const nextD = new Date(date); nextD.setDate(nextD.getDate()+1);
-
-  const dateLine = (isToday ? 'Today · ' : '') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
-  const badgeClass = type === 'early' ? 'early' : type === 'late' ? 'late' : 'off';
+  const dateLine = (isToday?'Today · ':'') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  const badgeClass = type==='early'?'early':type==='late'?'late':'off';
   const dayHrs = calcDayHours(ds);
-  const hrsText = dayHrs > 0 ? dayHrs.toFixed(1) + ' h' : '';
+  const hrsText = dayHrs > 0 ? dayHrs.toFixed(1)+' h' : '';
 
-  // ── Duty ──
+  // ── Duty block ──
   let dutyHtml = '';
-
   if (['A1E','A1L','A2E','A2L'].includes(assign)) {
     const useA2=assign.startsWith('A2'), useLate=assign.endsWith('L');
     const plane=useA2?sched?.a2:sched?.a1;
@@ -478,7 +512,7 @@ function _renderDayDetail() {
         <span class="dd-flight-route">${f.route}</span>
         <span class="dd-flight-times">${f.dep} → ${f.arr}</span>
       </div>`).join('');
-    dutyHtml = `<div class="dd-card">
+    dutyHtml=`<div class="dd-card">
       <div class="dd-report">
         <span class="dd-report-label">Report</span>
         <span class="dd-report-time">${report||'--:--'}</span>
@@ -486,7 +520,7 @@ function _renderDayDetail() {
       </div>
       <div class="dd-plane-label">${label}</div>${rows}</div>`;
 
-  } else if (assign === 'CUSTOM') {
+  } else if (assign==='CUSTOM') {
     const cfl=APP.customFlights?.[ds]||[];
     const report=cfl.length?calcReport(cfl):null;
     const rows=cfl.filter(f=>f.from&&f.to).map(f=>`
@@ -494,42 +528,48 @@ function _renderDayDetail() {
         <span class="dd-flight-route">${f.from}-${f.to}</span>
         <span class="dd-flight-times">${f.dep||'--:--'} → ${f.arr||'--:--'}</span>
       </div>`).join('');
-    dutyHtml = `<div class="dd-card">
+    dutyHtml=`<div class="dd-card">
       ${report&&report!=='—'?`<div class="dd-report"><span class="dd-report-label">Report</span><span class="dd-report-time">${report}</span>${hrsText?`<span class="dd-hours-badge">${hrsText}</span>`:''}</div>`:''}
       <div class="dd-plane-label">Custom flights</div>
       ${rows||'<div style="color:var(--text3);font-size:13px;padding:8px 0">No flights added yet</div>'}
       <button onclick="openCustomFlights('${ds}')" style="margin-top:10px;padding:7px 14px;border-radius:8px;border:1.5px solid var(--blue);background:var(--blue-lt);font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer">${cfl.length?'✏ Edit flights':'+ Add flights'}</button>
-      </div>`;
+    </div>`;
 
-  } else if (assign === 'HSBY') {
+  } else if (assign==='HSBY') {
+    const st=detail?.shiftType;
     const ts=detail?.start&&detail?.end?`${detail.start} – ${detail.end}`:detail?.start?`from ${detail.start}`:'';
-    dutyHtml=`<div class="dd-card dd-hsby"><div class="dd-duty-name">Home Standby</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
-  } else if (assign === 'AD') {
+    const stLabel=st?` · ${st.charAt(0).toUpperCase()+st.slice(1)}`:'';
+    dutyHtml=`<div class="dd-card dd-hsby"><div class="dd-duty-name">Home Standby${stLabel}</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
+
+  } else if (assign==='AD') {
+    const st=detail?.shiftType;
     const ts=detail?.start&&detail?.end?`${detail.start} – ${detail.end}`:detail?.start?`from ${detail.start}`:'';
-    dutyHtml=`<div class="dd-card dd-ad"><div class="dd-duty-name">Airport Duty</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
-  } else if (assign === 'AL') {
+    const stLabel=st?` · ${st.charAt(0).toUpperCase()+st.slice(1)}`:'';
+    dutyHtml=`<div class="dd-card dd-ad"><div class="dd-duty-name">Airport Duty${stLabel}</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
+
+  } else if (assign==='AL') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Annual Leave</div></div>`;
-  } else if (assign === 'VTO') {
+  } else if (assign==='VTO') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Voluntary Time Off</div></div>`;
-  } else if (assign === 'SICK') {
+  } else if (assign==='SICK') {
     dutyHtml=`<div class="dd-card dd-sick"><div class="dd-duty-name">Sick Leave</div></div>`;
-  } else if (assign === 'UL') {
+  } else if (assign==='UL') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Unpaid Leave</div></div>`;
-  } else if (assign === 'PL') {
+  } else if (assign==='PL') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Parental Leave</div></div>`;
-  } else if (type === 'off') {
+  } else if (type==='off') {
     dutyHtml=`<div class="dd-empty">Day off 🌿</div>`;
   }
 
   // ── Crew ──
-  let crewHtml = '';
-  if (type !== 'off') {
-    const candidates = swapCandidates(APP.roster, day);
-    const sameList   = getSameShiftCrew(ds);
-    const ownCrew    = (APP.crew?.[APP.roster]||[]).filter(m=>m&&m.code&&m.code.trim());
+  let crewHtml='';
+  if (type!=='off') {
+    const candidates=swapCandidates(APP.roster,day);
+    const sameList=getSameShiftCrew(ds);
+    const ownCrew=(APP.crew?.[APP.roster]||[]).filter(m=>m&&m.code&&m.code.trim());
 
     if (candidates.length) {
-      const pills = candidates.map(c => {
+      const pills=candidates.map(c=>{
         const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
         const name=members.length?(members[0].name||members[0].code):`Roster ${c.roster}`;
         const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
@@ -562,7 +602,7 @@ function _renderDayDetail() {
     ? `<div class="dd-actions"><button class="dd-action-btn ghost" onclick="_openDutyPicker('${ds}')">+ Add duty</button><button class="dd-action-btn ghost" onclick="_openLeavePicker('${ds}')">+ Add leave</button></div>`
     : `<div class="dd-actions"><button class="dd-action-btn outline" onclick="_openDutyPicker('${ds}')">Edit duty</button><button class="dd-action-btn danger" onclick="_clearDuty('${ds}')">Clear</button></div>`;
 
-  document.getElementById('dayDetailScreen').innerHTML = `
+  document.getElementById('dayDetailScreen').innerHTML=`
     <div class="dd-header">
       <button class="dd-back" onclick="closeDayDetail()">‹ Back</button>
       <div class="dd-daynav">
@@ -586,17 +626,17 @@ function _renderDayDetail() {
 // PICKERS
 // ══════════════════════════════════════════════════════════════
 function _openDutyPicker(ds) {
-  const sched = SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
-  document.getElementById('settingModalTitle').textContent = 'Set duty';
-  document.getElementById('settingModalBody').innerHTML = `
+  const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+  document.getElementById('settingModalTitle').textContent='Set duty';
+  document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
     <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
   document.getElementById('settingModal').classList.add('open');
 }
 
 function _openLeavePicker(ds) {
-  document.getElementById('settingModalTitle').textContent = 'Set leave';
-  document.getElementById('settingModalBody').innerHTML = `
+  document.getElementById('settingModalTitle').textContent='Set leave';
+  document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:50vh;overflow-y:auto">${buildLeaveOptions(ds)}</div>
     <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
   document.getElementById('settingModal').classList.add('open');
@@ -629,17 +669,47 @@ function getSameShiftCrew(ds) {
 }
 
 function getAssignDisplay(assign) {
-  return {A1E:'Aereo 1 Early',A1L:'Aereo 1 Late',A2E:'Aereo 2 Early',A2L:'Aereo 2 Late',CUSTOM:'Custom Flights',HSBY:'Home Standby',AD:'Airport Duty',AL:'Annual Leave',VTO:'VTO',SICK:'Sick Leave',UL:'Unpaid Leave',PL:'Parental Leave'}[assign]||assign||'—';
+  return {A1E:'Aereo 1 Early',A1L:'Aereo 1 Late',A2E:'Aereo 2 Early',A2L:'Aereo 2 Late',
+    CUSTOM:'Custom Flights',HSBY:'Home Standby',AD:'Airport Duty',AL:'Annual Leave',
+    VTO:'VTO',SICK:'Sick Leave',UL:'Unpaid Leave',PL:'Parental Leave'}[assign]||assign||'—';
 }
 
 function buildDutyTimeInputs(ds) {
   const h=APP.assignDetails?.[ds];
-  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;margin-bottom:8px;padding:0 2px">
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;margin-bottom:4px;padding:0 2px">
     <div><div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Start</div>
     <input type="text" inputmode="numeric" maxlength="5" placeholder="06:00" value="${h?.start||''}" oninput="handleTimeInput(this,'${ds}',null,'start')" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;text-align:center;letter-spacing:2px"></div>
     <div><div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">End</div>
     <input type="text" inputmode="numeric" maxlength="5" placeholder="14:00" value="${h?.end||''}" oninput="handleTimeInput(this,'${ds}',null,'end')" style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;text-align:center;letter-spacing:2px"></div>
   </div>`;
+}
+
+// Shift-type picker for HSBY / AD (inline in duty picker)
+function buildShiftTypePicker(ds, dutyType) {
+  const current = APP.assignDetails?.[ds]?.shiftType;
+  return `
+    <div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:10px;margin-bottom:6px">Turno</div>
+    <div class="shift-type-picker">
+      <button class="shift-type-btn ${current==='early'?'active-early':''}"
+        onclick="_setShiftType('${ds}','${dutyType}','early',this)">☀ Early</button>
+      <button class="shift-type-btn ${current==='late'?'active-late':''}"
+        onclick="_setShiftType('${ds}','${dutyType}','late',this)">🌙 Late</button>
+    </div>`;
+}
+
+function _setShiftType(ds, dutyType, st, btn) {
+  if (!APP.assignDetails) APP.assignDetails={};
+  if (!APP.assignDetails[ds]) APP.assignDetails[ds]={};
+  APP.assignDetails[ds].shiftType = st;
+  save();
+  // Update button styles
+  const picker = btn.closest('.shift-type-picker');
+  picker.querySelectorAll('.shift-type-btn').forEach(b => {
+    b.classList.remove('active-early','active-late');
+  });
+  btn.classList.add(st==='early'?'active-early':'active-late');
+  // Re-render calendar cell
+  renderCalendar();
 }
 
 function buildDutyOptions(ds, sched) {
@@ -658,15 +728,29 @@ function buildDutyOptions(ds, sched) {
         <div class="assign-check">${sel?'✓':''}</div></div>`;
     });
   }
+
   const hsel=assign==='HSBY';
-  body+=`<div class="assign-option ${hsel?'selected-hsby':''}" onclick="setAssign('${ds}','HSBY')"><div class="assign-label" style="color:var(--yellow)">☎ Home Standby</div><div class="assign-check">${hsel?'✓':''}</div></div>`;
-  if (hsel) body+=buildDutyTimeInputs(ds);
+  body+=`<div class="assign-option ${hsel?'selected-hsby':''}" onclick="setAssign('${ds}','HSBY')">
+    <div class="assign-label" style="color:var(--yellow)">☎ Home Standby</div>
+    <div class="assign-check">${hsel?'✓':''}</div></div>`;
+  if (hsel) {
+    body += buildShiftTypePicker(ds, 'HSBY');
+    body += buildDutyTimeInputs(ds);
+  }
+
   const asel=assign==='AD';
-  body+=`<div class="assign-option ${asel?'selected-ad':''}" onclick="setAssign('${ds}','AD')"><div class="assign-label" style="color:var(--red)">🏢 Airport Duty</div><div class="assign-check">${asel?'✓':''}</div></div>`;
-  if (asel) body+=buildDutyTimeInputs(ds);
+  body+=`<div class="assign-option ${asel?'selected-ad':''}" onclick="setAssign('${ds}','AD')">
+    <div class="assign-label" style="color:var(--red)">🏢 Airport Duty</div>
+    <div class="assign-check">${asel?'✓':''}</div></div>`;
+  if (asel) {
+    body += buildShiftTypePicker(ds, 'AD');
+    body += buildDutyTimeInputs(ds);
+  }
+
   const csel=assign==='CUSTOM';
   body+=`<div class="assign-option ${csel?'selected-a1':''}" onclick="setAssign('${ds}','CUSTOM')">
-    <div><div class="assign-label" style="color:var(--blue)">✏ Custom Flights</div>${csel&&cfl.length?`<div class="assign-flights">${cfl.filter(f=>f.from&&f.to).map(f=>f.from+'-'+f.to).join(' · ')}</div>`:''}</div>
+    <div><div class="assign-label" style="color:var(--blue)">✏ Custom Flights</div>
+    ${csel&&cfl.length?`<div class="assign-flights">${cfl.filter(f=>f.from&&f.to).map(f=>f.from+'-'+f.to).join(' · ')}</div>`:''}</div>
     <div class="assign-check">${csel?'✓':''}</div></div>`;
   return body;
 }
@@ -694,7 +778,19 @@ function setAssign(ds, val) {
   if (!APP.assignments) APP.assignments={};
   if (val) APP.assignments[ds]=val;
   else { delete APP.assignments[ds]; if(APP.customFlights)delete APP.customFlights[ds]; if(APP.assignDetails)delete APP.assignDetails[ds]; }
-  save(); closeModal('settingModal'); renderCalendar(); renderHome();
+  save();
+  // Don't close modal for HSBY/AD so user can set shift type
+  if (val==='HSBY'||val==='AD') {
+    // Refresh picker content to show shift-type picker
+    const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+    document.querySelector('#settingModal .modal-body, #settingModalBody').innerHTML=`
+      <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
+      <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
+    renderCalendar(); renderHome();
+    return;
+  }
+  closeModal('settingModal');
+  renderCalendar(); renderHome();
   if (val==='CUSTOM') openCustomFlights(ds);
   else { _detailDs=ds; _renderDayDetail(); }
   if (APP.notif?.enabled) scheduleAllNotifications();
@@ -794,7 +890,8 @@ function saveDetail(ds,field,val) {
   APP.assignDetails[ds][field]=val; save(); renderHome();
 }
 
-window._navDay         =_navDay;
-window._openDutyPicker =_openDutyPicker;
-window._openLeavePicker=_openLeavePicker;
-window._clearDuty      =_clearDuty;
+window._navDay          = _navDay;
+window._openDutyPicker  = _openDutyPicker;
+window._openLeavePicker = _openLeavePicker;
+window._clearDuty       = _clearDuty;
+window._setShiftType    = _setShiftType;
