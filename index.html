@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -70,7 +70,6 @@
       </div>
     </div>
 
-    <!-- Step 3: Welcome / quick guide -->
     <div class="step" id="step3">
       <div style="text-align:center; margin-bottom:20px">
         <div style="font-size:32px; margin-bottom:8px">🎉</div>
@@ -79,15 +78,13 @@
       </div>
       <div style="text-align:left; font-size:13px; line-height:1.8; color:var(--text2); margin-bottom:24px">
         <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you</div>
-        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
+        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment</div>
         <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
-        <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers</div>
-        <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
-        <div style="margin-bottom:8px">ℹ️ <strong>Info</strong> — tutorial, disclaimer and support</div>
+        <div style="margin-bottom:8px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info</div>
       </div>
       <div style="font-size:12px; color:var(--text3); text-align:center; margin-bottom:16px">
-        Need help? Use <strong>Feedback & Support</strong> in the Info tab — don't be shy! 😊
+        Need help? Use <strong>Feedback &amp; Support</strong> in the Info tab — don't be shy! 😊
       </div>
       <button class="btn" onclick="finishSetup()">Get started →</button>
     </div>
@@ -106,43 +103,21 @@
   </div>
 
   <!-- HOME -->
-<div class="screen active" id="screen-home">
-  <div id="homeDots"></div>
-  <div id="homeSlider" style="position:relative; flex:1; min-height:0; overflow:hidden">
-    <div id="homeSlides" style="display:flex; min-height:100%; transition:transform 0.3s ease; will-change:transform"></div>
+  <div class="screen active" id="screen-home">
+    <div id="homeDots"></div>
+    <div id="homeSlider" style="position:relative; flex:1; min-height:0; overflow:hidden">
+      <div id="homeSlides" style="display:flex; min-height:100%; transition:transform 0.3s ease; will-change:transform"></div>
+    </div>
   </div>
-</div>
 
-  <!-- CALENDAR -->
-  <div class="screen" id="screen-calendar">
-    <div class="cal-header">
-      <div class="cal-month-title" id="calMonthTitle"></div>
-      <div class="cal-nav">
-        <button onclick="calNav(-1)">‹</button>
-        <button onclick="calNav(1)">›</button>
-      </div>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div style="padding:8px 16px 4px">
-  <button onclick="triggerRosterImport()" class="btn secondary"
-    style="display:flex;align-items:center;gap:8px">
-    📄 Import from Ryanair Connect
-  </button>
-  <div id="rosterImportMsg" style="display:none;font-size:12px;
-    text-align:center;padding:6px 0;color:var(--green)"></div>
-</div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap; padding:10px 16px 6px">
-      <span style="font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--early-lt);display:inline-block"></span> Early</span>
-      <span style="font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--late-lt);display:inline-block"></span> Late</span>
-      <span style="font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--off-lt);display:inline-block"></span> Day off</span>
-    </div>
-  </div>
+  <!-- CALENDAR — rebuilt entirely by calendar.js -->
+  <div class="screen" id="screen-calendar"></div>
 
   <!-- SCHEDULE -->
   <div class="screen" id="screen-schedule">
     <div style="padding:16px 16px 8px">
       <div style="font-size:22px; font-weight:800; color:var(--text)">Flight Schedule</div>
-           <div style="font-size:13px; color:var(--text2); margin-top:2px; display:flex; align-items:center; gap:8px;">Pescara · PSR <span id="schedVersion"></span></div>
+      <div style="font-size:13px; color:var(--text2); margin-top:2px; display:flex; align-items:center; gap:8px;">Pescara · PSR <span id="schedVersion"></span></div>
     </div>
     <div style="padding:0 16px 12px">
       <select id="schedDaySelect" onchange="setSchedDay(parseInt(this.value))" style="margin-bottom:0">
@@ -195,8 +170,6 @@
     <div id="swapResults">
       <div class="empty-state"><div class="big">🔄</div><p>Select roster and shift<br>to find colleagues</p></div>
     </div>
-
-    <!-- Crew section inside Swap -->
     <div style="margin-top:8px">
       <button onclick="toggleSwapCrew()"
         style="display:flex; align-items:center; justify-content:center; gap:8px;
@@ -212,7 +185,6 @@
 
   <!-- CREW -->
   <div class="screen" id="screen-crew">
-    <!-- PIN gate (shown until unlocked) -->
     <div id="crewPinGate" style="padding:40px 24px; text-align:center">
       <button onclick="nav('swap')" style="position:absolute; top:16px; left:16px; padding:8px 14px;
         border-radius:10px; border:1.5px solid var(--border); background:var(--bg);
@@ -242,8 +214,6 @@
         <button class="pin-key" onclick="crewPinKey('del')" style="font-size:16px">⌫</button>
       </div>
     </div>
-
-    <!-- Crew content (shown after unlock) -->
     <div id="crewContent" style="display:none">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 16px 8px">
         <div>
@@ -280,12 +250,8 @@
            style="display:flex; align-items:center; justify-content:center; gap:8px;
                   padding:13px; border-radius:12px; border:1.5px solid #dcfce7;
                   background:#f0fdf4; color:#16a34a; text-decoration:none;
-                  font-size:14px; font-weight:600;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
-          </svg>
-          Feedback & Suggestions
+                  font-family:'Outfit',sans-serif; font-size:14px; font-weight:600">
+          💬 Feedback &amp; Support
         </a>
       </div>
     </div>
@@ -293,76 +259,72 @@
 
   <!-- SETTINGS -->
   <div class="screen" id="screen-settings">
-    <div style="padding:16px 16px 8px">
+    <div style="padding:max(20px,env(safe-area-inset-top)) 16px 8px">
       <div style="font-size:22px; font-weight:800; color:var(--text)">Settings</div>
     </div>
-    <div class="section-title">Profile</div>
-    <div class="card">
-      <div class="setting-row">
+
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+      <div class="setting-row" onclick="changeSetting('roster')" style="cursor:pointer">
         <div><div class="setting-label">Roster</div><div class="setting-sub">Your assigned roster</div></div>
-        <div class="setting-val" id="settingRoster" onclick="changeSetting('roster')">—</div>
+        <div class="setting-val" id="settingRoster">—</div>
+      </div>
+      <div class="setting-row" onclick="changeSetting('date')" style="cursor:pointer">
+        <div><div class="setting-label">Cycle reference date</div><div class="setting-sub">Day 1 of your cycle</div></div>
+        <div class="setting-val" id="settingDate">—</div>
       </div>
       <div class="setting-row" style="border:none">
-        <div><div class="setting-label">Cycle start date</div><div class="setting-sub">Your last Day 1</div></div>
-        <div class="setting-val" id="settingDate" onclick="changeSetting('date')">—</div>
-      </div>
-    </div>
-    <div class="section-title">Security</div>
-    <div class="card">
-      <div class="setting-row" style="border:none">
-        <div><div class="setting-label">Crew directory PIN</div><div class="setting-sub">Protects your crew contacts</div></div>
-        <div class="setting-val" onclick="changeSetting('pin')">Change</div>
+        <div><div class="setting-label">Schedule version</div><div class="setting-sub">Current flight data</div></div>
+        <div class="setting-val" id="settingSchedVersion">—</div>
       </div>
     </div>
-    <div class="section-title">Schedule</div>
-    <div class="card">
-      <div class="setting-row" style="border:none">
-        <div><div class="setting-label" id="settingSchedVersion">—</div><div class="setting-sub">Current flight schedule version</div></div>
+
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+      <div class="setting-row" onclick="changeSetting('pin')" style="cursor:pointer; border:none">
+        <div><div class="setting-label">Security</div><div class="setting-sub">PIN or password for Crew Directory</div></div>
+        <div class="setting-val">›</div>
       </div>
     </div>
-    <div class="section-title">Appearance</div>
-    <div class="card">
+
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+      <div class="setting-row">
+        <div><div class="setting-label">Theme</div></div>
+        <select id="themeSelect" onchange="setTheme(this.value)" style="width:auto; margin-bottom:0; padding:7px 10px; font-size:13px; font-weight:600">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
       <div class="setting-row" style="border:none">
-        <div><div class="setting-label">Theme</div><div class="setting-sub">App colour scheme</div></div>
-        <select id="themeSelect" onchange="setTheme(this.value)"
-          style="width:auto; margin-bottom:0; padding:7px 12px; font-size:13px; font-weight:600">
-          <option value="light">☀️ Light</option>
-          <option value="dark">🌙 Dark</option>
-          <option value="system">📱 System</option>
+        <div><div class="setting-label">Notifications</div><div class="setting-sub">Reminder before report time</div></div>
+        <input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)" style="width:auto; margin-bottom:0">
+      </div>
+    </div>
+
+    <div id="notifOptions" style="display:none; margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+      <div class="setting-row">
+        <div><div class="setting-label">⏰ Report time</div><div class="setting-sub">Alert 45 min before first dep</div></div>
+        <input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)" style="width:auto; margin-bottom:0">
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">🛫 Departures</div><div class="setting-sub">Alert before each flight</div></div>
+        <select id="notifDep" onchange="setNotifPref('dep',this.value)"
+          style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
+          <option value="none">Off</option>
+          <option value="first">First only</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="setting-row" style="border:none">
+        <div><div class="setting-label">🛬 Arrivals</div><div class="setting-sub">Alert at each landing</div></div>
+        <select id="notifArr" onchange="setNotifPref('arr',this.value)"
+          style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
+          <option value="none">Off</option>
+          <option value="last">Last only</option>
+          <option value="all">All</option>
         </select>
       </div>
     </div>
-    <div class="section-title">Notifications</div>
-    <div class="card" id="notifCard">
-      <div class="setting-row">
-        <div><div class="setting-label">Enable notifications</div><div class="setting-sub">Alerts for your duty day</div></div>
-        <label class="toggle"><input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)"><span class="toggle-slider"></span></label>
-      </div>
-      <div id="notifOptions" style="display:none">
-        <div class="setting-row">
-          <div><div class="setting-label">⏰ Report time</div><div class="setting-sub">45 min before first departure</div></div>
-          <label class="toggle"><input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)"><span class="toggle-slider"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">🛫 Departures</div><div class="setting-sub">Alert before each flight</div></div>
-          <select id="notifDep" onchange="setNotifPref('dep',this.value)"
-            style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
-            <option value="none">Off</option>
-            <option value="first">First only</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-        <div class="setting-row" style="border:none">
-          <div><div class="setting-label">🛬 Arrivals</div><div class="setting-sub">Alert at each landing</div></div>
-          <select id="notifArr" onchange="setNotifPref('arr',this.value)"
-            style="width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; font-weight:600">
-            <option value="none">Off</option>
-            <option value="last">Last only</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-      </div>
-    </div>
+
     <div style="padding:8px 16px 16px">
       <button class="btn secondary" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset all data</button>
     </div>
@@ -370,25 +332,19 @@
 
   <!-- INFO -->
   <div class="screen" id="screen-info">
-    <div style="padding:16px 16px 8px">
+    <div style="padding:max(20px,env(safe-area-inset-top)) 16px 8px">
       <div style="font-size:22px; font-weight:800; color:var(--text)">Info</div>
     </div>
 
     <div style="padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px">
-
-      <!-- Share -->
       <button onclick="shareApp()" class="info-tile" style="background:var(--blue-lt); border-color:var(--blue-lt); color:var(--blue)">
         <span style="font-size:24px">📤</span>
         <span>Share App</span>
       </button>
-
-      <!-- Check for updates -->
       <button onclick="checkForUpdates()" id="updateBtn" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text)">
         <span style="font-size:24px">🔄</span>
         <span>Check updates</span>
       </button>
-
-      <!-- Feedback -->
       <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
          target="_blank" class="info-tile" style="background:#f0fdf4; border-color:#dcfce7; color:#16a34a; text-decoration:none">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -397,30 +353,21 @@
         </svg>
         <span>Support</span>
       </a>
-
-      <!-- Tutorial -->
       <button onclick="toggleInfoSection('tutorialContent','tutArrow')" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text)">
         <span style="font-size:24px">📖</span>
         <span>Tutorial <span id="tutArrow" style="font-size:11px">›</span></span>
       </button>
-
-      <!-- Disclaimer -->
       <button onclick="toggleInfoSection('disclaimerContent','discArrow')" class="info-tile" style="background:var(--surface); border-color:var(--border); color:var(--text); grid-column:1/-1">
         <span style="font-size:24px">ℹ️</span>
         <span>About &amp; Disclaimer <span id="discArrow" style="font-size:11px">›</span></span>
       </button>
-
     </div>
 
-    <!-- Update message -->
     <div id="updateMsg" style="text-align:center; font-size:12px; color:var(--text3); margin:0 16px 8px; display:none"></div>
-
-    <!-- Version -->
     <div style="text-align:center; font-size:11px; color:var(--text3); padding:4px 16px 8px">
-      CrewPSR · Pescara Cabin Crew · v1.7.1 beta
+      CrewPSR · Pescara Cabin Crew · v1.7.0 beta
     </div>
 
-    <!-- Tutorial content -->
     <div id="tutorialContent" style="display:none; padding:0 16px 8px; font-size:13px; line-height:1.8; color:var(--text2)">
       <div class="card">
         <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you. Swipe left/right to browse the week.</div>
@@ -428,8 +375,8 @@
         <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
         <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers of colleagues</div>
+        <div style="margin-bottom:8px">📊 <strong>Statistics</strong> — hours flown, top routes, airports and more</div>
         <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
-        <div style="margin-bottom:12px">ℹ️ <strong>Info</strong> — this screen</div>
         <div style="border-top:1px solid var(--border); padding-top:12px">
           <div style="font-weight:700; color:var(--text); margin-bottom:8px">📱 Install on iPhone</div>
           <ol style="padding-left:18px; margin-bottom:12px">
@@ -449,7 +396,6 @@
       </div>
     </div>
 
-    <!-- Disclaimer content -->
     <div id="disclaimerContent" style="display:none; padding:0 16px 16px; font-size:13px; line-height:1.7; color:var(--text2)">
       <div class="card">
         <div style="font-weight:700; color:var(--text); margin-bottom:8px">🇬🇧 English</div>
@@ -463,72 +409,85 @@
         <p style="margin-top:8px">I tuoi dati personali e i contatti dei colleghi sono <strong>salvati esclusivamente sul tuo dispositivo</strong>. Nessuna informazione viene condivisa online.</p>
       </div>
     </div>
-
   </div>
 
+  <!-- MORE -->
+  <div class="screen" id="screen-more">
+    <div style="padding:max(20px,env(safe-area-inset-top)) 16px 8px">
+      <div style="font-size:22px; font-weight:800; color:var(--text)">More</div>
+    </div>
+    <div style="margin:8px 16px 0; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+      <button onclick="nav('statistics')"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">📊</span>
+        Statistics
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+      <button onclick="nav('crew')"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">👥</span>
+        Crew Directory
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+      <button onclick="nav('settings')"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">⚙️</span>
+        Settings
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+      <button onclick="nav('info')"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">ℹ️</span>
+        Info &amp; Tutorial
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STATISTICS -->
+  <div class="screen" id="screen-statistics">
+    <div style="display:flex;align-items:center;gap:12px;
+                padding:max(14px,env(safe-area-inset-top)) 16px 14px;
+                background:var(--surface);border-bottom:1px solid var(--border);
+                position:sticky;top:0;z-index:10;flex-shrink:0">
+      <button onclick="nav('more')"
+        style="background:none;border:none;font-family:'Outfit',sans-serif;
+               font-size:15px;font-weight:600;color:var(--blue);cursor:pointer;padding:0">
+        ‹ More
+      </button>
+      <span style="font-size:17px;font-weight:700;color:var(--text)">Statistics</span>
+    </div>
+    <div id="statsBody"
+         style="padding:20px 16px;overflow-y:auto;flex:1;
+                padding-bottom:max(20px,env(safe-area-inset-bottom))"></div>
+  </div>
+
+  <!-- NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="nav('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" onclick="nav('calendar')" id="nav-calendar"><span class="nav-icon">📅</span><span class="nav-label">Calendar</span></button>
     <button class="nav-btn" onclick="nav('schedule')" id="nav-schedule"><span class="nav-icon">🛫</span><span class="nav-label">Schedule</span></button>
     <button class="nav-btn" onclick="nav('swap')" id="nav-swap"><span class="nav-icon">🤝</span><span class="nav-label">Swap</span></button>
-    <button class="nav-btn" onclick="toggleMore()" id="nav-more"><span class="nav-icon">⋯</span><span class="nav-label">More</span></button>
+    <button class="nav-btn" onclick="nav('more')" id="nav-more"><span class="nav-icon">⋯</span><span class="nav-label">More</span></button>
   </nav>
 
-  <!-- More drawer -->
-  <div id="moreDrawer" style="display:none; position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-       width:100%; max-width:480px; background:var(--surface); border-top:1px solid var(--border);
-       border-radius:20px 20px 0 0; z-index:200; box-shadow:0 -4px 20px rgba(0,0,0,0.1);
-       padding-bottom:max(16px,env(safe-area-inset-bottom))">
-    <div style="width:36px; height:4px; background:var(--border2); border-radius:2px; margin:12px auto 16px"></div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border)">
-      <button onclick="nav('settings'); closeMore()"
-        style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:20px;
-               background:var(--surface); border:none; font-family:'Outfit',sans-serif;
-               font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
-        <span style="font-size:28px">⚙️</span>Settings
-      </button>
-      <button onclick="nav('info'); closeMore()"
-        style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:20px;
-               background:var(--surface); border:none; font-family:'Outfit',sans-serif;
-               font-size:13px; font-weight:600; color:var(--text); cursor:pointer">
-        <span style="font-size:28px">ℹ️</span>Info
-      </button>
-    </div>
-    <button onclick="closeMore()"
-      style="width:calc(100% - 32px); margin:12px 16px 0; padding:13px; border-radius:12px;
-             border:1.5px solid var(--border); background:var(--bg); font-family:'Outfit',sans-serif;
-             font-size:14px; font-weight:600; color:var(--text3); cursor:pointer">
-      Cancel
-    </button>
-  </div>
-  <div id="moreOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3);
-       z-index:199; backdrop-filter:blur(2px)" onclick="closeMore()"></div>
-</div>
+</div><!-- end mainApp -->
 
 <!-- ══ MODALS ══ -->
-<!-- DAY DETAIL SCREEN (replaces calendar) -->
-<div id="dayDetailScreen" style="display:none; position:fixed; inset:0; background:var(--bg);
-     z-index:150; overflow-y:auto; padding-bottom:max(20px,env(safe-area-inset-bottom))">
-  <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;
-              padding-top:max(14px,env(safe-area-inset-top));
-              background:var(--surface); border-bottom:1px solid var(--border);
-              position:sticky; top:0; z-index:10">
-    <button onclick="closeDayDetail()"
-      style="display:flex; align-items:center; gap:6px; padding:8px 14px;
-             border-radius:10px; border:1.5px solid var(--border); background:var(--bg);
-             font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
-             color:var(--text); cursor:pointer">
-      ← Close
-    </button>
-    <div>
-      <div style="font-size:16px; font-weight:700; color:var(--text)" id="dayDetailTitle"></div>
-      <div id="dayDetailBadge" style="margin-top:2px"></div>
-    </div>
-  </div>
-  <div id="dayDetailBody" style="padding:16px"></div>
-</div>
+<div id="dayDetailScreen" style="display:none; position:fixed; inset:0; z-index:150;"></div>
 
-<!-- CUSTOM FLIGHTS SCREEN -->
 <div id="customFlightsScreen" style="display:none; position:fixed; inset:0; background:var(--bg);
      z-index:160; overflow-y:auto; padding-bottom:max(20px,env(safe-area-inset-bottom))">
   <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
@@ -584,21 +543,20 @@
   </div>
 </div>
 
-<script>
-  
-</script>
-<script src="roster.js"></script>           
-<script src="calendar.js"></script>         
-<script src="roster-import.js"></script>    
-<script src="schedule.js"></script>     
-<script src="home.js"></script>            
-<script src="swap.js"></script>           
-<script src="settings.js"></script>       
-<script src="navigation.js"></script>       
-<script src="notifications.js"></script>  
-<script src="storage.js"></script>          
-<script src="crew.js"></script>          
-<script src="app.js"></script>    
+<script></script>
+<script src="roster.js"></script>
+<script src="calendar.js"></script>
+<script src="roster-import.js"></script>
+<script src="schedule.js"></script>
+<script src="home.js"></script>
+<script src="swap.js"></script>
+<script src="settings.js"></script>
+<script src="navigation.js"></script>
+<script src="notifications.js"></script>
+<script src="storage.js"></script>
+<script src="crew.js"></script>
+<script src="statistics.js"></script>
+<script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -606,8 +564,6 @@ if ('serviceWorker' in navigator) {
     if (e.data === 'RELOAD') location.reload();
   });
 }
-
-// Apply theme immediately to avoid flash
 (function() {
   try {
     const saved = localStorage.getItem('crewpsr_v1');
