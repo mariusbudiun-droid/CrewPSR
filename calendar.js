@@ -179,6 +179,7 @@
 const CAL_PAST   = 12;
 const CAL_FUTURE = 24;
 let _calObserver = null;
+let _calScrollHandler = null;
 
 function renderCalendar() {
   const screen = document.getElementById('screen-calendar');
@@ -232,51 +233,39 @@ function renderCalendar() {
 }
 
 function _setupMonthObserver() {
-  if (_calObserver) _calObserver.disconnect();
+  if (_calObserver) { _calObserver.disconnect(); _calObserver = null; }
 
-  const topbarH = document.querySelector('.cal-topbar')?.offsetHeight || 88;
+  const scrollEl  = document.getElementById('calScroll');
+  const topbarEl  = document.querySelector('.cal-topbar');
+  if (!scrollEl || !topbarEl) return;
 
-  _calObserver = new IntersectionObserver(entries => {
-    // Find the topmost visible sentinel
-    let best = null, bestTop = Infinity;
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const top = e.boundingClientRect.top;
-        if (top >= 0 && top < bestTop) { bestTop = top; best = e.target; }
-      }
-    });
-    // Among all sentinels, find highest one past the topbar
-    const all = document.querySelectorAll('.cal-month-sentinel');
+  function updateMonthLabel() {
+    const topbarBottom = topbarEl.getBoundingClientRect().bottom;
+    const sentinels    = document.querySelectorAll('.cal-month-sentinel');
     let current = null;
-    all.forEach(s => {
+
+    // Walk sentinels: pick the last one whose top is AT or ABOVE the topbar bottom
+    sentinels.forEach(s => {
       const rect = s.getBoundingClientRect();
-      if (rect.top <= topbarH + 20) current = s;
+      if (rect.top <= topbarBottom + 2) current = s;
     });
+
     if (current) {
-      const y = current.dataset.year, m = current.dataset.month;
-      const hrs = _calcMonthHours(parseInt(y), parseInt(m));
-      document.getElementById('calMonthIndicator').textContent = `${MONTHS[parseInt(m)]} ${y}`;
-      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? hrs.toFixed(1) + ' h' : '';
-    }
-  }, {
-    root: document.getElementById('calScroll'),
-    threshold: 0,
-    rootMargin: '0px 0px -80% 0px'
-  });
-
-  document.querySelectorAll('.cal-month-sentinel').forEach(s => _calObserver.observe(s));
-
-  // Set initial month label
-  const cur = document.getElementById('cal-current-month');
-  if (cur) {
-    const s = cur.querySelector('.cal-month-sentinel');
-    if (s) {
-      const y = parseInt(s.dataset.year), m = parseInt(s.dataset.month);
+      const y = parseInt(current.dataset.year);
+      const m = parseInt(current.dataset.month);
       const hrs = _calcMonthHours(y, m);
-      document.getElementById('calMonthIndicator').textContent = `${MONTHS[m]} ${y}`;
+      document.getElementById('calMonthIndicator').textContent   = `${MONTHS[m]} ${y}`;
       document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? hrs.toFixed(1) + ' h' : '';
     }
   }
+
+  // Remove old listener if any
+  if (_calScrollHandler) scrollEl.removeEventListener('scroll', _calScrollHandler);
+  _calScrollHandler = updateMonthLabel;
+  scrollEl.addEventListener('scroll', _calScrollHandler, { passive: true });
+
+  // Set initial label immediately
+  updateMonthLabel();
 }
 
 function _buildMonthBlock(year, month, todayStr) {
