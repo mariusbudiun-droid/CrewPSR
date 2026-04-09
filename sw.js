@@ -1,4 +1,4 @@
-const CACHE = 'crewpsr-v1.7.1';
+const CACHE = 'crewpsr-v1.7.3';
 
 const ASSETS = [
   '/',
@@ -12,6 +12,7 @@ const ASSETS = [
   '/roster.js',
   '/roster-import.js',
   '/schedule.js',
+  '/statistics.js',
   '/settings.js',
   '/storage.js',
   '/navigation.js',
