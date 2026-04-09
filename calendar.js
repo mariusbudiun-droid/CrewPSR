@@ -873,13 +873,18 @@ function removeCustomFlight(ds,idx) {
   save(); renderCustomFlightsBody(ds);
 }
 
-function updateCustomFlight(ds,idx,field,val) {
-  if(!APP.customFlights)APP.customFlights={};
-  if(!APP.customFlights[ds])APP.customFlights[ds]=[];
-  if(!APP.customFlights[ds][idx])APP.customFlights[ds][idx]={};
-  APP.customFlights[ds][idx][field]=val; save();
-  const screen=document.getElementById('customFlightsScreen');
-  if(screen&&screen.style.display!=='none')renderCustomFlightsBody(ds);
+function updateCustomFlight(ds, idx, field, val) {
+  if (!APP.customFlights) APP.customFlights = {};
+  if (!APP.customFlights[ds]) APP.customFlights[ds] = [];
+  if (!APP.customFlights[ds][idx]) APP.customFlights[ds][idx] = {};
+  APP.customFlights[ds][idx][field] = val;
+  save();
+  // Only re-render when a time field changes (updates report time display)
+  // For text fields (from/to) do NOT re-render — it destroys the input focus
+  if (field === 'dep' || field === 'arr') {
+    const screen = document.getElementById('customFlightsScreen');
+    if (screen && screen.style.display !== 'none') renderCustomFlightsBody(ds);
+  }
 }
 
 function saveDetail(ds,field,val) {
