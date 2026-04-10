@@ -263,7 +263,7 @@
       <div style="font-size:22px; font-weight:800; color:var(--text)">Settings</div>
     </div>
 
-    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; padding:0 16px">
       <div class="setting-row" onclick="changeSetting('roster')" style="cursor:pointer">
         <div><div class="setting-label">Roster</div><div class="setting-sub">Your assigned roster</div></div>
         <div class="setting-val" id="settingRoster">—</div>
@@ -273,19 +273,18 @@
         <div class="setting-val" id="settingDate">—</div>
       </div>
       <div class="setting-row" style="border:none">
-        <div><div class="setting-label">Schedule version</div><div class="setting-sub">Current flight data</div></div>
-        <div class="setting-val" id="settingSchedVersion">—</div>
+        <div style="flex:1;min-width:0"><div class="setting-label">Schedule version</div><div class="setting-sub" id="settingSchedVersion" style="white-space:normal">—</div></div>
       </div>
     </div>
 
-    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; padding:0 16px">
       <div class="setting-row" onclick="changeSetting('pin')" style="cursor:pointer; border:none">
         <div><div class="setting-label">Security</div><div class="setting-sub">PIN or password for Crew Directory</div></div>
         <div class="setting-val">›</div>
       </div>
     </div>
 
-    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+    <div style="margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; padding:0 16px">
       <div class="setting-row">
         <div><div class="setting-label">Theme</div></div>
         <select id="themeSelect" onchange="setTheme(this.value)" style="width:auto; margin-bottom:0; padding:7px 10px; font-size:13px; font-weight:600">
@@ -296,14 +295,14 @@
       </div>
       <div class="setting-row" style="border:none">
         <div><div class="setting-label">Notifications</div><div class="setting-sub">Reminder before report time</div></div>
-        <input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)" style="width:auto; margin-bottom:0">
+        <input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)" style="width:auto; margin-bottom:0; accent-color:var(--blue); width:20px; height:20px">
       </div>
     </div>
 
-    <div id="notifOptions" style="display:none; margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden">
+    <div id="notifOptions" style="display:none; margin:0 16px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; padding:0 16px">
       <div class="setting-row">
         <div><div class="setting-label">⏰ Report time</div><div class="setting-sub">Alert 45 min before first dep</div></div>
-        <input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)" style="width:auto; margin-bottom:0">
+        <input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)" style="width:20px; height:20px; margin-bottom:0; accent-color:var(--blue)">
       </div>
       <div class="setting-row">
         <div><div class="setting-label">🛫 Departures</div><div class="setting-sub">Alert before each flight</div></div>

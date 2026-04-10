@@ -88,7 +88,7 @@ function calcStats() {
   }
 
   const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]);
-  const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]);
 
   let maxHours = 0, longestDays = [];
   for (const [ds, h] of Object.entries(dayHoursMap)) {
@@ -178,7 +178,7 @@ function calcMonthStats() {
     hours:      mins / 60,
     flyingDays, sectors,
     topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]),
-    topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0,10),
+    topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]),
   };
 }
 
@@ -343,7 +343,7 @@ function _renderStatsContent() {
           <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:1">${route}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}×</span>
         </div>`).join('');
-      html += _section('Top routes', rows);
+      html += _section('Routes', rows);
     }
 
     if (s.countries.length) {
