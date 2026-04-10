@@ -44,7 +44,7 @@ function calcStats() {
 
   const airportCount = {};
   const routeCount   = {};
-  const dayHoursMap  = {}; // ds → hours
+  const dayHoursMap  = {};
 
   for (const [ds, assign] of Object.entries(assignments)) {
     const date  = new Date(ds + 'T12:00:00');
@@ -60,10 +60,7 @@ function calcStats() {
       const plane   = useA2 ? sched?.a2 : sched?.a1;
       flights = ((useLate ? plane?.late : plane?.early) || [])
         .filter(f => f.dep && f.arr)
-        .map(f => {
-          const [from, to] = f.route.split('-');
-          return { from, to, dep: f.dep, arr: f.arr };
-        });
+        .map(f => { const [from, to] = f.route.split('-'); return { from, to, dep: f.dep, arr: f.arr }; });
     }
 
     if (!flights.length) continue;
@@ -77,12 +74,8 @@ function calcStats() {
       if (diff < 0) diff += 1440;
       dayMins += diff;
       totalSectors++;
-
-      // Count airports
       if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
       if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
-
-      // Routes — only PSR→X direction
       if (f.from === 'PSR' && f.to) {
         const route = `PSR-${f.to}`;
         routeCount[route] = (routeCount[route] || 0) + 1;
@@ -94,30 +87,20 @@ function calcStats() {
     if (date.getFullYear() === thisYear) yearMins += dayMins;
   }
 
-  // Top airports
-  const topAirports = Object.entries(airportCount)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0, 10);
+  const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
 
-  // Top routes
-  const topRoutes = Object.entries(routeCount)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0, 10);
-
-  // Longest day
-  let maxHours = 0;
-  let longestDays = [];
+  let maxHours = 0, longestDays = [];
   for (const [ds, h] of Object.entries(dayHoursMap)) {
     if (h > maxHours) { maxHours = h; longestDays = [ds]; }
     else if (h === maxHours && h > 0) longestDays.push(ds);
   }
 
-  // Busiest month
   const monthMins = {};
-  for (const [ds, assign] of Object.entries(assignments)) {
+  for (const [ds] of Object.entries(assignments)) {
     const h = dayHoursMap[ds] || 0;
     if (!h) continue;
-    const key = ds.slice(0, 7); // YYYY-MM
+    const key = ds.slice(0, 7);
     monthMins[key] = (monthMins[key] || 0) + h * 60;
   }
   let busiestMonth = null, busiestMins = 0;
@@ -125,124 +108,253 @@ function calcStats() {
     if (m > busiestMins) { busiestMins = m; busiestMonth = k; }
   }
 
-  // Countries
   const countries = new Set();
   for (const ap of Object.keys(airportCount)) {
     if (AIRPORT_COUNTRY[ap]) countries.add(AIRPORT_COUNTRY[ap]);
   }
 
   return {
-    totalHours:   totalMins / 60,
-    yearHours:    yearMins / 60,
-    flyingDays,
-    totalSectors,
-    topAirports,
-    topRoutes,
-    longestDays,
-    longestHours: maxHours,
-    busiestMonth,
-    busiestHours: busiestMins / 60,
-    countries:    [...countries].sort(),
+    totalHours: totalMins / 60, yearHours: yearMins / 60,
+    flyingDays, totalSectors, topAirports, topRoutes,
+    longestDays, longestHours: maxHours,
+    busiestMonth, busiestHours: busiestMins / 60,
+    countries: [...countries].sort(),
   };
 }
 
+function calcMonthStats() {
+  const now  = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth();
+  const prefix = `${curY}-${String(curM+1).padStart(2,'0')}`;
+
+  const assignments   = APP.assignments   || {};
+  const customFlights = APP.customFlights || {};
+
+  let mins = 0, flyingDays = 0, sectors = 0;
+  const airportCount = {}, routeCount = {};
+
+  for (const [ds, assign] of Object.entries(assignments)) {
+    if (!ds.startsWith(prefix)) continue;
+
+    const date  = new Date(ds + 'T12:00:00');
+    const dow   = date.getDay();
+    const sched = SCHEDULE.days[dow];
+    let flights = [];
+
+    if (assign === 'CUSTOM') {
+      flights = (customFlights[ds] || []).filter(f => f.from && f.to && f.dep && f.arr);
+    } else if (['A1E','A1L','A2E','A2L'].includes(assign)) {
+      const useA2   = assign.startsWith('A2');
+      const useLate = assign.endsWith('L');
+      const plane   = useA2 ? sched?.a2 : sched?.a1;
+      flights = ((useLate ? plane?.late : plane?.early) || [])
+        .filter(f => f.dep && f.arr)
+        .map(f => { const [from, to] = f.route.split('-'); return { from, to, dep: f.dep, arr: f.arr }; });
+    }
+
+    if (!flights.length) continue;
+
+    flyingDays++;
+    let dayMins = 0;
+    for (const f of flights) {
+      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+      let diff = toM(f.arr) - toM(f.dep);
+      if (diff < 0) diff += 1440;
+      dayMins += diff;
+      sectors++;
+      if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
+      if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
+      if (f.from === 'PSR' && f.to) {
+        const route = `PSR-${f.to}`;
+        routeCount[route] = (routeCount[route] || 0) + 1;
+      }
+    }
+    mins += dayMins;
+  }
+
+  return {
+    label:      `${MONTHS[curM]} ${curY}`,
+    hours:      mins / 60,
+    flyingDays, sectors,
+    topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]).slice(0,10),
+    topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0,10),
+  };
+}
+
+// ── Active tab state ──
+let _statsTab = 'month';
+
 function renderStatistics() {
-  const s = calcStats();
   const el = document.getElementById('statsBody');
   if (!el) return;
 
-  const fmtH = fmtHours;
+  el.innerHTML = `
+    <div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);
+                border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <button id="statsTabMonth" onclick="_switchStatsTab('month')"
+        style="flex:1;padding:10px;border:none;font-family:'Outfit',sans-serif;
+               font-size:13px;font-weight:700;cursor:pointer;
+               background:${_statsTab==='month'?'var(--blue)':'var(--surface)'};
+               color:${_statsTab==='month'?'white':'var(--text2)'}">
+        Current Month
+      </button>
+      <button id="statsTabAll" onclick="_switchStatsTab('all')"
+        style="flex:1;padding:10px;border:none;border-left:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+               background:${_statsTab==='all'?'var(--blue)':'var(--surface)'};
+               color:${_statsTab==='all'?'white':'var(--text2)'}">
+        General
+      </button>
+    </div>
+    <div id="statsContent"></div>
+  `;
 
+  _renderStatsContent();
+}
+
+function _switchStatsTab(tab) {
+  _statsTab = tab;
+  renderStatistics();
+}
+window._switchStatsTab = _switchStatsTab;
+
+function _renderStatsContent() {
+  const el = document.getElementById('statsContent');
+  if (!el) return;
+
+  const fmtH = fmtHours;
   const fmtDate = ds => {
     const d = new Date(ds + 'T12:00:00');
     return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   };
-
   const fmtMonth = key => {
     if (!key) return '—';
     const [y, m] = key.split('-');
     return `${MONTHS[parseInt(m)-1]} ${y}`;
   };
 
-  // ── Summary cards ──
-  let html = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
-      ${_statCard('Total hours', fmtH(s.totalHours), 'var(--blue)')}
-      ${_statCard(`${new Date().getFullYear()} hours`, fmtH(s.yearHours), 'var(--blue)')}
-      ${_statCard('Flying days', s.flyingDays, 'var(--early)')}
-      ${_statCard('Sectors', s.totalSectors, 'var(--early)')}
-      ${_statCard('Countries', s.countries.length, 'var(--green)')}
-      ${_statCard('Routes', Object.keys(s.topRoutes.reduce ? {} : {}).length || s.topRoutes.length, 'var(--green)')}
-    </div>
-  `;
+  if (_statsTab === 'month') {
+    const m = calcMonthStats();
+    let html = '';
 
-  // ── Busiest month ──
-  if (s.busiestMonth) {
-    html += _section('Busiest month', `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
-        <span style="font-size:15px;font-weight:700;color:var(--text)">${fmtMonth(s.busiestMonth)}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--blue)">${fmtH(s.busiestHours)}</span>
-      </div>`);
-  }
+    if (!m.flyingDays) {
+      html = `<div style="text-align:center;padding:40px 16px;color:var(--text3)">
+        <div style="font-size:36px;margin-bottom:10px">📭</div>
+        <div style="font-size:14px;font-weight:600">No flights assigned in ${m.label}</div>
+      </div>`;
+      el.innerHTML = html; return;
+    }
 
-  // ── Longest day ──
-  if (s.longestDays.length) {
-    const rows = s.longestDays.slice(0,3).map(ds => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--blue)">${fmtH(s.longestHours)}</span>
-      </div>`).join('');
-    const note = s.longestDays.length > 1 ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${s.longestDays.length}</span>` : '';
-    html += _section('Longest day' + note, rows);
-  }
+    html += `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        ${_statCard('Hours', fmtH(m.hours), 'var(--blue)')}
+        ${_statCard('Flying days', m.flyingDays, 'var(--early)')}
+        ${_statCard('Sectors', m.sectors, 'var(--early)')}
+        ${_statCard('Routes', m.topRoutes.length, 'var(--green)')}
+      </div>`;
 
-  // ── Top 10 airports ──
-  if (s.topAirports.length) {
-    const rows = s.topAirports.map(([ap, count], i) => {
-      const isBase = ap === 'PSR';
-      return `
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+    if (m.topAirports.length) {
+      const rows = m.topAirports.map(([ap, count], i) => {
+        const isBase = ap === 'PSR';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
           <span style="font-size:12px;font-weight:700;color:var(--text3);width:18px;text-align:right">${i+1}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:0 0 auto">${ap}</span>
           ${isBase ? `<span style="font-size:11px;color:var(--blue);font-weight:700;background:var(--blue-lt);padding:1px 6px;border-radius:6px">base</span>` : ''}
-          <span style="font-size:12px;color:var(--text3);flex:1;${AIRPORT_COUNTRY[ap]?'':''}">
-            ${AIRPORT_COUNTRY[ap] || ''}
-          </span>
+          <span style="font-size:12px;color:var(--text3);flex:1">${AIRPORT_COUNTRY[ap] || ''}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}</span>
         </div>`;
-    }).join('');
-    html += _section('Top 10 airports', rows);
-  }
+      }).join('');
+      html += _section('Airports', rows);
+    }
 
-  // ── Top routes ──
-  if (s.topRoutes.length) {
-    const rows = s.topRoutes.map(([route, count], i) => `
-      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:12px;font-weight:700;color:var(--text3);width:18px;text-align:right">${i+1}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:1">${route}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}×</span>
-      </div>`).join('');
-    html += _section('Top routes', rows);
-  }
+    if (m.topRoutes.length) {
+      const rows = m.topRoutes.map(([route, count], i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;font-weight:700;color:var(--text3);width:18px;text-align:right">${i+1}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:1">${route}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}×</span>
+        </div>`).join('');
+      html += _section('Routes', rows);
+    }
 
-  // ── Countries ──
-  if (s.countries.length) {
-    const pills = s.countries.map(c =>
-      `<span style="font-size:12px;font-weight:600;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:8px">${c}</span>`
-    ).join('');
-    html += _section('Countries touched', `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0">${pills}</div>`);
-  }
+    el.innerHTML = html;
 
-  // ── No data fallback ──
-  if (!s.flyingDays) {
-    html = `<div style="text-align:center;padding:48px 16px;color:var(--text3)">
-      <div style="font-size:40px;margin-bottom:12px">📊</div>
-      <div style="font-size:15px;font-weight:600">No flight data yet</div>
-      <div style="font-size:13px;margin-top:6px">Assign duties in the calendar to see your stats</div>
-    </div>`;
-  }
+  } else {
+    // General
+    const s = calcStats();
+    let html = '';
 
-  el.innerHTML = html;
+    if (!s.flyingDays) {
+      html = `<div style="text-align:center;padding:48px 16px;color:var(--text3)">
+        <div style="font-size:40px;margin-bottom:12px">📊</div>
+        <div style="font-size:15px;font-weight:600">No flight data yet</div>
+        <div style="font-size:13px;margin-top:6px">Assign duties in the calendar to see your stats</div>
+      </div>`;
+      el.innerHTML = html; return;
+    }
+
+    html += `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
+        ${_statCard('Total hours', fmtH(s.totalHours), 'var(--blue)')}
+        ${_statCard(`${new Date().getFullYear()} hours`, fmtH(s.yearHours), 'var(--blue)')}
+        ${_statCard('Flying days', s.flyingDays, 'var(--early)')}
+        ${_statCard('Sectors', s.totalSectors, 'var(--early)')}
+        ${_statCard('Countries', s.countries.length, 'var(--green)')}
+        ${_statCard('Routes', s.topRoutes.length, 'var(--green)')}
+      </div>`;
+
+    if (s.busiestMonth) {
+      html += _section('Busiest month', `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+          <span style="font-size:15px;font-weight:700;color:var(--text)">${fmtMonth(s.busiestMonth)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--blue)">${fmtH(s.busiestHours)}</span>
+        </div>`);
+    }
+
+    if (s.longestDays.length) {
+      const rows = s.longestDays.slice(0,3).map(ds => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--blue)">${fmtH(s.longestHours)}</span>
+        </div>`).join('');
+      const note = s.longestDays.length > 1 ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${s.longestDays.length}</span>` : '';
+      html += _section('Longest day' + note, rows);
+    }
+
+    if (s.topAirports.length) {
+      const rows = s.topAirports.map(([ap, count], i) => {
+        const isBase = ap === 'PSR';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;font-weight:700;color:var(--text3);width:18px;text-align:right">${i+1}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:0 0 auto">${ap}</span>
+          ${isBase ? `<span style="font-size:11px;color:var(--blue);font-weight:700;background:var(--blue-lt);padding:1px 6px;border-radius:6px">base</span>` : ''}
+          <span style="font-size:12px;color:var(--text3);flex:1">${AIRPORT_COUNTRY[ap] || ''}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}</span>
+        </div>`;
+      }).join('');
+      html += _section('Top 10 airports', rows);
+    }
+
+    if (s.topRoutes.length) {
+      const rows = s.topRoutes.map(([route, count], i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;font-weight:700;color:var(--text3);width:18px;text-align:right">${i+1}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text);flex:1">${route}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}×</span>
+        </div>`).join('');
+      html += _section('Top routes', rows);
+    }
+
+    if (s.countries.length) {
+      const pills = s.countries.map(c =>
+        `<span style="font-size:12px;font-weight:600;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:8px">${c}</span>`
+      ).join('');
+      html += _section('Countries touched', `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0">${pills}</div>`);
+    }
+
+    el.innerHTML = html;
+  }
 }
 
 function _statCard(label, value, color) {
