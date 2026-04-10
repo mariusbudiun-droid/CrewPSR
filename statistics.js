@@ -87,7 +87,7 @@ function calcStats() {
     if (date.getFullYear() === thisYear) yearMins += dayMins;
   }
 
-  const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]);
   const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0, 10);
 
   let maxHours = 0, longestDays = [];
@@ -177,7 +177,7 @@ function calcMonthStats() {
     label:      `${MONTHS[curM]} ${curY}`,
     hours:      mins / 60,
     flyingDays, sectors,
-    topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]).slice(0,10),
+    topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]),
     topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]).slice(0,10),
   };
 }
@@ -333,7 +333,7 @@ function _renderStatsContent() {
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2)">${count}</span>
         </div>`;
       }).join('');
-      html += _section('Top 10 airports', rows);
+      html += _section('Airports', rows);
     }
 
     if (s.topRoutes.length) {
