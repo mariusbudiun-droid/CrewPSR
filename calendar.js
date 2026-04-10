@@ -258,7 +258,7 @@ function _setupMonthObserver() {
       const m = parseInt(current.dataset.month);
       const hrs = _calcMonthHours(y, m);
       document.getElementById('calMonthIndicator').textContent   = `${MONTHS[m]} ${y}`;
-      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? hrs.toFixed(1) + ' h' : '';
+      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? fmtHours(hrs) : '';
     }
   }
 
@@ -279,7 +279,7 @@ function _buildMonthBlock(year, month, todayStr) {
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
   const monthHrs    = _calcMonthHours(year, month);
-  const hrsLabel    = monthHrs > 0 ? monthHrs.toFixed(1) + ' h' : '';
+  const hrsLabel    = monthHrs > 0 ? fmtHours(monthHrs) : '';
 
   // Visible month header — also acts as sentinel for scroll tracking
   const sentinel = document.createElement('div');
@@ -495,7 +495,7 @@ function _renderDayDetail() {
   const dateLine = (isToday?'Today · ':'') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
   const badgeClass = type==='early'?'early':type==='late'?'late':'off';
   const dayHrs = calcDayHours(ds);
-  const hrsText = dayHrs > 0 ? dayHrs.toFixed(1)+' h' : '';
+  const hrsText = dayHrs > 0 ? fmtHours(dayHrs) : '';
 
   // ── Duty block ──
   let dutyHtml = '';

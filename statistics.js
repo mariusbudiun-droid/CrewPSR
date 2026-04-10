@@ -22,6 +22,16 @@ const AIRPORT_COUNTRY = {
   FCO:'Italy',NAP:'Italy',
 };
 
+// Global helper — used by calendar.js too
+function fmtHours(h) {
+  if (!h || h <= 0) return '0h 00m';
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  if (mm === 60) return `${hh + 1}h 00m`;
+  return `${hh}h ${String(mm).padStart(2, '0')}m`;
+}
+window.fmtHours = fmtHours;
+
 function calcStats() {
   const assignments   = APP.assignments   || {};
   const customFlights = APP.customFlights || {};
@@ -141,10 +151,7 @@ function renderStatistics() {
   const el = document.getElementById('statsBody');
   if (!el) return;
 
-  const fmtH = h => {
-    const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
-    return `${hh}h ${String(mm).padStart(2,'0')}m`;
-  };
+  const fmtH = fmtHours;
 
   const fmtDate = ds => {
     const d = new Date(ds + 'T12:00:00');
