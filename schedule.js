@@ -182,7 +182,7 @@ const SCHEDULE = {
           { route:"PSR-KUN", dep:"09:30", arr:"12:00" },
           { route:"KUN-PSR", dep:"12:25", arr:"14:50" },
         ],
-        reportLate: "14:55",
+        reportLate: "15:05",
         late: [
           { route:"PSR-TRN", dep:"15:50", arr:"17:10" },
           { route:"TRN-PSR", dep:"17:35", arr:"18:50" },
