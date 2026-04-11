@@ -163,6 +163,21 @@ function buildHomeSlides() {
       }
     }
 
+    // Reverse swap for off days (6, 8, 14, 16)
+    let reverseHtml = '';
+    if (type === 'off' && day !== 7 && day !== 15) {
+      const revCandidates = typeof reverseSwapCandidates === 'function'
+        ? reverseSwapCandidates(day, ds)
+        : [];
+      if (revCandidates.length) {
+        const legend = `<div style="display:flex;gap:12px;padding:0 16px 6px;font-size:11px;color:var(--text3)">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> sicuro</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--yellow);display:inline-block"></span> verifica riposo</span>
+        </div>`;
+        reverseHtml = legend + revCandidates.map(c => buildReverseSwapCardHome(c)).join('');
+      }
+    }
+
    const slide = document.createElement('div');
 slide.className = 'home-slide';
 slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; min-height:100%;';
@@ -176,7 +191,9 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
       ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
-      ${type === 'off' ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
+      ${type === 'off' && (day === 7 || day === 15) ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
+      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? `<div class="section-title">You could work instead of</div>${reverseHtml}` : ''}
+      ${type === 'off' && day !== 7 && day !== 15 && !reverseHtml ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
       ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
     `;
 
@@ -375,4 +392,28 @@ function buildSwapCard(c) {
       <div class="swap-info">${inner}</div>
     </div>
   `;
+}
+
+function buildReverseSwapCardHome(c) {
+  const colleagues = (APP.crew?.[c.roster] || []).filter(x => x && x.code && x.code.trim());
+  const borderColor = c.certain ? 'var(--green)' : 'var(--yellow)';
+
+  const inner = colleagues.length > 0
+    ? colleagues.map(x => {
+        const phone = (x.phone || '').replace(/\D/g, '');
+        const name  = x.name || x.code;
+        return phone
+          ? `<div style="margin-top:4px"><a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a></div>`
+          : `<div style="font-family:JetBrains Mono,monospace;font-size:13px;margin-top:4px">${name}</div>`;
+      }).join('')
+    : `<div class="swap-codes empty">No crew codes yet</div>`;
+
+  return `
+    <div class="swap-card" style="border-left:3px solid ${borderColor}">
+      <div class="swap-roster-badge">
+        <span class="srb-label">Roster</span>
+        <span class="srb-num">${c.roster}</span>
+      </div>
+      <div class="swap-info">${inner}</div>
+    </div>`;
 }
