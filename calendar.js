@@ -593,6 +593,43 @@ function _renderDayDetail() {
       }).join('');
       crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div><div class="dd-pills">${ownPills}${otherPills}</div></div>`;
     }
+
+  } else {
+    // ── Reverse swap (off days) ──
+    const revCandidates = reverseSwapCandidates(day, ds);
+    if (revCandidates.length) {
+      const pills = revCandidates.map(c => {
+        const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
+        const name=members.length?(members[0].name||members[0].code):`Roster ${c.roster}`;
+        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
+        const certain = c.certain !== false;
+        // certain = green-tinted pill, uncertain = yellow-tinted
+        const style = certain
+          ? 'background:var(--green-lt);color:var(--green);border-color:var(--border)'
+          : 'background:var(--yellow-lt);color:#92400e;border-color:var(--border);opacity:0.8';
+        const inner=`<span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>${name}`;
+        return phone
+          ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="${style}">${inner}</a>`
+          : `<span class="dd-pill" style="${style}">${inner}</span>`;
+      }).join('');
+
+      const label = day===6||day===14 ? 'You could work instead of'
+                  : day===8 ? 'You could work instead of'
+                  : 'You could work instead of';
+
+      crewHtml = `<div class="dd-section">
+        <div class="dd-section-label">${label}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.4">
+          ${day===7||day===15
+            ? 'Questo giorno non è scambiabile.'
+            : '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span> sicuro</span> &nbsp; <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--yellow);display:inline-block"></span> verifica riposo</span>'
+          }
+        </div>
+        <div class="dd-pills">${pills}</div>
+      </div>`;
+    } else if (day!==7 && day!==15) {
+      crewHtml = `<div class="dd-section"><div class="dd-section-label">You could work instead of</div><div style="font-size:13px;color:var(--text3);padding:8px 0">Nessuno in turno compatibile</div></div>`;
+    }
   }
 
   // ── Actions ──
@@ -652,6 +689,29 @@ function _clearDuty(ds) {
 // ══════════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════════
+// ── Reverse swap candidates ───────────────────────────────────
+function reverseSwapCandidates(myDay, ds) {
+  if (myDay === 7 || myDay === 15) return [];
+  const rules = {
+    6:  { certain: [1,2,3,4,5],    uncertain: [9,10,11,12,13] },
+    8:  { certain: [9,10,11,12,13], uncertain: [1,2,3,4,5]    },
+    14: { certain: [9,10,11,12,13], uncertain: []              },
+    16: { certain: [9,10,11,12,13], uncertain: [1,2,3,4,5]    },
+  };
+  const rule = rules[myDay];
+  if (!rule) return [];
+  const result = [];
+  for (let r = 1; r <= 16; r++) {
+    if (r === APP.roster) continue;
+    const theirDay = cycleDay(r, ds);
+    if (!theirDay) continue;
+    if (rule.certain.includes(theirDay)) result.push({ roster: r, certain: true });
+    else if (rule.uncertain.includes(theirDay)) result.push({ roster: r, certain: false });
+  }
+  result.sort((a, b) => (b.certain ? 1 : 0) - (a.certain ? 1 : 0));
+  return result;
+}
+
 function getSameShiftCrew(ds) {
   const day=cycleDay(APP.roster,ds);
   const isEarly=day>=1&&day<=5, isLate=day>=9&&day<=13;
