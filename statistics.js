@@ -156,8 +156,8 @@ function calcMonthStats(year, month) {
   const prefix = `${year}-${String(month+1).padStart(2,'0')}`;
   const assignments = APP.assignments || {};
 
-  let mins = 0, flyingDays = 0, sectors = 0;
-  const airportCount = {}, routeCount = {}, dayHoursMap = {};
+  let ftMins = 0, dpMins = 0, flyingDays = 0, sectors = 0;
+  const airportCount = {}, routeCount = {}, dayFtMap = {}, dayDpMap = {};
   let lateFinishes = 0, lateFinishDates = [];
 
   for (const [ds, assign] of Object.entries(assignments)) {
@@ -166,18 +166,18 @@ function calcMonthStats(year, month) {
     if (!flights.length) continue;
 
     flyingDays++;
-    let dayMins = 0;
+    const { ft, dp } = _calcFtDp(flights);
+    ftMins += ft;
+    dpMins += dp;
+    dayFtMap[ds] = ft / 60;
+    dayDpMap[ds] = dp / 60;
+    sectors += flights.length;
+
     for (const f of flights) {
-      let diff = _toMins(f.arr) - _toMins(f.dep);
-      if (diff < 0) diff += 1440;
-      dayMins += diff;
-      sectors++;
       if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
       if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
       if (f.from === 'PSR' && f.to) routeCount[`PSR-${f.to}`] = (routeCount[`PSR-${f.to}`] || 0) + 1;
     }
-    mins += dayMins;
-    dayHoursMap[ds] = dayMins / 60;
 
     if (cycleDay(APP.roster, ds) === 13 && _isLateFinish(flights)) {
       lateFinishes++;
@@ -185,20 +185,22 @@ function calcMonthStats(year, month) {
     }
   }
 
-  let maxHours = 0, longestDays = [];
-  for (const [ds, h] of Object.entries(dayHoursMap)) {
-    if (h > maxHours) { maxHours = h; longestDays = [ds]; }
-    else if (h === maxHours && h > 0) longestDays.push(ds);
+  let maxFt = 0, longestDays = [];
+  for (const [ds, h] of Object.entries(dayFtMap)) {
+    if (h > maxFt) { maxFt = h; longestDays = [ds]; }
+    else if (h === maxFt && h > 0) longestDays.push(ds);
   }
 
   return {
     label:       `${MONTHS[month]} ${year}`,
-    hours:       mins / 60,
+    ft:          ftMins / 60,
+    dp:          dpMins / 60,
     flyingDays,  sectors,
     topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]),
     topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]),
-    longestDays, longestHours: maxHours,
+    longestDays, longestFt: maxFt,
     lateFinishes, lateFinishDates,
+    dayFtMap, dayDpMap,
   };
 }
 

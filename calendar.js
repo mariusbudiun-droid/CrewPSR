@@ -256,9 +256,10 @@ function _setupMonthObserver() {
     if (current) {
       const y = parseInt(current.dataset.year);
       const m = parseInt(current.dataset.month);
-      const hrs = _calcMonthHours(y, m);
-      document.getElementById('calMonthIndicator').textContent   = `${MONTHS[m]} ${y}`;
-      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? fmtHours(hrs) : '';
+      const { ft, dp } = _calcMonthHours(y, m);
+      document.getElementById('calMonthIndicator').textContent = `${MONTHS[m]} ${y}`;
+      document.getElementById('calMonthHoursIndicator').textContent =
+        ft > 0 ? `FT ${fmtHours(ft)}  DP ${fmtHours(dp)}` : '';
     }
   }
 
@@ -278,8 +279,8 @@ function _buildMonthBlock(year, month, todayStr) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
-  const monthHrs    = _calcMonthHours(year, month);
-  const hrsLabel    = monthHrs > 0 ? fmtHours(monthHrs) : '';
+  const { ft: monthFt, dp: monthDp } = _calcMonthHours(year, month);
+  const hrsLabel = monthFt > 0 ? `FT ${fmtHours(monthFt)}  DP ${fmtHours(monthDp)}` : '';
 
   // Visible month header — also acts as sentinel for scroll tracking
   const sentinel = document.createElement('div');
@@ -382,12 +383,15 @@ function _cellSub(ds, assign, type, sched) {
 
 // ── Hours ──────────────────────────────────────────────────────
 function _calcMonthHours(year, month) {
-  let total = 0;
+  let ft = 0, dp = 0;
   const days = new Date(year, month + 1, 0).getDate();
   for (let d = 1; d <= days; d++) {
-    total += calcDayHours(`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const r = calcDayFtDp(ds);
+    ft += r.ft;
+    dp += r.dp;
   }
-  return total;
+  return { ft, dp };
 }
 
 function calcDayHours(ds) {
@@ -524,9 +528,12 @@ function _renderDayDetail() {
   const dateLine = (isToday?'Today · ':'') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
   const badgeClass = type==='early'?'early':type==='late'?'late':'off';
   const { ft: dayFt, dp: dayDp } = calcDayFtDp(ds);
-  const ftText = dayFt > 0 ? 'FT ' + fmtHours(dayFt) : '';
-  const dpText = dayDp > 0 ? 'DP ' + fmtHours(dayDp) : '';
-  const hrsText = ftText ? `${ftText}${dpText ? '  ·  ' + dpText : ''}` : '';
+  const hrsText = dayFt > 0
+    ? `<div style="display:flex;flex-direction:column;gap:1px;margin-left:auto;text-align:right">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">FT ${fmtHours(dayFt)}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text3);font-family:'JetBrains Mono',monospace">DP ${fmtHours(dayDp)}</div>
+       </div>`
+    : '';
 
   // ── Duty block ──
   let dutyHtml = '';
