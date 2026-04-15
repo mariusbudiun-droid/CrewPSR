@@ -403,12 +403,41 @@ function calcDayHours(ds) {
     const plane = useA2 ? sched?.a2 : sched?.a1;
     flights = ((useLate ? plane?.late : plane?.early) || []).filter(f => f.dep && f.arr);
   }
+  // Returns FT only (for calendar month totals)
   return flights.reduce((sum, f) => {
     const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     let diff = toM(f.arr) - toM(f.dep);
     if (diff < 0) diff += 1440;
     return sum + diff / 60;
   }, 0);
+}
+
+function calcDayFtDp(ds) {
+  const assign = APP.assignments?.[ds];
+  if (!assign) return { ft: 0, dp: 0 };
+  const dow = new Date(ds + 'T12:00:00').getDay();
+  const sched = SCHEDULE.days[dow];
+  let flights = [];
+  if (assign === 'CUSTOM') {
+    flights = (APP.customFlights?.[ds] || []).filter(f => f.dep && f.arr);
+  } else if (['A1E','A1L','A2E','A2L'].includes(assign)) {
+    const useA2 = assign.startsWith('A2'), useLate = assign.endsWith('L');
+    const plane = useA2 ? sched?.a2 : sched?.a1;
+    flights = ((useLate ? plane?.late : plane?.early) || []).filter(f => f.dep && f.arr);
+  }
+  if (!flights.length) return { ft: 0, dp: 0 };
+  const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  let ft = 0;
+  for (const f of flights) {
+    let diff = toM(f.arr) - toM(f.dep);
+    if (diff < 0) diff += 1440;
+    ft += diff;
+  }
+  const firstDep = toM(flights[0].dep);
+  const lastArr  = toM(flights[flights.length-1].arr);
+  let dp = (lastArr + 30) - (firstDep - 45);
+  if (dp < 0 || lastArr < firstDep - 60) dp += 1440;
+  return { ft: ft/60, dp: dp/60 };
 }
 
 function calNav(d) {} // kept for compatibility
@@ -494,8 +523,10 @@ function _renderDayDetail() {
   const nextD = new Date(date); nextD.setDate(nextD.getDate()+1);
   const dateLine = (isToday?'Today · ':'') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
   const badgeClass = type==='early'?'early':type==='late'?'late':'off';
-  const dayHrs = calcDayHours(ds);
-  const hrsText = dayHrs > 0 ? fmtHours(dayHrs) : '';
+  const { ft: dayFt, dp: dayDp } = calcDayFtDp(ds);
+  const ftText = dayFt > 0 ? 'FT ' + fmtHours(dayFt) : '';
+  const dpText = dayDp > 0 ? 'DP ' + fmtHours(dayDp) : '';
+  const hrsText = ftText ? `${ftText}${dpText ? '  ·  ' + dpText : ''}` : '';
 
   // ── Duty block ──
   let dutyHtml = '';

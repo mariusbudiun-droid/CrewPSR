@@ -50,21 +50,43 @@ function _getFlights(ds, assign) {
   return [];
 }
 
+function _calcFtDp(flights) {
+  if (!flights.length) return { ft: 0, dp: 0 };
+  const toM = _toMins;
+
+  // FT = sum of each leg duration
+  let ft = 0;
+  for (const f of flights) {
+    let diff = toM(f.arr) - toM(f.dep);
+    if (diff < 0) diff += 1440;
+    ft += diff;
+  }
+
+  // DP = (first dep - 45min) to (last arr + 30min)
+  const firstDep = toM(flights[0].dep);
+  const lastArr  = toM(flights[flights.length - 1].arr);
+  let dp = (lastArr + 30) - (firstDep - 45);
+  // Handle overnight: last arr is next day
+  if (dp < 0 || lastArr < firstDep - 60) dp += 1440;
+
+  return { ft, dp };
+}
+
 function _isLateFinish(flights) {
   if (!flights.length) return false;
   const lastArr = flights[flights.length - 1].arr;
   if (!lastArr) return false;
   const mins = _toMins(lastArr);
-  // After 00:30 and before 06:00 = next-day arrival
   return mins >= 30 && mins < 360;
 }
 
 // ── General stats ─────────────────────────────────────────────
 function calcStats() {
   const assignments = APP.assignments || {};
-  let totalMins = 0, yearMins = 0, flyingDays = 0, totalSectors = 0;
+  let totalFtMins = 0, totalDpMins = 0, yearFtMins = 0, yearDpMins = 0;
+  let flyingDays = 0, totalSectors = 0;
   const thisYear = new Date().getFullYear();
-  const airportCount = {}, routeCount = {}, dayHoursMap = {};
+  const airportCount = {}, routeCount = {}, dayFtMap = {}, dayDpMap = {};
   let lateFinishes = 0, lateFinishDates = [];
 
   for (const [ds, assign] of Object.entries(assignments)) {
@@ -72,21 +94,21 @@ function calcStats() {
     if (!flights.length) continue;
 
     flyingDays++;
-    let dayMins = 0;
+    const { ft, dp } = _calcFtDp(flights);
+
     for (const f of flights) {
-      let diff = _toMins(f.arr) - _toMins(f.dep);
-      if (diff < 0) diff += 1440;
-      dayMins += diff;
       totalSectors++;
       if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
       if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
       if (f.from === 'PSR' && f.to) routeCount[`PSR-${f.to}`] = (routeCount[`PSR-${f.to}`] || 0) + 1;
     }
-    totalMins += dayMins;
-    dayHoursMap[ds] = dayMins / 60;
-    if (new Date(ds + 'T12:00:00').getFullYear() === thisYear) yearMins += dayMins;
+    totalFtMins += ft;
+    totalDpMins += dp;
+    dayFtMap[ds] = ft / 60;
+    dayDpMap[ds] = dp / 60;
+    const yr = new Date(ds + 'T12:00:00').getFullYear();
+    if (yr === thisYear) { yearFtMins += ft; yearDpMins += dp; }
 
-    // Late finish: cycle day 13 + arrival after 00:30
     if (cycleDay(APP.roster, ds) === 13 && _isLateFinish(flights)) {
       lateFinishes++;
       lateFinishDates.push(ds);
@@ -96,20 +118,20 @@ function calcStats() {
   const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]);
   const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]);
 
-  let maxHours = 0, longestDays = [];
-  for (const [ds, h] of Object.entries(dayHoursMap)) {
-    if (h > maxHours) { maxHours = h; longestDays = [ds]; }
-    else if (h === maxHours && h > 0) longestDays.push(ds);
+  let maxFt = 0, longestDays = [];
+  for (const [ds, h] of Object.entries(dayFtMap)) {
+    if (h > maxFt) { maxFt = h; longestDays = [ds]; }
+    else if (h === maxFt && h > 0) longestDays.push(ds);
   }
 
-  const monthMins = {};
-  for (const ds of Object.keys(dayHoursMap)) {
+  const monthFtMins = {};
+  for (const ds of Object.keys(dayFtMap)) {
     const key = ds.slice(0, 7);
-    monthMins[key] = (monthMins[key] || 0) + dayHoursMap[ds] * 60;
+    monthFtMins[key] = (monthFtMins[key] || 0) + dayFtMap[ds] * 60;
   }
-  let busiestMonth = null, busiestMins = 0;
-  for (const [k, m] of Object.entries(monthMins)) {
-    if (m > busiestMins) { busiestMins = m; busiestMonth = k; }
+  let busiestMonth = null, busiestFtMins = 0;
+  for (const [k, m] of Object.entries(monthFtMins)) {
+    if (m > busiestFtMins) { busiestFtMins = m; busiestMonth = k; }
   }
 
   const countries = new Set();
@@ -118,12 +140,14 @@ function calcStats() {
   }
 
   return {
-    totalHours: totalMins / 60, yearHours: yearMins / 60,
+    totalFt: totalFtMins/60, totalDp: totalDpMins/60,
+    yearFt: yearFtMins/60, yearDp: yearDpMins/60,
     flyingDays, totalSectors, topAirports, topRoutes,
-    longestDays, longestHours: maxHours,
-    busiestMonth, busiestHours: busiestMins / 60,
+    longestDays, longestFt: maxFt,
+    busiestMonth, busiestFt: busiestFtMins/60,
     countries: [...countries].sort(),
     lateFinishes, lateFinishDates,
+    dayFtMap, dayDpMap,
   };
 }
 
@@ -278,11 +302,12 @@ function _renderStatsContent() {
 
     // Summary cards
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${_statCard('Hours', fmtH(data.hours), 'var(--blue)')}
+      ${_statCard('FT', fmtH(data.ft), 'var(--blue)')}
+      ${_statCard('DP', fmtH(data.dp), 'var(--blue)')}
       ${_statCard('Flying days', data.flyingDays, 'var(--early)')}
       ${_statCard('Sectors', data.sectors, 'var(--early)')}
       ${_statCard('Routes', data.topRoutes.length, 'var(--green)')}
-      ${data.lateFinishes > 0 ? _statCard('Late finishes', data.lateFinishes, 'var(--yellow)') : ''}
+      ${data.lateFinishes > 0 ? _statCard('Late finish', data.lateFinishes, 'var(--yellow)') : ''}
     </div>`;
 
     // Longest day
@@ -292,7 +317,7 @@ function _renderStatsContent() {
                     padding:6px 0;border-bottom:1px solid var(--border)">
           <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;
-                       font-weight:700;color:var(--blue)">${fmtH(data.longestHours)}</span>
+                       font-weight:700;color:var(--blue)">${fmtH(data.longestFt)}</span>
         </div>`).join('');
       const note = data.longestDays.length > 1
         ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${data.longestDays.length}</span>` : '';
@@ -356,13 +381,16 @@ function _renderStatsContent() {
       el.innerHTML = html; return;
     }
 
+    const yr = new Date().getFullYear();
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
-      ${_statCard('Total hours', fmtH(s.totalHours), 'var(--blue)')}
-      ${_statCard(`${new Date().getFullYear()} hours`, fmtH(s.yearHours), 'var(--blue)')}
-      ${_statCard('Flying days', s.flyingDays, 'var(--early)')}
-      ${_statCard('Sectors', s.totalSectors, 'var(--early)')}
-      ${_statCard('Countries', s.countries.length, 'var(--green)')}
-      ${_statCard('Routes', s.topRoutes.length, 'var(--green)')}
+      ${_statCard('Total FT', fmtH(s.totalFt), 'var(--blue)')}
+      ${_statCard('Total DP', fmtH(s.totalDp), 'var(--blue)')}
+      ${_statCard(`${yr} FT`, fmtH(s.yearFt), 'var(--early)')}
+      ${_statCard(`${yr} DP`, fmtH(s.yearDp), 'var(--early)')}
+      ${_statCard('Flying days', s.flyingDays, 'var(--green)')}
+      ${_statCard('Sectors', s.totalSectors, 'var(--green)')}
+      ${_statCard('Countries', s.countries.length, 'var(--text2)')}
+      ${_statCard('Routes', s.topRoutes.length, 'var(--text2)')}
       ${s.lateFinishes > 0 ? _statCard('Late finishes', s.lateFinishes, 'var(--yellow)') : ''}
     </div>`;
 
@@ -371,7 +399,7 @@ function _renderStatsContent() {
         <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
           <span style="font-size:15px;font-weight:700;color:var(--text)">${fmtMonth(s.busiestMonth)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;
-                       color:var(--blue)">${fmtH(s.busiestHours)}</span>
+                       color:var(--blue)">${fmtH(s.busiestFt)}</span>
         </div>`);
     }
 
@@ -381,7 +409,7 @@ function _renderStatsContent() {
                     padding:6px 0;border-bottom:1px solid var(--border)">
           <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;
-                       font-weight:700;color:var(--blue)">${fmtH(s.longestHours)}</span>
+                       font-weight:700;color:var(--blue)">${fmtH(s.longestFt)}</span>
         </div>`).join('');
       const note = s.longestDays.length > 1
         ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${s.longestDays.length}</span>` : '';
