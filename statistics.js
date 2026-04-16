@@ -50,11 +50,31 @@ function _getFlights(ds, assign) {
   return [];
 }
 
-function _calcFtDp(flights) {
+function _calcFtDp(flights, assign, detail) {
+  // AD: no FT, DP = full duration
+  if (assign === 'AD') {
+    if (detail?.start && detail?.end) {
+      const toM = _toMins;
+      let dp = toM(detail.end) - toM(detail.start);
+      if (dp < 0) dp += 1440;
+      return { ft: 0, dp };
+    }
+    return { ft: 0, dp: 480 }; // default 8h in mins
+  }
+  // HSBY: no FT, DP = 25% of duration
+  if (assign === 'HSBY') {
+    if (detail?.start && detail?.end) {
+      const toM = _toMins;
+      let dur = toM(detail.end) - toM(detail.start);
+      if (dur < 0) dur += 1440;
+      return { ft: 0, dp: Math.round(dur * 0.25) };
+    }
+    return { ft: 0, dp: Math.round(9 * 60 * 0.25) }; // 9h × 25% = 135 mins
+  }
+
   if (!flights.length) return { ft: 0, dp: 0 };
   const toM = _toMins;
 
-  // FT = sum of each leg duration
   let ft = 0;
   for (const f of flights) {
     let diff = toM(f.arr) - toM(f.dep);
@@ -62,11 +82,9 @@ function _calcFtDp(flights) {
     ft += diff;
   }
 
-  // DP = (first dep - 45min) to (last arr + 30min)
   const firstDep = toM(flights[0].dep);
   const lastArr  = toM(flights[flights.length - 1].arr);
   let dp = (lastArr + 30) - (firstDep - 45);
-  // Handle overnight: last arr is next day
   if (dp < 0 || lastArr < firstDep - 60) dp += 1440;
 
   return { ft, dp };
@@ -91,10 +109,12 @@ function calcStats() {
 
   for (const [ds, assign] of Object.entries(assignments)) {
     const flights = _getFlights(ds, assign);
-    if (!flights.length) continue;
+    const detail  = APP.assignDetails?.[ds];
+    if (!flights.length && assign !== 'AD' && assign !== 'HSBY') continue;
 
-    flyingDays++;
-    const { ft, dp } = _calcFtDp(flights);
+    if (flights.length) flyingDays++;
+
+    const { ft, dp } = _calcFtDp(flights, assign, detail);
 
     for (const f of flights) {
       totalSectors++;
@@ -163,14 +183,17 @@ function calcMonthStats(year, month) {
   for (const [ds, assign] of Object.entries(assignments)) {
     if (!ds.startsWith(prefix)) continue;
     const flights = _getFlights(ds, assign);
-    if (!flights.length) continue;
+    const detail  = APP.assignDetails?.[ds];
+    if (!flights.length && assign !== 'AD' && assign !== 'HSBY') continue;
 
-    flyingDays++;
-    const { ft, dp } = _calcFtDp(flights);
+    if (flights.length) flyingDays++;
+    const { ft, dp } = _calcFtDp(flights, assign, detail);
     ftMins += ft;
     dpMins += dp;
-    dayFtMap[ds] = ft / 60;
-    dayDpMap[ds] = dp / 60;
+    if (ft > 0) {
+      dayFtMap[ds] = ft / 60;
+      dayDpMap[ds] = dp / 60;
+    }
     sectors += flights.length;
 
     for (const f of flights) {

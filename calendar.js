@@ -421,6 +421,31 @@ function calcDayHours(ds) {
 function calcDayFtDp(ds) {
   const assign = APP.assignments?.[ds];
   if (!assign) return { ft: 0, dp: 0 };
+
+  // AD: no FT, DP = full duration (real or default 8h)
+  if (assign === 'AD') {
+    const detail = APP.assignDetails?.[ds];
+    if (detail?.start && detail?.end) {
+      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+      let dp = toM(detail.end) - toM(detail.start);
+      if (dp < 0) dp += 1440;
+      return { ft: 0, dp: dp/60 };
+    }
+    return { ft: 0, dp: 8 }; // default 8h
+  }
+
+  // HSBY: no FT, DP = 25% of duration (real or default 9h = 2h15m)
+  if (assign === 'HSBY') {
+    const detail = APP.assignDetails?.[ds];
+    if (detail?.start && detail?.end) {
+      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+      let dur = toM(detail.end) - toM(detail.start);
+      if (dur < 0) dur += 1440;
+      return { ft: 0, dp: dur / 60 * 0.25 };
+    }
+    return { ft: 0, dp: 9 * 0.25 }; // default 9h × 25% = 2.25h
+  }
+
   const dow = new Date(ds + 'T12:00:00').getDay();
   const sched = SCHEDULE.days[dow];
   let flights = [];
@@ -624,12 +649,15 @@ function _renderDayDetail() {
         const inner=`<span class="dd-pill-r" style="color:var(--green)">R${APP.roster}</span>${name}`;
         return phone?`<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="border-left:2px solid var(--green)">${inner}</a>`:`<span class="dd-pill" style="border-left:2px solid var(--green)">${inner}</span>`;
       }).join('');
-      const otherPills=sameList.map(r=>{
+      const otherPills=sameList.flatMap(r=>{
         const members=(APP.crew?.[r]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        const name=members.length?(members[0].name||members[0].code):`Roster ${r}`;
-        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
-        const inner=`<span class="dd-pill-r">R${r}</span>${name}`;
-        return phone?`<a class="dd-pill same" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="dd-pill same">${inner}</span>`;
+        if (!members.length) return [`<span class="dd-pill"><span class="dd-pill-r">R${r}</span>Roster ${r}</span>`];
+        return members.map(m=>{
+          const name=m.name||m.code;
+          const phone=(m.phone||'').replace(/\D/g,'');
+          const inner=`<span class="dd-pill-r">R${r}</span>${name}`;
+          return phone?`<a class="dd-pill same" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="dd-pill same">${inner}</span>`;
+        });
       }).join('');
       crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div><div class="dd-pills">${ownPills}${otherPills}</div></div>`;
     }
@@ -638,19 +666,23 @@ function _renderDayDetail() {
     // ── Reverse swap (off days) ──
     const revCandidates = reverseSwapCandidates(day, ds);
     if (revCandidates.length) {
-      const pills = revCandidates.map(c => {
+      const pills = revCandidates.flatMap(c => {
         const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        const name=members.length?(members[0].name||members[0].code):`Roster ${c.roster}`;
-        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
         const certain = c.certain !== false;
-        // certain = green-tinted pill, uncertain = yellow-tinted
         const style = certain
           ? 'background:var(--green-lt);color:var(--green);border-color:var(--border)'
           : 'background:var(--yellow-lt);color:#92400e;border-color:var(--border);opacity:0.8';
-        const inner=`<span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>${name}`;
-        return phone
-          ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="${style}">${inner}</a>`
-          : `<span class="dd-pill" style="${style}">${inner}</span>`;
+        if (!members.length) {
+          return [`<span class="dd-pill" style="${style}"><span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>Roster ${c.roster}</span>`];
+        }
+        return members.map(m=>{
+          const name=m.name||m.code;
+          const phone=(m.phone||'').replace(/\D/g,'');
+          const inner=`<span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>${name}`;
+          return phone
+            ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="${style}">${inner}</a>`
+            : `<span class="dd-pill" style="${style}">${inner}</span>`;
+        });
       }).join('');
 
       const label = day===6||day===14 ? 'You could work instead of'
@@ -675,7 +707,7 @@ function _renderDayDetail() {
   // ── Actions ──
   const actionsHtml = !assign
     ? `<div class="dd-actions"><button class="dd-action-btn ghost" onclick="_openDutyPicker('${ds}')">+ Add duty</button><button class="dd-action-btn ghost" onclick="_openLeavePicker('${ds}')">+ Add leave</button></div>`
-    : `<div class="dd-actions"><button class="dd-action-btn outline" onclick="_openDutyPicker('${ds}')">Edit duty</button><button class="dd-action-btn danger" onclick="_clearDuty('${ds}')">Clear</button></div>`;
+    : `<div class="dd-actions"><button class="dd-action-btn outline" style="max-width:200px;margin:0 auto" onclick="_openDutyPicker('${ds}')">Edit duty</button></div>`;
 
   document.getElementById('dayDetailScreen').innerHTML=`
     <div class="dd-header">
@@ -702,10 +734,17 @@ function _renderDayDetail() {
 // ══════════════════════════════════════════════════════════════
 function _openDutyPicker(ds) {
   const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+  const assign = APP.assignments?.[ds];
   document.getElementById('settingModalTitle').textContent='Set duty';
   document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
-    <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
+    ${assign ? `
+    <button onclick="if(confirm('Sei sicuro di voler cancellare il duty?')){_clearDuty('${ds}');closeModal('settingModal')}"
+      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
+             background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+             color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
+    <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>
+  `;
   document.getElementById('settingModal').classList.add('open');
 }
 
