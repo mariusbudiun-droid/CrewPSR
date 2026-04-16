@@ -258,8 +258,8 @@ function _setupMonthObserver() {
       const m = parseInt(current.dataset.month);
       const { ft, dp } = _calcMonthHours(y, m);
       document.getElementById('calMonthIndicator').textContent = `${MONTHS[m]} ${y}`;
-      document.getElementById('calMonthHoursIndicator').textContent =
-        ft > 0 ? `FT ${fmtHours(ft)}  DP ${fmtHours(dp)}` : '';
+      document.getElementById('calMonthHoursIndicator').innerHTML =
+        ft > 0 ? `<span style="color:var(--blue)">FT ${fmtHours(ft)}</span>&nbsp;&nbsp;<span style="color:var(--text3)">DP ${fmtHours(dp)}</span>` : '';
     }
   }
 
@@ -280,7 +280,9 @@ function _buildMonthBlock(year, month, todayStr) {
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
   const { ft: monthFt, dp: monthDp } = _calcMonthHours(year, month);
-  const hrsLabel = monthFt > 0 ? `FT ${fmtHours(monthFt)}  DP ${fmtHours(monthDp)}` : '';
+  const hrsLabel = monthFt > 0
+    ? `<span style="color:var(--blue)">FT ${fmtHours(monthFt)}</span>&nbsp;&nbsp;<span style="color:var(--text3)">DP ${fmtHours(monthDp)}</span>`
+    : '';
 
   // Visible month header — also acts as sentinel for scroll tracking
   const sentinel = document.createElement('div');
