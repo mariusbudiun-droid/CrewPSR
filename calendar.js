@@ -256,10 +256,9 @@ function _setupMonthObserver() {
     if (current) {
       const y = parseInt(current.dataset.year);
       const m = parseInt(current.dataset.month);
-      const { ft, dp } = _calcMonthHours(y, m);
-      document.getElementById('calMonthIndicator').textContent = `${MONTHS[m]} ${y}`;
-      document.getElementById('calMonthHoursIndicator').innerHTML =
-        ft > 0 ? `<span style="color:var(--blue)">FT ${fmtHours(ft)}</span>&nbsp;&nbsp;<span style="color:var(--text3)">DP ${fmtHours(dp)}</span>` : '';
+      const hrs = _calcMonthHours(y, m);
+      document.getElementById('calMonthIndicator').textContent   = `${MONTHS[m]} ${y}`;
+      document.getElementById('calMonthHoursIndicator').textContent = hrs > 0 ? fmtHours(hrs) : '';
     }
   }
 
@@ -279,10 +278,8 @@ function _buildMonthBlock(year, month, todayStr) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDow    = new Date(year, month, 1).getDay();
   const offset      = (firstDow + 6) % 7;
-  const { ft: monthFt, dp: monthDp } = _calcMonthHours(year, month);
-  const hrsLabel = monthFt > 0
-    ? `<span style="color:var(--blue)">FT ${fmtHours(monthFt)}</span>&nbsp;&nbsp;<span style="color:var(--text3)">DP ${fmtHours(monthDp)}</span>`
-    : '';
+  const monthHrs    = _calcMonthHours(year, month);
+  const hrsLabel    = monthHrs > 0 ? fmtHours(monthHrs) : '';
 
   // Visible month header — also acts as sentinel for scroll tracking
   const sentinel = document.createElement('div');
@@ -385,15 +382,12 @@ function _cellSub(ds, assign, type, sched) {
 
 // ── Hours ──────────────────────────────────────────────────────
 function _calcMonthHours(year, month) {
-  let ft = 0, dp = 0;
+  let total = 0;
   const days = new Date(year, month + 1, 0).getDate();
   for (let d = 1; d <= days; d++) {
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const r = calcDayFtDp(ds);
-    ft += r.ft;
-    dp += r.dp;
+    total += calcDayHours(`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
   }
-  return { ft, dp };
+  return total;
 }
 
 function calcDayHours(ds) {
@@ -409,66 +403,12 @@ function calcDayHours(ds) {
     const plane = useA2 ? sched?.a2 : sched?.a1;
     flights = ((useLate ? plane?.late : plane?.early) || []).filter(f => f.dep && f.arr);
   }
-  // Returns FT only (for calendar month totals)
   return flights.reduce((sum, f) => {
     const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     let diff = toM(f.arr) - toM(f.dep);
     if (diff < 0) diff += 1440;
     return sum + diff / 60;
   }, 0);
-}
-
-function calcDayFtDp(ds) {
-  const assign = APP.assignments?.[ds];
-  if (!assign) return { ft: 0, dp: 0 };
-
-  // AD: no FT, DP = full duration (real or default 8h)
-  if (assign === 'AD') {
-    const detail = APP.assignDetails?.[ds];
-    if (detail?.start && detail?.end) {
-      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-      let dp = toM(detail.end) - toM(detail.start);
-      if (dp < 0) dp += 1440;
-      return { ft: 0, dp: dp/60 };
-    }
-    return { ft: 0, dp: 8 }; // default 8h
-  }
-
-  // HSBY: no FT, DP = 25% of duration (real or default 9h = 2h15m)
-  if (assign === 'HSBY') {
-    const detail = APP.assignDetails?.[ds];
-    if (detail?.start && detail?.end) {
-      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-      let dur = toM(detail.end) - toM(detail.start);
-      if (dur < 0) dur += 1440;
-      return { ft: 0, dp: dur / 60 * 0.25 };
-    }
-    return { ft: 0, dp: 9 * 0.25 }; // default 9h × 25% = 2.25h
-  }
-
-  const dow = new Date(ds + 'T12:00:00').getDay();
-  const sched = SCHEDULE.days[dow];
-  let flights = [];
-  if (assign === 'CUSTOM') {
-    flights = (APP.customFlights?.[ds] || []).filter(f => f.dep && f.arr);
-  } else if (['A1E','A1L','A2E','A2L'].includes(assign)) {
-    const useA2 = assign.startsWith('A2'), useLate = assign.endsWith('L');
-    const plane = useA2 ? sched?.a2 : sched?.a1;
-    flights = ((useLate ? plane?.late : plane?.early) || []).filter(f => f.dep && f.arr);
-  }
-  if (!flights.length) return { ft: 0, dp: 0 };
-  const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-  let ft = 0;
-  for (const f of flights) {
-    let diff = toM(f.arr) - toM(f.dep);
-    if (diff < 0) diff += 1440;
-    ft += diff;
-  }
-  const firstDep = toM(flights[0].dep);
-  const lastArr  = toM(flights[flights.length-1].arr);
-  let dp = (lastArr + 30) - (firstDep - 45);
-  if (dp < 0 || lastArr < firstDep - 60) dp += 1440;
-  return { ft: ft/60, dp: dp/60 };
 }
 
 function calNav(d) {} // kept for compatibility
@@ -554,13 +494,8 @@ function _renderDayDetail() {
   const nextD = new Date(date); nextD.setDate(nextD.getDate()+1);
   const dateLine = (isToday?'Today · ':'') + `${DAYS_FULL[dow]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
   const badgeClass = type==='early'?'early':type==='late'?'late':'off';
-  const { ft: dayFt, dp: dayDp } = calcDayFtDp(ds);
-  const hrsText = dayFt > 0
-    ? `<div style="display:flex;flex-direction:column;gap:1px;margin-left:auto;text-align:right">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">FT ${fmtHours(dayFt)}</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text3);font-family:'JetBrains Mono',monospace">DP ${fmtHours(dayDp)}</div>
-       </div>`
-    : '';
+  const dayHrs = calcDayHours(ds);
+  const hrsText = dayHrs > 0 ? fmtHours(dayHrs) : '';
 
   // ── Duty block ──
   let dutyHtml = '';
@@ -649,15 +584,12 @@ function _renderDayDetail() {
         const inner=`<span class="dd-pill-r" style="color:var(--green)">R${APP.roster}</span>${name}`;
         return phone?`<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="border-left:2px solid var(--green)">${inner}</a>`:`<span class="dd-pill" style="border-left:2px solid var(--green)">${inner}</span>`;
       }).join('');
-      const otherPills=sameList.flatMap(r=>{
+      const otherPills=sameList.map(r=>{
         const members=(APP.crew?.[r]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        if (!members.length) return [`<span class="dd-pill"><span class="dd-pill-r">R${r}</span>Roster ${r}</span>`];
-        return members.map(m=>{
-          const name=m.name||m.code;
-          const phone=(m.phone||'').replace(/\D/g,'');
-          const inner=`<span class="dd-pill-r">R${r}</span>${name}`;
-          return phone?`<a class="dd-pill same" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="dd-pill same">${inner}</span>`;
-        });
+        const name=members.length?(members[0].name||members[0].code):`Roster ${r}`;
+        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
+        const inner=`<span class="dd-pill-r">R${r}</span>${name}`;
+        return phone?`<a class="dd-pill same" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="dd-pill same">${inner}</span>`;
       }).join('');
       crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div><div class="dd-pills">${ownPills}${otherPills}</div></div>`;
     }
@@ -666,23 +598,19 @@ function _renderDayDetail() {
     // ── Reverse swap (off days) ──
     const revCandidates = reverseSwapCandidates(day, ds);
     if (revCandidates.length) {
-      const pills = revCandidates.flatMap(c => {
+      const pills = revCandidates.map(c => {
         const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
+        const name=members.length?(members[0].name||members[0].code):`Roster ${c.roster}`;
+        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
         const certain = c.certain !== false;
+        // certain = green-tinted pill, uncertain = yellow-tinted
         const style = certain
           ? 'background:var(--green-lt);color:var(--green);border-color:var(--border)'
           : 'background:var(--yellow-lt);color:#92400e;border-color:var(--border);opacity:0.8';
-        if (!members.length) {
-          return [`<span class="dd-pill" style="${style}"><span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>Roster ${c.roster}</span>`];
-        }
-        return members.map(m=>{
-          const name=m.name||m.code;
-          const phone=(m.phone||'').replace(/\D/g,'');
-          const inner=`<span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>${name}`;
-          return phone
-            ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="${style}">${inner}</a>`
-            : `<span class="dd-pill" style="${style}">${inner}</span>`;
-        });
+        const inner=`<span class="dd-pill-r" style="opacity:0.6">R${c.roster}</span>${name}`;
+        return phone
+          ? `<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="${style}">${inner}</a>`
+          : `<span class="dd-pill" style="${style}">${inner}</span>`;
       }).join('');
 
       const label = day===6||day===14 ? 'You could work instead of'
@@ -707,7 +635,7 @@ function _renderDayDetail() {
   // ── Actions ──
   const actionsHtml = !assign
     ? `<div class="dd-actions"><button class="dd-action-btn ghost" onclick="_openDutyPicker('${ds}')">+ Add duty</button><button class="dd-action-btn ghost" onclick="_openLeavePicker('${ds}')">+ Add leave</button></div>`
-    : `<div class="dd-actions"><button class="dd-action-btn outline" style="max-width:200px;margin:0 auto" onclick="_openDutyPicker('${ds}')">Edit duty</button></div>`;
+    : `<div class="dd-actions"><button class="dd-action-btn outline" onclick="_openDutyPicker('${ds}')">Edit duty</button><button class="dd-action-btn danger" onclick="_clearDuty('${ds}')">Clear</button></div>`;
 
   document.getElementById('dayDetailScreen').innerHTML=`
     <div class="dd-header">
@@ -734,17 +662,10 @@ function _renderDayDetail() {
 // ══════════════════════════════════════════════════════════════
 function _openDutyPicker(ds) {
   const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
-  const assign = APP.assignments?.[ds];
   document.getElementById('settingModalTitle').textContent='Set duty';
   document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
-    ${assign ? `
-    <button onclick="if(confirm('Sei sicuro di voler cancellare il duty?')){_clearDuty('${ds}');closeModal('settingModal')}"
-      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
-             background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
-             color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
-    <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>
-  `;
+    <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
   document.getElementById('settingModal').classList.add('open');
 }
 
