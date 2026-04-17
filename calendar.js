@@ -380,7 +380,17 @@ function _cellSub(ds, assign, type, sched) {
     const dests = [...new Set(cfl.filter(f => f.to && f.to !== 'PSR').map(f => f.to))];
     return dests.length ? dests.join(' ') : 'CUSTOM';
   }
-  return { HSBY:'HSBY', AD:'AD', AL:'AL', VTO:'VTO', SICK:'SICK', UL:'UL', PL:'PL' }[assign] || assign;
+  if (assign === 'HSBY' || assign === 'AD') {
+    const cfl = APP.customFlights?.[ds] || [];
+    const detail = APP.assignDetails?.[ds];
+    if (detail?.calledToFly && cfl.length) {
+      const dests = [...new Set(cfl.filter(f => f.to && f.to !== 'PSR').map(f => f.to))];
+      const base = assign === 'HSBY' ? 'HSBY' : 'AD';
+      return (dests.length ? dests.join(' ') : base) + ' •';
+    }
+    return assign === 'HSBY' ? 'HSBY' : 'AD';
+  }
+  return { AL:'AL', VTO:'VTO', SICK:'SICK', UL:'UL', PL:'PL' }[assign] || assign;
 }
 
 // ── Hours ──────────────────────────────────────────────────────
@@ -557,8 +567,8 @@ function _renderDayDetail() {
   const { ft: dayFt, dp: dayDp } = calcDayFtDp(ds);
   const hrsText = dayFt > 0
     ? `<div style="display:flex;flex-direction:column;gap:1px;margin-left:auto;text-align:right">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">FT ${fmtHours(dayFt)}</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text3);font-family:'JetBrains Mono',monospace">DP ${fmtHours(dayDp)}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">Flight Time ${fmtHours(dayFt)}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text3);font-family:'JetBrains Mono',monospace">Duty Period ${fmtHours(dayDp)}</div>
        </div>`
     : '';
 
@@ -602,13 +612,25 @@ function _renderDayDetail() {
     const st=detail?.shiftType;
     const ts=detail?.start&&detail?.end?`${detail.start} – ${detail.end}`:detail?.start?`from ${detail.start}`:'';
     const stLabel=st?` · ${st.charAt(0).toUpperCase()+st.slice(1)}`:'';
-    dutyHtml=`<div class="dd-card dd-hsby"><div class="dd-duty-name">Home Standby${stLabel}</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
+    const cflHsby=(APP.customFlights?.[ds]||[]).filter(f=>f.from&&f.to);
+    const flightRowsHsby=cflHsby.map(f=>`<div class="dd-flight-row"><span class="dd-flight-route">${f.from}-${f.to}</span><span class="dd-flight-times">${f.dep||'--:--'} → ${f.arr||'--:--'}</span></div>`).join('');
+    dutyHtml=`<div class="dd-card dd-hsby">
+      <div class="dd-duty-name">Home Standby${stLabel}${detail?.calledToFly?' <span style="color:var(--red);font-size:12px">• called</span>':''}</div>
+      ${ts?`<div class="dd-duty-time">${ts}</div>`:''}
+      ${flightRowsHsby ? `<div class="dd-plane-label" style="margin-top:10px">Flights</div>${flightRowsHsby}` : ''}
+    </div>`;
 
   } else if (assign==='AD') {
     const st=detail?.shiftType;
     const ts=detail?.start&&detail?.end?`${detail.start} – ${detail.end}`:detail?.start?`from ${detail.start}`:'';
     const stLabel=st?` · ${st.charAt(0).toUpperCase()+st.slice(1)}`:'';
-    dutyHtml=`<div class="dd-card dd-ad"><div class="dd-duty-name">Airport Duty${stLabel}</div>${ts?`<div class="dd-duty-time">${ts}</div>`:''}</div>`;
+    const cflAd=(APP.customFlights?.[ds]||[]).filter(f=>f.from&&f.to);
+    const flightRowsAd=cflAd.map(f=>`<div class="dd-flight-row"><span class="dd-flight-route">${f.from}-${f.to}</span><span class="dd-flight-times">${f.dep||'--:--'} → ${f.arr||'--:--'}</span></div>`).join('');
+    dutyHtml=`<div class="dd-card dd-ad">
+      <div class="dd-duty-name">Airport Duty${stLabel}${detail?.calledToFly?' <span style="color:var(--red);font-size:12px">• called</span>':''}</div>
+      ${ts?`<div class="dd-duty-time">${ts}</div>`:''}
+      ${flightRowsAd ? `<div class="dd-plane-label" style="margin-top:10px">Flights</div>${flightRowsAd}` : ''}
+    </div>`;
 
   } else if (assign==='AL') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Annual Leave</div></div>`;
@@ -632,13 +654,15 @@ function _renderDayDetail() {
     const ownCrew=(APP.crew?.[APP.roster]||[]).filter(m=>m&&m.code&&m.code.trim());
 
     if (candidates.length) {
-      const pills=candidates.map(c=>{
+      const pills=candidates.flatMap(c=>{
         const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        const name=members.length?(members[0].name||members[0].code):`Roster ${c.roster}`;
-        const phone=members.length?(members[0].phone||'').replace(/\D/g,''):'';
         const cls='dd-pill swap'+(c.certain===false?' maybe':'');
-        const inner=`<span class="dd-pill-r">R${c.roster}</span>${name}`;
-        return phone?`<a class="${cls}" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="${cls}">${inner}</span>`;
+        if (!members.length) return [`<span class="${cls}"><span class="dd-pill-r">R${c.roster}</span>Roster ${c.roster}</span>`];
+        return members.map(m=>{
+          const name=m.name||m.code, phone=(m.phone||'').replace(/\D/g,'');
+          const inner=`<span class="dd-pill-r">R${c.roster}</span>${name}`;
+          return phone?`<a class="${cls}" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="${cls}">${inner}</span>`;
+        });
       }).join('');
       crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div><div class="dd-pills">${pills}</div></div>`;
     }
@@ -733,19 +757,119 @@ function _renderDayDetail() {
 // PICKERS
 // ══════════════════════════════════════════════════════════════
 function _openDutyPicker(ds) {
-  const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+  const sched  = SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
   const assign = APP.assignments?.[ds];
-  document.getElementById('settingModalTitle').textContent='Set duty';
-  document.getElementById('settingModalBody').innerHTML=`
-    <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
+  const isHsbyAd = assign === 'HSBY' || assign === 'AD';
+
+  document.getElementById('settingModalTitle').textContent = 'Set duty';
+  document.getElementById('settingModalBody').innerHTML = `
+    <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds, sched)}</div>
+    ${isHsbyAd ? `
+    <button onclick="_openDutyChange('${ds}')"
+      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;
+             border:1.5px solid var(--blue);background:var(--blue-lt);
+             font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;
+             color:var(--blue);cursor:pointer">✈ Duty change</button>` : ''}
     ${assign ? `
     <button onclick="if(confirm('Sei sicuro di voler cancellare il duty?')){_clearDuty('${ds}');closeModal('settingModal')}"
-      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
+      style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
              background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
              color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
     <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>
   `;
   document.getElementById('settingModal').classList.add('open');
+}
+
+function _openDutyChange(ds) {
+  const assign  = APP.assignments?.[ds];
+  const sched   = SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+  const fromLabel = assign === 'HSBY' ? 'Called from HSBY' : 'Called from AD';
+  const otherDuty = assign === 'HSBY' ? 'AD' : 'HSBY';
+  const otherLabel = assign === 'HSBY' ? '🏢 Change to Airport Duty' : '☎ Change to Home Standby';
+
+  document.getElementById('settingModalTitle').textContent = 'Duty change';
+
+  let rotationBtns = '';
+  if (sched) {
+    const opts = [
+      {id:'A1E', label:'Aereo 1 · Early', color:'var(--early)', report:sched.a1.reportEarly},
+      {id:'A1L', label:'Aereo 1 · Late',  color:'var(--late)',  report:sched.a1.reportLate},
+      {id:'A2E', label:'Aereo 2 · Early', color:'var(--early)', report:sched.a2.reportEarly},
+      {id:'A2L', label:'Aereo 2 · Late',  color:'var(--late)',  report:sched.a2.reportLate},
+    ];
+    rotationBtns = opts.map(o =>
+      `<button onclick="_dutyChangeToAssign('${ds}','${o.id}')"
+        style="padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--surface);font-family:'Outfit',sans-serif;
+               font-size:13px;font-weight:600;color:${o.color};cursor:pointer;text-align:left">
+        ✈ Duty change → ${o.label}
+        <div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">Report ${o.report}</div>
+      </button>`
+    ).join('');
+  }
+
+  document.getElementById('settingModalBody').innerHTML =
+    `<div style="font-size:13px;color:var(--text2);margin-bottom:14px">Cosa è successo con questo ${assign}?</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      ${rotationBtns}
+      <button onclick="_dutyChangeToCustom('${ds}')"
+        style="padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--surface);font-family:'Outfit',sans-serif;
+               font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;text-align:left">
+        ✏ Duty change → Custom flights
+      </button>
+      <button onclick="_dutyChangeToAssign('${ds}','${otherDuty}')"
+        style="padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--surface);font-family:'Outfit',sans-serif;
+               font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;text-align:left">
+        ${otherLabel}
+      </button>
+      <button onclick="_calledFromDuty('${ds}')"
+        style="padding:12px 14px;border-radius:10px;border:1.5px solid var(--yellow);
+               background:var(--yellow-lt);font-family:'Outfit',sans-serif;
+               font-size:13px;font-weight:700;color:#92400e;cursor:pointer;text-align:left">
+        ✈ ${fromLabel} — aggiungi voli
+      </button>
+    </div>
+    <button class="btn secondary" onclick="_openDutyPicker('${ds}')">← Back</button>`;
+}
+
+function _dutyChangeToAssign(ds, newAssign) {
+  setAssign(ds, newAssign);
+}
+
+function _dutyChangeToCustom(ds) {
+  setAssign(ds, 'CUSTOM');
+}
+
+function _convertToEditableRotation(ds) {
+  const assign = APP.assignments?.[ds];
+  if (!['A1E','A1L','A2E','A2L'].includes(assign)) return;
+  const dow   = new Date(ds+'T12:00:00').getDay();
+  const sched = SCHEDULE.days[dow];
+  const useA2 = assign.startsWith('A2'), useLate = assign.endsWith('L');
+  const plane = useA2 ? sched?.a2 : sched?.a1;
+  const flights = (useLate ? plane?.late : plane?.early) || [];
+  if (!APP.customFlights) APP.customFlights = {};
+  APP.customFlights[ds] = flights.map(f => {
+    const [from, to] = f.route.split('-');
+    return { from, to, dep: f.dep, arr: f.arr };
+  });
+  APP.assignments[ds] = 'CUSTOM';
+  save();
+  closeModal('settingModal');
+  openCustomFlights(ds);
+}
+
+function _calledFromDuty(ds) {
+  if (!APP.assignDetails) APP.assignDetails = {};
+  if (!APP.assignDetails[ds]) APP.assignDetails[ds] = {};
+  APP.assignDetails[ds].calledToFly = true;
+  if (!APP.customFlights) APP.customFlights = {};
+  if (!APP.customFlights[ds]) APP.customFlights[ds] = [{ from:'PSR', to:'', dep:'', arr:'' }];
+  save();
+  closeModal('settingModal');
+  openCustomFlights(ds);
 }
 
 function _openLeavePicker(ds) {
@@ -889,6 +1013,17 @@ function buildDutyOptions(ds, sched) {
     <div><div class="assign-label" style="color:var(--blue)">✏ Custom Flights</div>
     ${csel&&cfl.length?`<div class="assign-flights">${cfl.filter(f=>f.from&&f.to).map(f=>f.from+'-'+f.to).join(' · ')}</div>`:''}</div>
     <div class="assign-check">${csel?'✓':''}</div></div>`;
+  // If a standard rotation is selected, offer to edit it
+  if (['A1E','A1L','A2E','A2L'].includes(assign)) {
+    body += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <button onclick="_convertToEditableRotation('${ds}')"
+        style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--bg);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+               color:var(--text2);cursor:pointer;text-align:left">
+        ✏ Edit this rotation (changes become custom)
+      </button>
+    </div>`;
+  }
   return body;
 }
 

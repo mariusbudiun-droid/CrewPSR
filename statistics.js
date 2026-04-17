@@ -227,6 +227,27 @@ function calcMonthStats(year, month) {
   };
 }
 
+// ── Total duty with 100% HSBY ─────────────────────────────────
+function calcTotalDutyFull() {
+  const assignments = APP.assignments || {};
+  let total = 0;
+  for (const [ds, assign] of Object.entries(assignments)) {
+    const detail = APP.assignDetails?.[ds];
+    if (assign === 'HSBY') {
+      if (detail?.start && detail?.end) {
+        let dur = _toMins(detail.end) - _toMins(detail.start);
+        if (dur < 0) dur += 1440;
+        total += dur / 60;
+      } else {
+        total += 9;
+      }
+    } else {
+      total += _calcFtDp(_getFlights(ds, assign), assign, detail).dp / 60;
+    }
+  }
+  return total;
+}
+
 // ── State ─────────────────────────────────────────────────────
 let _statsTab        = 'month';
 let _statsMonthOffset = 0; // 0 = current, +1 = next, -1 = last month, etc.
@@ -327,8 +348,8 @@ function _renderStatsContent() {
 
     // Summary cards
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${_statCard('FT', fmtH(data.ft), 'var(--blue)')}
-      ${_statCard('DP', fmtH(data.dp), 'var(--blue)')}
+      ${_statCard('Flight Time', fmtH(data.ft), 'var(--blue)')}
+      ${_statCard('Duty Period', fmtH(data.dp), 'var(--text2)')}
       ${_statCard('Flying days', data.flyingDays, 'var(--early)')}
       ${_statCard('Sectors', data.sectors, 'var(--early)')}
       ${_statCard('Routes', data.topRoutes.length, 'var(--green)')}
@@ -407,17 +428,25 @@ function _renderStatsContent() {
     }
 
     const yr = new Date().getFullYear();
-    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
-      ${_statCard('Total FT', fmtH(s.totalFt), 'var(--blue)')}
-      ${_statCard('Total DP', fmtH(s.totalDp), 'var(--blue)')}
-      ${_statCard(`${yr} FT`, fmtH(s.yearFt), 'var(--early)')}
-      ${_statCard(`${yr} DP`, fmtH(s.yearDp), 'var(--early)')}
+    // Total Duty including 100% HSBY
+    const totalDutyFull = calcTotalDutyFull();
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      ${_statCard('Total Flight Time', fmtH(s.totalFt), 'var(--blue)')}
+      ${_statCard('Total Duty Period', fmtH(s.totalDp), 'var(--text2)')}
+      ${_statCard(`${yr} Flight Time`, fmtH(s.yearFt), 'var(--early)')}
+      ${_statCard(`${yr} Duty Period`, fmtH(s.yearDp), 'var(--early)')}
       ${_statCard('Flying days', s.flyingDays, 'var(--green)')}
       ${_statCard('Sectors', s.totalSectors, 'var(--green)')}
       ${_statCard('Countries', s.countries.length, 'var(--text2)')}
       ${_statCard('Routes', s.topRoutes.length, 'var(--text2)')}
       ${s.lateFinishes > 0 ? _statCard('Late finishes', s.lateFinishes, 'var(--yellow)') : ''}
     </div>`;
+    // Total duty including 100% HSBY
+    html += _section('Total Duty (incl. 100% HSBY)',
+      '<div style="padding:8px 0">' +
+      '<div style="font-size:22px;font-weight:800;color:var(--blue);font-family:\'JetBrains Mono\',monospace">' + fmtH(totalDutyFull) + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);margin-top:4px">Duty Period + 100% HSBY (invece di 25%). HSBY default: 9h se non specificato.</div>' +
+      '</div>');
 
     if (s.busiestMonth) {
       html += _section('Busiest month', `
