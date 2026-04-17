@@ -192,8 +192,8 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
           const { ft, dp } = calcDayFtDp(ds);
           if (!ft && !dp) return '';
           return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
-            ${ft > 0 ? `<span style="color:var(--blue)">FT ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
-            ${dp > 0 ? `<span style="color:var(--text3)">DP ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
+            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
+            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
           </div>`;
         })()}
       </div>
