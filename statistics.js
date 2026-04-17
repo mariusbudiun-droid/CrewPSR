@@ -101,7 +101,7 @@ function _isLateFinish(flights) {
 // ── General stats ─────────────────────────────────────────────
 function calcStats() {
   const assignments = APP.assignments || {};
-  let totalFtMins = 0, totalDpMins = 0, yearFtMins = 0, yearDpMins = 0;
+  let totalFtMins = 0, totalDpMins = 0, totalDutyMins = 0, yearFtMins = 0, yearDpMins = 0;
   let flyingDays = 0, totalSectors = 0;
   const thisYear = new Date().getFullYear();
   const airportCount = {}, routeCount = {}, dayFtMap = {}, dayDpMap = {};
@@ -109,25 +109,41 @@ function calcStats() {
 
   for (const [ds, assign] of Object.entries(assignments)) {
     const flights = _getFlights(ds, assign);
-    const detail  = APP.assignDetails?.[ds];
+    const detail = APP.assignDetails?.[ds];
     if (!flights.length && assign !== 'AD' && assign !== 'HSBY') continue;
-
     if (flights.length) flyingDays++;
 
     const { ft, dp } = _calcFtDp(flights, assign, detail);
 
+    let dutyMins = dp;
+    if (assign === 'HSBY') {
+      if (detail?.start && detail?.end) {
+        let dur = _toMins(detail.end) - _toMins(detail.start);
+        if (dur < 0) dur += 1440;
+        dutyMins = dur;
+      } else {
+        dutyMins = 9 * 60;
+      }
+    }
+
     for (const f of flights) {
       totalSectors++;
       if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
-      if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
+      if (f.to) airportCount[f.to] = (airportCount[f.to] || 0) + 1;
       if (f.from === 'PSR' && f.to) routeCount[`PSR-${f.to}`] = (routeCount[`PSR-${f.to}`] || 0) + 1;
     }
+
     totalFtMins += ft;
     totalDpMins += dp;
+    totalDutyMins += dutyMins;
     dayFtMap[ds] = ft / 60;
     dayDpMap[ds] = dp / 60;
+
     const yr = new Date(ds + 'T12:00:00').getFullYear();
-    if (yr === thisYear) { yearFtMins += ft; yearDpMins += dp; }
+    if (yr === thisYear) {
+      yearFtMins += ft;
+      yearDpMins += dp;
+    }
 
     if (cycleDay(APP.roster, ds) === 13 && _isLateFinish(flights)) {
       lateFinishes++;
@@ -136,14 +152,14 @@ function calcStats() {
   }
 
   const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]);
-  const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]);
-
+  const topRoutes = Object.entries(routeCount).sort((a,b) => b[1]-a[1]);
   let maxFt = 0, longestDays = [];
   for (const [ds, h] of Object.entries(dayFtMap)) {
-    if (h > maxFt) { maxFt = h; longestDays = [ds]; }
-    else if (h === maxFt && h > 0) longestDays.push(ds);
+    if (h > maxFt) {
+      maxFt = h;
+      longestDays = [ds];
+    } else if (h === maxFt && h > 0) longestDays.push(ds);
   }
-
   const monthFtMins = {};
   for (const ds of Object.keys(dayFtMap)) {
     const key = ds.slice(0, 7);
@@ -151,23 +167,34 @@ function calcStats() {
   }
   let busiestMonth = null, busiestFtMins = 0;
   for (const [k, m] of Object.entries(monthFtMins)) {
-    if (m > busiestFtMins) { busiestFtMins = m; busiestMonth = k; }
+    if (m > busiestFtMins) {
+      busiestFtMins = m;
+      busiestMonth = k;
+    }
   }
-
   const countries = new Set();
   for (const ap of Object.keys(airportCount)) {
     if (AIRPORT_COUNTRY[ap]) countries.add(AIRPORT_COUNTRY[ap]);
   }
-
   return {
-    totalFt: totalFtMins/60, totalDp: totalDpMins/60,
-    yearFt: yearFtMins/60, yearDp: yearDpMins/60,
-    flyingDays, totalSectors, topAirports, topRoutes,
-    longestDays, longestFt: maxFt,
-    busiestMonth, busiestFt: busiestFtMins/60,
+    totalFt: totalFtMins/60,
+    totalDp: totalDpMins/60,
+    totalDuty: totalDutyMins/60,
+    yearFt: yearFtMins/60,
+    yearDp: yearDpMins/60,
+    flyingDays,
+    totalSectors,
+    topAirports,
+    topRoutes,
+    longestDays,
+    longestFt: maxFt,
+    busiestMonth,
+    busiestFt: busiestFtMins/60,
     countries: [...countries].sort(),
-    lateFinishes, lateFinishDates,
-    dayFtMap, dayDpMap,
+    lateFinishes,
+    lateFinishDates,
+    dayFtMap,
+    dayDpMap,
   };
 }
 
@@ -327,8 +354,8 @@ function _renderStatsContent() {
 
     // Summary cards
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${_statCard('FT', fmtH(data.ft), 'var(--blue)')}
-      ${_statCard('DP', fmtH(data.dp), 'var(--blue)')}
+      ${_statCard('Flight Time', fmtH(data.ft), 'var(--blue)')}
+      ${_statCard('Duty Period', fmtH(data.dp), 'var(--blue)')}
       ${_statCard('Flying days', data.flyingDays, 'var(--early)')}
       ${_statCard('Sectors', data.sectors, 'var(--early)')}
       ${_statCard('Routes', data.topRoutes.length, 'var(--green)')}
@@ -408,16 +435,18 @@ function _renderStatsContent() {
 
     const yr = new Date().getFullYear();
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
-      ${_statCard('Total FT', fmtH(s.totalFt), 'var(--blue)')}
-      ${_statCard('Total DP', fmtH(s.totalDp), 'var(--blue)')}
-      ${_statCard(`${yr} FT`, fmtH(s.yearFt), 'var(--early)')}
-      ${_statCard(`${yr} DP`, fmtH(s.yearDp), 'var(--early)')}
+      ${_statCard('Flight Time', fmtH(s.totalFt), 'var(--blue)')}
+      ${_statCard('Duty Period', fmtH(s.totalDp), 'var(--blue)')}
+      ${_statCard('Total Duty', fmtH(s.totalDuty), 'var(--green)')}
+      ${_statCard(`${yr} Flight Time`, fmtH(s.yearFt), 'var(--early)')}
+      ${_statCard(`${yr} Duty Period`, fmtH(s.yearDp), 'var(--early)')}
       ${_statCard('Flying days', s.flyingDays, 'var(--green)')}
       ${_statCard('Sectors', s.totalSectors, 'var(--green)')}
       ${_statCard('Countries', s.countries.length, 'var(--text2)')}
       ${_statCard('Routes', s.topRoutes.length, 'var(--text2)')}
       ${s.lateFinishes > 0 ? _statCard('Late finishes', s.lateFinishes, 'var(--yellow)') : ''}
     </div>`;
+    html += `<div style="font-size:11px;color:var(--text3);margin:-14px 0 20px;padding:0 4px">Total Duty include il 100% degli HSBY.</div>`;
 
     if (s.busiestMonth) {
       html += _section('Busiest month', `
