@@ -23,7 +23,7 @@ function nav(id) {
   if (id === 'schedule' && typeof renderSchedule === 'function') renderSchedule();
   if (id === 'swap' && typeof prefillSwap === 'function') prefillSwap();
   if (id === 'settings' && typeof renderSettings === 'function') renderSettings();
-
+  if (id === 'statistics' && typeof renderStatistics === 'function') renderStatistics();
   if (id === 'crew' && typeof openCrewScreen === 'function') openCrewScreen();
 }
 
