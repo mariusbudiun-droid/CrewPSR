@@ -188,37 +188,14 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
         ${lbl.sub ? `<div class="cycle-info">${lbl.sub}</div>` : ''}
         ${reportHtml}
         ${(() => {
-          ${(() => {
-  if (typeof calcDayFtDp !== 'function') return '';
-  const { ft, dp } = calcDayFtDp(ds);
-  if (!ft && !dp) return '';
-
-  return `
-    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px">
-      ${ft > 0 ? `
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3)">
-            Flight Time
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;line-height:1;color:var(--blue)">
-            ${typeof fmtHours === 'function' ? fmtHours(ft) : ft.toFixed(1) + 'h'}
-          </div>
-        </div>
-      ` : ''}
-
-      ${dp > 0 ? `
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3)">
-            Duty Period
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;line-height:1;color:#f59e0b">
-            ${typeof fmtHours === 'function' ? fmtHours(dp) : dp.toFixed(1) + 'h'}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-})()}
+          if (typeof calcDayFtDp !== 'function') return '';
+          const { ft, dp } = calcDayFtDp(ds);
+          if (!ft && !dp) return '';
+          return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
+            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
+            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
+          </div>`;
+        })()}
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
