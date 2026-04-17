@@ -1,4 +1,4 @@
-const CACHE = 'crewpsr-v1.7.3';
+const CACHE = 'crewpsr-v4';
 
 const ASSETS = [
   '/',
@@ -17,24 +17,15 @@ const ASSETS = [
   '/navigation.js',
   '/notifications.js',
   '/swap.js',
-  '/statistics.js',
   '/icon-192.png',
   '/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(cache => {
-      const promises = ASSETS.map(url =>
-        fetch(url, { cache: 'no-store' })
-          .then(res => {
-            if (!res.ok) { console.warn('[SW] Failed to cache:', url, res.status); return; }
-            return cache.put(url, res);
-          })
-          .catch(err => { console.warn('[SW] Fetch error for:', url, err); })
-      );
-      return Promise.all(promises);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => c.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -54,16 +45,14 @@ self.addEventListener('fetch', e => {
 
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(response => {
+      const networkFetch = fetch(e.request).then(response => {
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return response;
-      }).catch(() => {
-        if (e.request.mode === 'navigate') return caches.match('/index.html');
       });
+      return cached || networkFetch;
     })
   );
 });

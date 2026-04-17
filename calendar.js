@@ -90,7 +90,7 @@
     .dd-action-btn.ghost { background: transparent; color: var(--text2); border-color: var(--border); font-size: 12px; font-weight: 600; padding: 9px 12px; }
     .dd-action-btn.outline { background: transparent; color: var(--blue); border-color: var(--blue); }
     .dd-action-btn.danger { flex: 0 0 auto; background: transparent; color: var(--red); border-color: var(--border); font-size: 12px; padding: 9px 12px; }
-    .dd-empty { text-align: center; padding: 24px 0 8px; color: var(--text3); font-size: 14px; } .dd-crew-card{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px}.dd-crew-card .ro{color:white;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}.dd-crew-card .people{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.dd-crew-card.swap{border-left:3px solid var(--blue)}.dd-crew-card.same{border-left:3px solid var(--blue)}.dd-crew-card.own{border-left:3px solid var(--green)}.dd-crew-card.offswap-safe{border-left:3px solid var(--green)}.dd-crew-card.offswap-maybe{border-left:3px solid var(--yellow)}
+    .dd-empty { text-align: center; padding: 24px 0 8px; color: var(--text3); font-size: 14px; }
 
     /* ── Calendar — NO display override on #screen-calendar ── */
     .cal-topbar {
@@ -640,7 +640,7 @@ function _renderDayDetail() {
         const inner=`<span class="dd-pill-r">R${c.roster}</span>${name}`;
         return phone?`<a class="${cls}" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="${cls}">${inner}</span>`;
       }).join('');
-      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div>${pills}</div>`;
+      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div><div class="dd-pills">${pills}</div></div>`;
     }
 
     if (ownCrew.length||sameList.length) {
@@ -697,7 +697,7 @@ function _renderDayDetail() {
             : '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span> sicuro</span> &nbsp; <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--yellow);display:inline-block"></span> verifica riposo</span>'
           }
         </div>
-        ${pills}
+        <div class="dd-pills">${pills}</div>
       </div>`;
     } else if (day!==7 && day!==15) {
       crewHtml = `<div class="dd-section"><div class="dd-section-label">You could work instead of</div><div style="font-size:13px;color:var(--text3);padding:8px 0">Nessuno in turno compatibile</div></div>`;
@@ -937,7 +937,7 @@ function setAssign(ds, val) {
 // ══════════════════════════════════════════════════════════════
 // CUSTOM FLIGHTS
 // ══════════════════════════════════════════════════════════════
-function openCustomFlightsfunction openCustomFlights(ds) {
+function openCustomFlights(ds) {
   const date=new Date(ds+'T12:00:00');
   document.getElementById('customFlightsTitle').textContent=`${DAYS_FULL[date.getDay()]}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
   renderCustomFlightsBody(ds);
@@ -1037,59 +1037,3 @@ window._openDutyPicker  = _openDutyPicker;
 window._openLeavePicker = _openLeavePicker;
 window._clearDuty       = _clearDuty;
 window._setShiftType    = _setShiftType;
-function ddCrewMembersHtml(roster) {
-  const members = (APP.crew?.[roster] || []).filter(m => m && (m.name || m.code) && (m.code || '').trim());
-  if (!members.length) return `<span style="font-size:11px;color:var(--text3)">No contacts</span>`;
-  return members.map(m => {
-    const name = m.name || m.code;
-    const phone = (m.phone || '').replace(/\D/g,'');
-    return phone
-      ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
-      : `<span style="font-size:11px;font-weight:600;color:var(--text)">${name}</span>`;
-  }).join('');
-}
-function buildDdCrewCard(roster, cls, badgeColor) {
-  return `<div class="dd-crew-card ${cls}"><div class="ro" style="background:${badgeColor}">${roster}</div><div class="people">${ddCrewMembersHtml(roster)}</div></div>`;
-}
-function openDutyChangeModal(ds, originalAssign) {
-  document.getElementById('settingModalTitle').textContent = 'Duty Change';
-  document.getElementById('settingModalBody').innerHTML = `
-    <div style="padding:4px 0 16px;font-size:14px;color:var(--text2);line-height:1.5">Cosa è successo con questo ${originalAssign}?</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="assign-option" onclick="confirmDutyChange('${ds}','called')" style="text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:Outfit,sans-serif;cursor:pointer">
-        <div style="font-size:14px;font-weight:700;color:var(--yellow)">Called from ${originalAssign}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:4px">Ero in ${originalAssign} e sono stato chiamato per un volo</div>
-      </button>
-      <button class="assign-option" onclick="confirmDutyChange('${ds}','change')" style="text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:Outfit,sans-serif;cursor:pointer">
-        <div style="font-size:14px;font-weight:700;color:var(--blue)">Duty change</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:4px">Cambio duty normale con volo assegnato</div>
-      </button>
-      <button class="assign-option" onclick="confirmDutyChange('${ds}','to-ad')" style="text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:Outfit,sans-serif;cursor:pointer">
-        <div style="font-size:14px;font-weight:700;color:var(--red)">${originalAssign} → AD</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:4px">Converti in Airport Duty</div>
-      </button>
-    </div>
-    <button class="btn secondary" style="margin-top:14px" onclick="closeModal('settingModal')">Cancel</button>`;
-  document.getElementById('settingModal').classList.add('open');
-}
-function confirmDutyChange(ds, type) {
-  if (!APP.assignDetails) APP.assignDetails = {};
-  if (!APP.assignDetails[ds]) APP.assignDetails[ds] = {};
-  if (type === 'to-ad') {
-    APP.assignments[ds] = 'AD';
-    APP.assignDetails[ds].dutyChange = 'to-ad';
-    save();
-    closeModal('settingModal');
-    renderCalendar(); renderHome(); if (detailDs === ds) renderDayDetail();
-    return;
-  }
-  APP.assignDetails[ds].dutyChange = type;
-  if (!APP.customFlights) APP.customFlights = {};
-  if (!APP.customFlights[ds] || !APP.customFlights[ds].length) {
-    APP.customFlights[ds] = [{ from:'PSR', to:'', dep:'', arr:'' }];
-  }
-  APP.assignments[ds] = 'CUSTOM';
-  save();
-  closeModal('settingModal');
-  openCustomFlights(ds);
-}
