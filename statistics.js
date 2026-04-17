@@ -176,7 +176,7 @@ function calcMonthStats(year, month) {
   const prefix = `${year}-${String(month+1).padStart(2,'0')}`;
   const assignments = APP.assignments || {};
 
-  let ftMins = 0, dpMins = 0, dutyMins = 0, flyingDays = 0, sectors = 0;
+  let ftMins = 0, dpMins = 0, flyingDays = 0, sectors = 0;
   const airportCount = {}, routeCount = {}, dayFtMap = {}, dayDpMap = {};
   let lateFinishes = 0, lateFinishDates = [];
 
@@ -187,24 +187,9 @@ function calcMonthStats(year, month) {
     if (!flights.length && assign !== 'AD' && assign !== 'HSBY') continue;
 
     if (flights.length) flyingDays++;
-
     const { ft, dp } = _calcFtDp(flights, assign, detail);
-    let totalDuty = dp;
-
-    if (assign === 'HSBY') {
-      if (detail?.start && detail?.end) {
-        let dur = _toMins(detail.end) - _toMins(detail.start);
-        if (dur < 0) dur += 1440;
-        totalDuty = dur;
-      } else {
-        totalDuty = 9 * 60;
-      }
-    }
-
     ftMins += ft;
     dpMins += dp;
-    dutyMins += totalDuty;
-
     if (ft > 0) {
       dayFtMap[ds] = ft / 60;
       dayDpMap[ds] = dp / 60;
@@ -233,7 +218,6 @@ function calcMonthStats(year, month) {
     label:       `${MONTHS[month]} ${year}`,
     ft:          ftMins / 60,
     dp:          dpMins / 60,
-    totalDuty:   dutyMins / 60,
     flyingDays,  sectors,
     topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]),
     topRoutes:   Object.entries(routeCount).sort((a,b) => b[1]-a[1]),
@@ -343,17 +327,12 @@ function _renderStatsContent() {
 
     // Summary cards
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${_statCard('Flight Time', fmtH(data.ft), 'var(--blue)')}
-      ${_statCard('Duty Period', fmtH(data.dp), 'var(--blue)')}
-      ${_statCard('Total Duty', fmtH(data.totalDuty), 'var(--green)')}
+      ${_statCard('FT', fmtH(data.ft), 'var(--blue)')}
+      ${_statCard('DP', fmtH(data.dp), 'var(--blue)')}
       ${_statCard('Flying days', data.flyingDays, 'var(--early)')}
       ${_statCard('Sectors', data.sectors, 'var(--early)')}
       ${_statCard('Routes', data.topRoutes.length, 'var(--green)')}
       ${data.lateFinishes > 0 ? _statCard('Late finish', data.lateFinishes, 'var(--yellow)') : ''}
-    </div>`;
-
-    html += `<div style="font-size:11px;color:var(--text3);margin:-8px 2px 16px">
-      Total Duty includes 100% of HSBY.
     </div>`;
 
     // Longest day
