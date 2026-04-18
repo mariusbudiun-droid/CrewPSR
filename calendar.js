@@ -500,6 +500,31 @@ function initModalSwipe() {
 // ══════════════════════════════════════════════════════════════
 // DAY DETAIL
 // ══════════════════════════════════════════════════════════════
+
+// ── Roster card builder (same style as home same-shift) ──────
+function _buildRosterCard(rosterNum, members, accentColor, labelHtml) {
+  const peopleHtml = members.length
+    ? members.map(m => {
+        const name  = m.name || m.code || '';
+        const phone = (m.phone || '').replace(/\D/g, '');
+        return phone
+          ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
+          : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap">${name}</span>`;
+      }).join('')
+    : '<span style="font-size:11px;color:var(--text3)">No contacts</span>';
+
+  return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+                       background:var(--surface);border:1px solid var(--border);
+                       border-left:3px solid ${accentColor};border-radius:10px;margin-bottom:6px">
+    <div style="background:${accentColor};color:white;width:30px;height:30px;border-radius:8px;
+                display:flex;align-items:center;justify-content:center;font-size:13px;
+                font-weight:800;flex-shrink:0">${rosterNum}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+      ${labelHtml || ''}${peopleHtml}
+    </div>
+  </div>`;
+}
+
 let _detailDs = null;
 let _detailSwipeBound = false;
 
@@ -654,36 +679,26 @@ function _renderDayDetail() {
     const ownCrew=(APP.crew?.[APP.roster]||[]).filter(m=>m&&m.code&&m.code.trim());
 
     if (candidates.length) {
-      const pills=candidates.flatMap(c=>{
-        const members=(APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        const cls='dd-pill swap'+(c.certain===false?' maybe':'');
-        if (!members.length) return [`<span class="${cls}"><span class="dd-pill-r">R${c.roster}</span>Roster ${c.roster}</span>`];
-        return members.map(m=>{
-          const name=m.name||m.code, phone=(m.phone||'').replace(/\D/g,'');
-          const inner=`<span class="dd-pill-r">R${c.roster}</span>${name}`;
-          return phone?`<a class="${cls}" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="${cls}">${inner}</span>`;
-        });
+      const cards = candidates.map(c => {
+        const members = (APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
+        const accent  = c.certain===false ? 'var(--yellow)' : 'var(--blue)';
+        const label   = c.certain===false ? '<span style="font-size:10px;font-weight:700;color:var(--yellow);margin-right:4px">?</span>' : '';
+        return _buildRosterCard(c.roster, members, accent, label);
       }).join('');
-      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div><div class="dd-pills">${pills}</div></div>`;
+      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div>${cards}</div>`;
     }
 
     if (ownCrew.length||sameList.length) {
-      const ownPills=ownCrew.map(m=>{
-        const name=m.name||m.code, phone=(m.phone||'').replace(/\D/g,'');
-        const inner=`<span class="dd-pill-r" style="color:var(--green)">R${APP.roster}</span>${name}`;
-        return phone?`<a class="dd-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="border-left:2px solid var(--green)">${inner}</a>`:`<span class="dd-pill" style="border-left:2px solid var(--green)">${inner}</span>`;
-      }).join('');
-      const otherPills=sameList.flatMap(r=>{
-        const members=(APP.crew?.[r]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
-        if (!members.length) return [`<span class="dd-pill"><span class="dd-pill-r">R${r}</span>Roster ${r}</span>`];
-        return members.map(m=>{
-          const name=m.name||m.code;
-          const phone=(m.phone||'').replace(/\D/g,'');
-          const inner=`<span class="dd-pill-r">R${r}</span>${name}`;
-          return phone?`<a class="dd-pill same" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<span class="dd-pill same">${inner}</span>`;
-        });
-      }).join('');
-      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div><div class="dd-pills">${ownPills}${otherPills}</div></div>`;
+      let cards = '';
+      if (ownCrew.length) {
+        cards += _buildRosterCard(APP.roster, ownCrew, 'var(--green)',
+          '<span style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-right:4px">You</span>');
+      }
+      sameList.forEach(r => {
+        const members = (APP.crew?.[r]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
+        cards += _buildRosterCard(r, members, 'var(--blue)', '');
+      });
+      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div>${cards}</div>`;
     }
 
   } else {
