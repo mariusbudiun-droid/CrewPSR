@@ -682,7 +682,7 @@ function _renderDayDetail() {
       const cards = candidates.map(c => {
         const members = (APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
         const accent  = c.certain===false ? 'var(--yellow)' : 'var(--blue)';
-        const label   = c.certain===false ? '<span style="font-size:10px;font-weight:700;color:var(--yellow);margin-right:4px">?</span>' : '';
+        const label   = '';
         return _buildRosterCard(c.roster, members, accent, label);
       }).join('');
       crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div>${cards}</div>`;
