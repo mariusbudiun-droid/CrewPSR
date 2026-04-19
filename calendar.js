@@ -508,18 +508,18 @@ function _buildRosterCard(rosterNum, members, accentColor, labelHtml) {
         const name  = m.name || m.code || '';
         const phone = (m.phone || '').replace(/\D/g, '');
         return phone
-          ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
+          ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="font-size:11px;padding:3px 8px">${name}</a>`
           : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap">${name}</span>`;
       }).join('')
     : '<span style="font-size:11px;color:var(--text3)">No contacts</span>';
 
-  return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+  return `<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;
                        background:var(--surface);border:1px solid var(--border);
-                       border-left:3px solid ${accentColor};border-radius:10px;margin-bottom:6px">
-    <div style="background:${accentColor};color:white;width:30px;height:30px;border-radius:8px;
-                display:flex;align-items:center;justify-content:center;font-size:13px;
+                       border-left:3px solid ${accentColor};border-radius:8px;margin-bottom:4px">
+    <div style="background:${accentColor};color:white;width:24px;height:24px;border-radius:6px;
+                display:flex;align-items:center;justify-content:center;font-size:11px;
                 font-weight:800;flex-shrink:0">${rosterNum}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+    <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
       ${labelHtml || ''}${peopleHtml}
     </div>
   </div>`;
@@ -891,7 +891,7 @@ function reverseSwapCandidates(myDay, ds) {
     6:  { certain: [1,2,3,4,5],    uncertain: [9,10,11,12,13] },
     8:  { certain: [9,10,11,12,13], uncertain: [1,2,3,4,5]    },
     14: { certain: [9,10,11,12,13], uncertain: []              },
-    16: { certain: [9,10,11,12,13], uncertain: [1,2,3,4,5]    },
+    16: { certain: [],              uncertain: [1,2,3,4,5]     },
   };
   const rule = rules[myDay];
   if (!rule) return [];
