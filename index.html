@@ -294,15 +294,27 @@
     </div>
 
     <div style="margin:0 16px 12px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
-      <div class="setting-row" style="padding:13px 16px">
-        <div><div class="setting-label">Theme</div></div>
-        <select id="themeSelect" onchange="setTheme(this.value)" style="width:auto;margin-bottom:0;padding:7px 10px;font-size:13px;font-weight:600">
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
+      <div style="padding:13px 16px;border-bottom:1px solid var(--border)">
+        <div class="setting-label" style="margin-bottom:8px">Theme</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <select id="themeNameSelect" onchange="setTheme(this.value, undefined)"
+            style="margin-bottom:0;padding:7px 10px;font-size:13px;font-weight:600">
+            <option value="ocean">🌊 Ocean Blue</option>
+            <option value="midnight">🌙 Midnight</option>
+            <option value="sunset">🌅 Sunset</option>
+            <option value="forest">🌿 Forest</option>
+            <option value="rose">🌸 Rose</option>
+            <option value="slate">🩶 Slate</option>
+          </select>
+          <select id="themeModeSelect" onchange="setTheme(undefined, this.value)"
+            style="margin-bottom:0;padding:7px 10px;font-size:13px;font-weight:600">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px">
         <div><div class="setting-label">Notifications</div><div class="setting-sub">Reminder before report time</div></div>
         <input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)"
           style="flex-shrink:0;width:22px;height:22px;margin:0;accent-color:var(--blue);cursor:pointer">
@@ -583,12 +595,15 @@ if ('serviceWorker' in navigator) {
     const saved = localStorage.getItem('crewpsr_v1');
     if (saved) {
       const d = JSON.parse(saved);
-      if (d.theme) document.documentElement.setAttribute('data-theme', d.theme);
+      const name = d.themeName || 'ocean';
+      const mode = d.themeMode || d.theme || 'system';
+      document.documentElement.setAttribute('data-theme', name);
+      document.documentElement.setAttribute('data-mode',  mode);
+      return;
     }
   } catch(e) {}
-  if (!document.documentElement.getAttribute('data-theme')) {
-    document.documentElement.setAttribute('data-theme', 'system');
-  }
+  document.documentElement.setAttribute('data-theme', 'ocean');
+  document.documentElement.setAttribute('data-mode',  'system');
 })();
 </script>
 </body>
