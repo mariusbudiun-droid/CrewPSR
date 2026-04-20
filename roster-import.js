@@ -152,89 +152,205 @@ function parseRosterText(text) {
 
 // ── UI ──────────────────────────────────────────────────────
 
+
+// ══════════════════════════════════════════════════════════════
+// IMPORT ENTRY POINT
+// ══════════════════════════════════════════════════════════════
 function triggerRosterImport() {
+  // Show choice modal: Screenshot (AI) or text paste
+  document.getElementById('settingModalTitle').textContent = 'Import Roster';
+  document.getElementById('settingModalBody').innerHTML = `
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      Choose how to import your roster from Ryanair Connect.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+
+      <button onclick="triggerScreenshotImport()"
+        style="padding:16px;border-radius:12px;border:1.5px solid var(--blue);
+               background:var(--blue-lt);font-family:'Outfit',sans-serif;
+               font-size:14px;font-weight:700;color:var(--blue);cursor:pointer;text-align:left">
+        📷 Screenshot — AI reads it for you
+        <div style="font-size:11px;font-weight:400;color:var(--text2);margin-top:4px">
+          Take a screenshot of your roster in Ryanair Connect, then upload it here.
+          Claude Vision reads the flights automatically.
+        </div>
+      </button>
+
+      <button onclick="triggerTextImport()"
+        style="padding:16px;border-radius:12px;border:1.5px solid var(--border);
+               background:var(--surface);font-family:'Outfit',sans-serif;
+               font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left">
+        📋 Paste text — copy from Ryanair Connect
+        <div style="font-size:11px;font-weight:400;color:var(--text2);margin-top:4px">
+          Select all text on the roster page, copy, and paste it here.
+        </div>
+      </button>
+
+    </div>
+    <button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>
+  `;
+  document.getElementById('settingModal').classList.add('open');
+}
+
+// ── Screenshot path (Vision API) ──────────────────────────────
+function triggerScreenshotImport() {
+  closeModal('settingModal');
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = 'image/*,application/pdf,text/plain';
+  input.accept = 'image/*';
   input.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    showImportLoading();
+
+    showImportLoading('Sending to AI... This takes ~10 seconds');
 
     try {
-      let text = '';
+      // Convert to base64
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      if (file.type === 'application/pdf') {
-        text = await readPdfText(file);
-      } else if (file.type.startsWith('image/')) {
-        showImportLoading('Reading screenshot with OCR...');
-        const { data: { text: ocrText } } = await Tesseract.recognize(file, 'eng+ita', {
-          logger: m => {
-            const msgEl = document.getElementById('rosterImportMsg');
-            if (!msgEl) return;
-            if (m.status === 'recognizing text') {
-              msgEl.textContent = `⏳ OCR ${Math.round(m.progress * 100)}%`;
-              msgEl.style.color = 'var(--text2)';
-              msgEl.style.display = 'block';
-            }
-          }
-        });
-        text = ocrText;
-        console.log('OCR extracted:', text.substring(0, 500));
-      } else if (file.type === 'text/plain') {
-        text = await file.text();
-      } else {
-        showImportError('Unsupported file type.');
+      const mediaType = file.type || 'image/jpeg';
+
+      const response = await fetch('/api/import-roster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mediaType }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Unknown error from server');
+      }
+
+      if (!result.days || result.days.length === 0) {
+        showImportError('No roster data found in the screenshot. Try a clearer image.');
         return;
       }
 
-      const parsed = parseRosterText(text);
+      // Convert Vision API response to the format showImportPreview expects
+      const parsed = convertVisionDays(result.days);
+      showImportPreview(parsed);
 
-      if (Object.keys(parsed).length > 0) {
-        showImportPreview(parsed);
-      } else {
-        showImportError('No roster data found. Try a clearer screenshot or the Ryanair Connect PDF.');
-      }
     } catch (err) {
-      console.error('Import error:', err);
-      showImportError('Error processing file: ' + (err.message || 'Unknown error'));
+      console.error('Vision import error:', err);
+      showImportError('Error: ' + (err.message || 'Unknown error'));
     }
   };
   input.click();
 }
 
+function convertVisionDays(days) {
+  const result = {};
+  for (const d of days) {
+    if (!d.date) continue;
+    const ds = d.date;
+
+    if (d.type === 'off' || d.assignment === 'OFF') {
+      result[ds] = { duty: 'OFF' };
+    } else if (d.type === 'hsby' || d.assignment === 'HSBY') {
+      result[ds] = { duty: 'HSBY', start: d.hsbyStart || '', end: d.hsbyEnd || '' };
+    } else if (d.type === 'ad' || d.assignment === 'AD') {
+      result[ds] = { duty: 'AD', start: d.hsbyStart || '', end: d.hsbyEnd || '' };
+    } else if (d.type === 'al' || d.assignment === 'AL') {
+      result[ds] = { duty: 'AL' };
+    } else if (d.flights && d.flights.length > 0) {
+      // If we know the assignment (A1E/A1L/A2E/A2L), store it + flights
+      const assign = ['A1E','A1L','A2E','A2L'].includes(d.assignment) ? d.assignment : 'CUSTOM';
+      result[ds] = {
+        duty: assign === 'CUSTOM' ? 'CUSTOM' : assign,
+        assignment: assign,
+        flights: d.flights.map(f => ({
+          from:    f.from || 'PSR',
+          to:      f.to   || '',
+          dep:     f.dep  || '',
+          arr:     f.arr  || '',
+          flightNum: f.flightNum || '',
+        })),
+      };
+    }
+  }
+  return result;
+}
+
+// ── Text paste path (existing) ────────────────────────────────
+function triggerTextImport() {
+  closeModal('settingModal');
+  // Show text paste UI inline in calendar screen
+  const existing = document.getElementById('rosterTextPasteBox');
+  if (existing) { existing.style.display = 'block'; return; }
+
+  const box = document.createElement('div');
+  box.id = 'rosterTextPasteBox';
+  box.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom))';
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top));
+                background:var(--surface);border-bottom:1px solid var(--border);
+                position:sticky;top:0;z-index:10">
+      <button onclick="document.getElementById('rosterTextPasteBox').remove()"
+        style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--bg);font-family:'Outfit',sans-serif;font-size:14px;
+               font-weight:600;color:var(--text);cursor:pointer">✕ Cancel</button>
+      <div style="font-size:16px;font-weight:700;color:var(--text)">Paste Roster Text</div>
+      <div style="width:70px"></div>
+    </div>
+    <div style="padding:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+        On Ryanair Connect, open your roster, select all text (tap & hold → Select All), copy, then paste below.
+      </div>
+      <textarea id="rosterPasteArea" placeholder="Paste roster text here..."
+        style="height:200px;font-family:'JetBrains Mono',monospace;font-size:12px;
+               margin-bottom:12px"></textarea>
+      <button onclick="_processPastedRoster()"
+        style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+               color:white;cursor:pointer">Parse roster →</button>
+    </div>`;
+  document.body.appendChild(box);
+}
+
+function _processPastedRoster() {
+  const text = document.getElementById('rosterPasteArea')?.value || '';
+  if (!text.trim()) { showImportError('Please paste some text first.'); return; }
+  document.getElementById('rosterTextPasteBox')?.remove();
+  showImportLoading('Parsing...');
+  const parsed = parseRosterText(text);
+  if (Object.keys(parsed).length > 0) {
+    showImportPreview(parsed);
+  } else {
+    showImportError('No roster data found. Try a clearer screenshot or copy more text.');
+  }
+}
+
+// ── Shared UI ─────────────────────────────────────────────────
 async function readPdfText(file) {
   const pdfjsLib = window['pdfjs-dist/build/pdf'];
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
   let fullText = '';
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
     const content = await page.getTextContent();
-    let lastY = null;
-    let rowText = '';
-
+    let lastY = null, rowText = '';
     for (const item of content.items) {
       const y = Math.round(item.transform[5]);
-      if (lastY !== null && y !== lastY) {
-        fullText += rowText.trim() + '\n';
-        rowText = '';
-      }
+      if (lastY !== null && y !== lastY) { fullText += rowText.trim() + '\n'; rowText = ''; }
       rowText += item.str + ' ';
       lastY = y;
     }
-
     if (rowText.trim()) fullText += rowText.trim() + '\n';
   }
-
   return fullText;
 }
 
-function showImportLoading(msg = 'Processing file...') {
+function showImportLoading(msg = 'Processing...') {
   const el = document.getElementById('rosterImportMsg');
   if (el) {
     el.textContent = `⏳ ${msg}`;
