@@ -386,28 +386,70 @@
 
     <div id="tutorialContent" style="display:none; padding:0 16px 8px; font-size:13px; line-height:1.8; color:var(--text2)">
       <div class="card">
-        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today, flights and who can swap with you. Swipe left/right to browse the week.</div>
-        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment (Aereo 1, Aereo 2, HSBY, AD)</div>
-        <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
-        <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
-        <div style="margin-bottom:8px">👥 <strong>Crew</strong> — add crew codes and WhatsApp numbers of colleagues</div>
-        <div style="margin-bottom:8px">📊 <strong>Statistics</strong> — hours flown, top routes, airports and more</div>
-        <div style="margin-bottom:8px">⚙️ <strong>Settings</strong> — change roster, cycle date, PIN</div>
-        <div style="border-top:1px solid var(--border); padding-top:12px">
-          <div style="font-weight:700; color:var(--text); margin-bottom:8px">📱 Install on iPhone</div>
-          <ol style="padding-left:18px; margin-bottom:12px">
+
+        <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:10px">📱 Screens</div>
+
+        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today with Flight Time and Duty Period. Swipe left/right to browse the week. On off days (6, 8, 14, 16) you'll see colleagues you could work instead of.</div>
+
+        <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to see detail or add a duty. The month header shows total FT and DP. Each cell shows destinations for flight days, or HSBY/AD/OFF labels.</div>
+
+        <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — the full PSR flight schedule for Aereo 1 and Aereo 2, by day of week.</div>
+
+        <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — select your roster and shift to find who can swap with you. Also works for off days to find reverse-swap candidates.</div>
+
+        <div style="margin-bottom:16px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info, and Check for updates.</div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
+          <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📅 Day Detail</div>
+          <div style="margin-bottom:6px">Tap any calendar day to open the detail view. Here you'll see:</div>
+          <div style="margin-bottom:4px">• <strong>Report time</strong>, Flight Time and Duty Period</div>
+          <div style="margin-bottom:4px">• <strong>Flights</strong> with routes and times</div>
+          <div style="margin-bottom:4px">• <strong>Swap available</strong> — who can cover your shift</div>
+          <div style="margin-bottom:4px">• <strong>Same shift</strong> — colleagues flying the same day</div>
+          <div style="margin-bottom:10px">• <strong>You could work instead of</strong> — on off days 6, 8, 14, 16</div>
+          <div style="margin-bottom:6px">Tap <strong>Edit duty</strong> to change your assignment. For HSBY and AD, tap <strong>Duty change</strong> to switch to a different rotation or add called-to-fly flights.</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
+          <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📷 Import Roster</div>
+          <div style="margin-bottom:4px">1. Open <strong>Ryanair Connect</strong> in Safari</div>
+          <div style="margin-bottom:4px">2. Navigate to your <strong>roster page</strong></div>
+          <div style="margin-bottom:4px">3. Take a <strong>screenshot</strong> (or multiple for the full month)</div>
+          <div style="margin-bottom:4px">4. In CrewPSR, open the <strong>Calendar</strong></div>
+          <div style="margin-bottom:4px">5. Tap <strong>Import from Ryanair Connect</strong> → <strong>📷 Screenshot</strong></div>
+          <div style="margin-bottom:4px">6. Select your screenshot — AI reads it in ~15 seconds</div>
+          <div style="margin-bottom:10px">7. Review the preview and tap <strong>✅ Import</strong></div>
+          <div style="font-size:11px;color:var(--text3)">Times are automatically converted from UTC to Italian time.</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
+          <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📊 Statistics</div>
+          <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Shows Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 00:30 on day 13).</div>
+          <div style="margin-bottom:10px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference).</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
+          <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">👥 Crew Directory</div>
+          <div style="margin-bottom:6px">PIN-protected. Add a crew code and WhatsApp number for each colleague. They'll appear as tappable links throughout the app — in swap cards, same shift, and day detail.</div>
+          <div style="margin-bottom:6px">Use <strong>Export / Import</strong> to share your directory with a colleague.</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-weight:700;color:var(--text);margin-bottom:8px">📱 Install on iPhone</div>
+          <ol style="padding-left:18px;margin-bottom:12px">
             <li>Open <strong>Safari</strong> → crew-psr-wyvq.vercel.app</li>
             <li>Tap <strong>Share</strong> (□↑) → <strong>"Add to Home Screen"</strong></li>
             <li>Tap <strong>Add</strong> ✅</li>
           </ol>
-          <div style="font-weight:700; color:var(--text); margin-bottom:8px">🤖 Install on Android</div>
+          <div style="font-weight:700;color:var(--text);margin-bottom:8px">🤖 Install on Android</div>
           <ol style="padding-left:18px">
             <li>Open <strong>Chrome</strong> → crew-psr-wyvq.vercel.app</li>
             <li>Tap <strong>⋮</strong> → <strong>"Add to Home Screen"</strong> → <strong>Install</strong> ✅</li>
           </ol>
         </div>
-        <div style="margin-top:10px; font-size:11px; color:var(--text3)">
-          Need help? Tap <strong>Support</strong> above — don't be shy! 😊
+
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">
+          After updating the app, open it once with internet connection to refresh the cache before going offline.
         </div>
       </div>
     </div>

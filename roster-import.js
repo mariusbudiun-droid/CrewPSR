@@ -307,33 +307,104 @@ function triggerScreenshotImport() {
   setTimeout(() => input.click(), 80);
 }
 
+function _addHoursToTime(t, h) {
+  if (!t || !t.includes(':')) return t;
+  const [hh, mm] = t.split(':').map(Number);
+  const total = (hh * 60 + mm + h * 60 + 1440) % 1440;
+  return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+}
+
+function _italyOffset(ds) {
+  // CEST (UTC+2): last Sun Mar → last Sun Oct
+  const d = new Date(ds + 'T12:00:00Z');
+  const y = d.getUTCFullYear();
+  const lastSunMar = new Date(Date.UTC(y,2,31));
+  lastSunMar.setUTCDate(31 - lastSunMar.getUTCDay());
+  const lastSunOct = new Date(Date.UTC(y,9,31));
+  lastSunOct.setUTCDate(31 - lastSunOct.getUTCDay());
+  return (d >= lastSunMar && d < lastSunOct) ? 2 : 1;
+}
+
+function _shiftType(startTime, endTime) {
+  if (!startTime || !endTime) return null;
+  const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  const s    = toM(startTime);
+  const e    = toM(endTime);
+  const noon = 12 * 60; // 720
+
+  // Handle overnight (end < start)
+  const duration = e >= s ? e - s : e + 1440 - s;
+  if (duration === 0) return null;
+
+  // Minutes of duty that fall before noon
+  let beforeNoon = 0;
+  if (s < noon) {
+    // duty starts before noon
+    const effectiveEnd = e >= s ? Math.min(e, noon) : noon; // if overnight, count up to noon
+    beforeNoon = effectiveEnd - s;
+  }
+  // everything else is after noon
+  const afterNoon = duration - beforeNoon;
+
+  return beforeNoon > afterNoon ? 'early' : 'late';
+}
+
 function convertVisionDays(days) {
   const result = {};
   for (const d of days) {
     if (!d.date) continue;
     const ds = d.date;
+    const offset = _italyOffset(ds);
 
     if (d.type === 'off' || d.assignment === 'OFF') {
       result[ds] = { duty: 'OFF' };
+
     } else if (d.type === 'hsby' || d.assignment === 'HSBY') {
-      result[ds] = { duty: 'HSBY', start: d.hsbyStart || '', end: d.hsbyEnd || '' };
+      const start = d.hsbyStart ? _addHoursToTime(d.hsbyStart, offset) : '';
+      const end   = d.hsbyEnd   ? _addHoursToTime(d.hsbyEnd,   offset) : '';
+      result[ds] = {
+        duty: 'HSBY',
+        start,
+        end,
+        shiftType: _shiftType(start, end),
+      };
+
     } else if (d.type === 'ad' || d.assignment === 'AD') {
-      result[ds] = { duty: 'AD', start: d.hsbyStart || '', end: d.hsbyEnd || '' };
+      const start = d.hsbyStart ? _addHoursToTime(d.hsbyStart, offset) : '';
+      const end   = d.hsbyEnd   ? _addHoursToTime(d.hsbyEnd,   offset) : '';
+      result[ds] = {
+        duty: 'AD',
+        start,
+        end,
+        shiftType: _shiftType(start, end),
+      };
+
     } else if (d.type === 'al' || d.assignment === 'AL') {
       result[ds] = { duty: 'AL' };
+
     } else if (d.flights && d.flights.length > 0) {
-      // If we know the assignment (A1E/A1L/A2E/A2L), store it + flights
       const assign = ['A1E','A1L','A2E','A2L'].includes(d.assignment) ? d.assignment : 'CUSTOM';
+      const flights = d.flights.map(f => ({
+        from:      f.from || 'PSR',
+        to:        f.to   || '',
+        dep:       f.dep  ? _addHoursToTime(f.dep, offset) : '',
+        arr:       f.arr  ? _addHoursToTime(f.arr, offset) : '',
+        flightNum: f.flightNum || '',
+      }));
+
+      // Auto-detect A1E/A1L/A2E/A2L from first departure if not provided
+      let finalAssign = assign;
+      if (finalAssign === 'CUSTOM' && flights[0]?.dep) {
+        const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+        const depM = toM(flights[0].dep);
+        // Before 12:00 → Early, after → Late (A1 default, A2 if second aircraft)
+        finalAssign = depM < 720 ? 'A1E' : 'A1L';
+      }
+
       result[ds] = {
-        duty: assign === 'CUSTOM' ? 'CUSTOM' : assign,
-        assignment: assign,
-        flights: d.flights.map(f => ({
-          from:    f.from || 'PSR',
-          to:      f.to   || '',
-          dep:     f.dep  || '',
-          arr:     f.arr  || '',
-          flightNum: f.flightNum || '',
-        })),
+        duty:       finalAssign === 'CUSTOM' ? 'CUSTOM' : finalAssign,
+        assignment: finalAssign,
+        flights,
       };
     }
   }
@@ -532,7 +603,7 @@ function confirmRosterImport() {
   const parsed = window._pendingImport;
   if (!parsed) return;
 
-  if (!APP.assignments) APP.assignments = {};
+  if (!APP.assignments)   APP.assignments   = {};
   if (!APP.customFlights) APP.customFlights = {};
   if (!APP.assignDetails) APP.assignDetails = {};
 
@@ -541,17 +612,45 @@ function confirmRosterImport() {
       delete APP.assignments[ds];
       delete APP.customFlights[ds];
       delete APP.assignDetails[ds];
+
     } else if (entry.duty === 'HSBY') {
       APP.assignments[ds] = 'HSBY';
-      APP.assignDetails[ds] = { start: entry.start, end: entry.end };
+      APP.assignDetails[ds] = {
+        start:     entry.start     || '',
+        end:       entry.end       || '',
+        shiftType: entry.shiftType || null,
+      };
       delete APP.customFlights[ds];
+
     } else if (entry.duty === 'AD') {
       APP.assignments[ds] = 'AD';
-      APP.assignDetails[ds] = { start: entry.start, end: entry.end };
+      APP.assignDetails[ds] = {
+        start:     entry.start     || '',
+        end:       entry.end       || '',
+        shiftType: entry.shiftType || null,
+      };
       delete APP.customFlights[ds];
+
+    } else if (['A1E','A1L','A2E','A2L'].includes(entry.duty)) {
+      // Standard rotation identified by Vision API
+      APP.assignments[ds] = entry.duty;
+      delete APP.assignDetails[ds];
+      // Store flights as custom so times are correct
+      if (entry.flights && entry.flights.length) {
+        APP.customFlights[ds] = entry.flights;
+        APP.assignments[ds] = 'CUSTOM'; // store as custom with correct times
+      } else {
+        delete APP.customFlights[ds];
+      }
+
     } else if (entry.duty === 'CUSTOM') {
       APP.assignments[ds] = 'CUSTOM';
       APP.customFlights[ds] = entry.flights;
+      delete APP.assignDetails[ds];
+
+    } else if (entry.duty === 'AL') {
+      APP.assignments[ds] = 'AL';
+      delete APP.customFlights[ds];
       delete APP.assignDetails[ds];
     }
   }
