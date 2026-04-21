@@ -1,6 +1,6 @@
 // Vercel Serverless Function — api/import-roster.js
 // Receives base64 image, calls Claude Vision, returns structured roster JSON
- 
+
 export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,17 +8,17 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
- 
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
- 
+
   const { imageBase64, mediaType } = req.body;
   if (!imageBase64) return res.status(400).json({ error: 'No image provided' });
- 
+
   const prompt = `You are extracting roster data from a Ryanair Connect screenshot.
- 
+
 Analyze this roster screenshot and extract ALL visible duty days.
- 
+
 For each day return:
 - date: "YYYY-MM-DD"
 - type: one of "flight", "hsby", "ad", "off", "al", "vto", "sick", "ul"
@@ -29,7 +29,7 @@ For each day return:
   { from: "PSR", to: "STN", dep: "06:25", arr: "08:05", flightNum: "FR1234" }
 - hsbyStart: "HH:MM" (only if HSBY, if visible)
 - hsbyEnd: "HH:MM" (only if HSBY, if visible)
- 
+
 Rules:
 - Departure airport is almost always PSR (Pescara)
 - Times are local Italian time
@@ -37,7 +37,7 @@ Rules:
 - HSBY = Home Standby, AD = Airport Duty
 - OFF = day off (including rest days between cycles)
 - Only include days that are clearly visible in the screenshot
- 
+
 Respond ONLY with a valid JSON array, no markdown, no explanation:
 [
   {
@@ -50,7 +50,7 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
     ]
   }
 ]`;
- 
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -78,22 +78,22 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
         }],
       }),
     });
- 
+
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', response.status, err);
       return res.status(500).json({ error: `Claude API error ${response.status}`, detail: err });
     }
- 
+
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
- 
+
     // Strip markdown fences if present
     const clean = text.replace(/```json|```/g, '').trim();
     const days = JSON.parse(clean);
- 
+
     return res.status(200).json({ success: true, days });
- 
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
