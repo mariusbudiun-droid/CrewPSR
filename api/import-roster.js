@@ -60,7 +60,7 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         messages: [{
           role: 'user',
@@ -81,7 +81,8 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
  
     if (!response.ok) {
       const err = await response.text();
-      return res.status(500).json({ error: 'Claude API error', detail: err });
+      console.error('Claude API error:', response.status, err);
+      return res.status(500).json({ error: `Claude API error ${response.status}`, detail: err });
     }
  
     const data = await response.json();
