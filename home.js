@@ -188,44 +188,22 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
         ${lbl.sub ? `<div class="cycle-info">${lbl.sub}</div>` : ''}
         ${reportHtml}
         ${(() => {
-  if (typeof calcDayFtDp !== 'function') return '';
-  const { ft, dp } = calcDayFtDp(ds);
-  if (!ft && !dp) return '';
-
-  return `
-    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px">
-      ${ft > 0 ? `
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3)">
-            Flight Time
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;line-height:1;color:var(--blue)">
-            ${typeof fmtHours === 'function' ? fmtHours(ft) : ft.toFixed(1) + 'h'}
-          </div>
-        </div>
-      ` : ''}
-
-      ${dp > 0 ? `
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3)">
-            Duty Period
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;line-height:1;color:#f59e0b">
-            ${typeof fmtHours === 'function' ? fmtHours(dp) : dp.toFixed(1) + 'h'}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-})()}
+          if (typeof calcDayFtDp !== 'function') return '';
+          const { ft, dp } = calcDayFtDp(ds);
+          if (!ft && !dp) return '';
+          return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
+            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
+            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
+          </div>`;
+        })()}
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
-      ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
+      ${swapTitle ? _homeCollapsible(swapTitle, swapHtml) : ''}
       ${type === 'off' && (day === 7 || day === 15) ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? `<div class="section-title">You could work instead of</div>${reverseHtml}` : ''}
+      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? _homeCollapsible('You could work instead of', reverseHtml) : ''}
       ${type === 'off' && day !== 7 && day !== 15 && !reverseHtml ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
+      ${sameShiftTitle ? _homeCollapsible(sameShiftTitle, sameShiftHtml) : ''}
     `;
 
     slides.appendChild(slide);
@@ -340,6 +318,34 @@ function buildFlightBlock(flights, label, cls) {
     </div>
   `;
 }
+
+
+// ── Collapsible section for home slides ──────────────────────
+let _homeCollapseSeq = 0;
+function _homeCollapsible(title, content) {
+  const id = 'hc_' + (++_homeCollapseSeq);
+  return `
+    <div style="margin:0 16px 8px">
+      <button onclick="_homeToggle('${id}')" style="
+        width:100%;display:flex;align-items:center;justify-content:space-between;
+        padding:11px 14px;border-radius:10px;background:var(--surface);
+        border:1px solid var(--border);font-family:'Outfit',sans-serif;
+        cursor:pointer;text-align:left">
+        <span style="font-size:13px;font-weight:700;color:var(--text2)">${title}</span>
+        <span id="${id}_arrow" style="font-size:15px;color:var(--text3);transition:transform 0.2s">›</span>
+      </button>
+      <div id="${id}_body" style="display:none;padding:4px 0 4px">${content}</div>
+    </div>`;
+}
+function _homeToggle(id) {
+  const body  = document.getElementById(id + '_body');
+  const arrow = document.getElementById(id + '_arrow');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display  = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+window._homeToggle = _homeToggle;
 
 function buildOwnCrewCard(rosterNum, members) {
   if (!members.length) return '';

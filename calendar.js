@@ -64,8 +64,21 @@
     .dd-sick  { border-left: 3px solid #e11d48;       }
     .dd-duty-name { font-size: 16px; font-weight: 700; color: var(--text); }
     .dd-duty-time { font-size: 14px; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
-    .dd-section { margin-bottom: 16px; }
+    .dd-section { margin-bottom: 8px; }
     .dd-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+    .dd-collapsible-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: pointer; margin-bottom: 4px; user-select: none;
+    }
+    .dd-collapsible-header:active { opacity: 0.75; }
+    .dd-collapsible-title { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 0.5px; }
+    .dd-collapsible-count { font-size: 11px; color: var(--text3); font-weight: 600; }
+    .dd-collapsible-arrow { font-size: 14px; color: var(--text3); transition: transform 0.2s; }
+    .dd-collapsible-arrow.open { transform: rotate(90deg); }
+    .dd-collapsible-body { display: none; padding: 4px 0 8px; }
+    .dd-collapsible-body.open { display: block; }
     .dd-pills { display: flex; flex-wrap: wrap; gap: 6px; }
     .dd-pill {
       display: inline-flex; align-items: center; gap: 5px;
@@ -547,6 +560,33 @@ function _buildRosterCard(rosterNum, members, accentColor, labelHtml) {
   </div>`;
 }
 
+
+// ── Collapsible section builder ───────────────────────────────
+let _ddCollapseSeq = 0;
+function _ddCollapsible(title, countLabel, content, startOpen) {
+  const id = 'ddc_' + (++_ddCollapseSeq);
+  const open = startOpen ? ' open' : '';
+  return `
+    <div class="dd-section">
+      <div class="dd-collapsible-header" onclick="_ddToggle('${id}')">
+        <span class="dd-collapsible-title">${title}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          ${countLabel ? `<span class="dd-collapsible-count">${countLabel}</span>` : ''}
+          <span class="dd-collapsible-arrow${open}" id="${id}_arrow">›</span>
+        </span>
+      </div>
+      <div class="dd-collapsible-body${open}" id="${id}_body">${content}</div>
+    </div>`;
+}
+function _ddToggle(id) {
+  const body  = document.getElementById(id + '_body');
+  const arrow = document.getElementById(id + '_arrow');
+  if (!body) return;
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+window._ddToggle = _ddToggle;
+
 let _detailDs = null;
 let _detailSwipeBound = false;
 
@@ -596,6 +636,7 @@ function _bindDetailSwipe(el) {
 }
 
 function _renderDayDetail() {
+  _ddCollapseSeq = 0;
   const ds     = _detailDs;
   const date   = new Date(ds + 'T12:00:00');
   const dow    = date.getDay();
@@ -704,10 +745,9 @@ function _renderDayDetail() {
       const cards = candidates.map(c => {
         const members = (APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
         const accent  = c.certain===false ? 'var(--yellow)' : 'var(--blue)';
-        const label   = '';
-        return _buildRosterCard(c.roster, members, accent, label);
+        return _buildRosterCard(c.roster, members, accent, '');
       }).join('');
-      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Swap available</div>${cards}</div>`;
+      crewHtml += _ddCollapsible('Swap available', candidates.length + ' roster' + (candidates.length!==1?'s':''), cards, false);
     }
 
     if (ownCrew.length||sameList.length) {
@@ -720,7 +760,8 @@ function _renderDayDetail() {
         const members = (APP.crew?.[r]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
         cards += _buildRosterCard(r, members, 'var(--blue)', '');
       });
-      crewHtml+=`<div class="dd-section"><div class="dd-section-label">Same shift</div>${cards}</div>`;
+      const total = (ownCrew.length ? 1 : 0) + sameList.length;
+      crewHtml += _ddCollapsible('Same shift', total + ' roster' + (total!==1?'s':''), cards, false);
     }
 
   } else {
@@ -736,13 +777,18 @@ function _renderDayDetail() {
         const accent  = c.certain !== false ? 'var(--green)' : 'var(--yellow)';
         return _buildRosterCard(c.roster, members, accent, '');
       }).join('');
-      crewHtml = `<div class="dd-section"><div class="dd-section-label">You could work instead of</div>${legend}${cards}</div>`;
+      crewHtml = _ddCollapsible('You could work instead of', revCandidates.length + ' roster' + (revCandidates.length!==1?'s':''), legend + cards, false);
     } else if (day!==7 && day!==15) {
       crewHtml = `<div class="dd-section"><div class="dd-section-label">You could work instead of</div><div style="font-size:13px;color:var(--text3);padding:8px 0">Nessuno in turno compatibile</div></div>`;
     }
   }
 
   // ── Actions ──
+  // ── Registered colleagues flying same day (async, appended after render) ──
+  const syncColleaguesPlaceholder = APP.syncLoggedIn
+    ? `<div id="syncColleaguesSection"></div>`
+    : '';
+
   const actionsHtml = !assign
     ? `<div class="dd-actions"><button class="dd-action-btn ghost" onclick="_openDutyPicker('${ds}')">+ Add duty</button><button class="dd-action-btn ghost" onclick="_openLeavePicker('${ds}')">+ Add leave</button></div>`
     : `<div class="dd-actions"><button class="dd-action-btn outline" style="max-width:200px;margin:0 auto" onclick="_openDutyPicker('${ds}')">Edit duty</button></div>`;
@@ -761,9 +807,30 @@ function _renderDayDetail() {
         <div class="dd-cycle-badge ${badgeClass}">${lbl.main||'Day off'}</div>
         ${lbl.sub?`<div class="dd-cycle-sub">${lbl.sub}</div>`:''}
       </div>
-      ${dutyHtml}${crewHtml}
+      ${dutyHtml}${crewHtml}${syncColleaguesPlaceholder}
     </div>
     ${actionsHtml}`;
+
+  // Load registered colleagues asynchronously
+  if (APP.syncLoggedIn) {
+    syncGetColleaguesOnDate(ds).then(colleagues => {
+      const el = document.getElementById('syncColleaguesSection');
+      if (!el) return;
+      if (!colleagues.length) { el.remove(); return; }
+
+      const cards = colleagues.map(col => {
+        const crewEntry = (APP.crew?.[col.roster_num]||[]).find(m=>m.code===col.crew_code);
+        const members = [{ name: col.display_name, code: col.crew_code, phone: crewEntry?.phone || '' }];
+        const accent = col.assignment?.endsWith('L') ? 'var(--late)' : 'var(--blue)';
+        return _buildRosterCard(col.roster_num, members, accent, '');
+      }).join('');
+
+      el.innerHTML = _ddCollapsible('Same flight (registered)', colleagues.length + ' colleague' + (colleagues.length!==1?'s':''), cards, true);
+    }).catch(() => {
+      const el = document.getElementById('syncColleaguesSection');
+      if (el) el.remove();
+    });
+  }
 }
 
 
