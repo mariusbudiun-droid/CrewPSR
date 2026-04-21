@@ -223,6 +223,27 @@ function _hideImportOverlay() {
   if (ov) ov.remove();
 }
 
+function _showImportError(msg) {
+  let ov = document.getElementById('importOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'importOverlay';
+    ov.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.75);
+      z-index:9999;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:16px;padding:32px`;
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `
+    <div style="font-size:36px">❌</div>
+    <div style="color:white;font-family:'Outfit',sans-serif;font-size:15px;
+                font-weight:600;text-align:center;line-height:1.5">${msg}</div>
+    <button onclick="document.getElementById('importOverlay').remove()"
+      style="padding:12px 28px;border-radius:10px;border:none;background:white;
+             font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+             color:#111;cursor:pointer;margin-top:8px">OK</button>`;
+  ov.style.display = 'flex';
+}
+
 function triggerScreenshotImport() {
   closeModal('settingModal');
 
@@ -263,13 +284,13 @@ function triggerScreenshotImport() {
       }
 
       if (!result.days || result.days.length === 0) {
-        showImportError('No roster data found. Try a clearer screenshot.');
+        _showImportError('No roster data found. Try a clearer screenshot.');
         return;
       }
 
       const parsed = convertVisionDays(result.days);
       if (Object.keys(parsed).length === 0) {
-        showImportError('Could not parse any days from the screenshot.');
+        _showImportError('Could not parse any days from the screenshot.');
         return;
       }
       showImportPreview(parsed);
@@ -277,7 +298,7 @@ function triggerScreenshotImport() {
     } catch (err) {
       _hideImportOverlay();
       console.error('Vision import error:', err);
-      showImportError('Error: ' + (err.message || 'Unknown error'));
+      _showImportError('Error: ' + (err.message || 'Unknown error'));
     }
   };
 
