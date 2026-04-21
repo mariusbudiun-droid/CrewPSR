@@ -193,19 +193,53 @@ function triggerRosterImport() {
 }
 
 // ── Screenshot path (Vision API) ──────────────────────────────
+function _showImportOverlay(msg) {
+  let ov = document.getElementById('importOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'importOverlay';
+    ov.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.7);
+      z-index:9999;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:16px`;
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `
+    <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.3);
+                border-top-color:white;border-radius:50%;
+                animation:spin 0.8s linear infinite"></div>
+    <div style="color:white;font-family:'Outfit',sans-serif;font-size:15px;
+                font-weight:600;text-align:center;padding:0 32px">${msg}</div>`;
+  if (!document.getElementById('importSpinStyle')) {
+    const s = document.createElement('style');
+    s.id = 'importSpinStyle';
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+  ov.style.display = 'flex';
+}
+
+function _hideImportOverlay() {
+  const ov = document.getElementById('importOverlay');
+  if (ov) ov.remove();
+}
+
 function triggerScreenshotImport() {
   closeModal('settingModal');
+
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
+  input.style.cssText = 'position:fixed;top:-100px;left:-100px;opacity:0;width:1px;height:1px';
+  document.body.appendChild(input);
+
   input.onchange = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    document.body.removeChild(input);
     if (!file) return;
 
-    showImportLoading('Sending to AI... This takes ~10 seconds');
+    _showImportOverlay('Sending to AI…\nThis takes ~15 seconds');
 
     try {
-      // Convert to base64
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload  = () => resolve(reader.result.split(',')[1]);
@@ -222,26 +256,33 @@ function triggerScreenshotImport() {
       });
 
       const result = await response.json();
+      _hideImportOverlay();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Unknown error from server');
+        throw new Error(result.error || `Server error ${response.status}`);
       }
 
       if (!result.days || result.days.length === 0) {
-        showImportError('No roster data found in the screenshot. Try a clearer image.');
+        showImportError('No roster data found. Try a clearer screenshot.');
         return;
       }
 
-      // Convert Vision API response to the format showImportPreview expects
       const parsed = convertVisionDays(result.days);
+      if (Object.keys(parsed).length === 0) {
+        showImportError('Could not parse any days from the screenshot.');
+        return;
+      }
       showImportPreview(parsed);
 
     } catch (err) {
+      _hideImportOverlay();
       console.error('Vision import error:', err);
       showImportError('Error: ' + (err.message || 'Unknown error'));
     }
   };
-  input.click();
+
+  // Small delay needed on iOS before triggering
+  setTimeout(() => input.click(), 80);
 }
 
 function convertVisionDays(days) {
