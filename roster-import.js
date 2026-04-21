@@ -280,7 +280,8 @@ function triggerScreenshotImport() {
       _hideImportOverlay();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || `Server error ${response.status}`);
+        const detail = result.detail ? `\n${result.detail.substring(0,200)}` : '';
+        throw new Error((result.error || `Server error ${response.status}`) + detail);
       }
 
       if (!result.days || result.days.length === 0) {
