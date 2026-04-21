@@ -392,18 +392,23 @@ function convertVisionDays(days) {
         flightNum: f.flightNum || '',
       }));
 
-      // Auto-detect A1E/A1L/A2E/A2L from first departure if not provided
-      let finalAssign = assign;
-      if (finalAssign === 'CUSTOM' && flights[0]?.dep) {
-        const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-        const depM = toM(flights[0].dep);
-        // Before 12:00 → Early, after → Late (A1 default, A2 if second aircraft)
-        finalAssign = depM < 720 ? 'A1E' : 'A1L';
+      // Calculate early/late from majority of actual flight minutes
+      const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+      const noon = 720;
+      let before = 0, after = 0;
+      for (const f of flights) {
+        if (!f.dep || !f.arr) continue;
+        let s = toM(f.dep), e = toM(f.arr);
+        if (e <= s) e += 1440;
+        before += Math.max(0, Math.min(e, noon) - s);
+        after  += Math.max(0, e - Math.max(s, noon));
       }
+      const shiftType = after > before ? 'late' : 'early';
 
       result[ds] = {
-        duty:       finalAssign === 'CUSTOM' ? 'CUSTOM' : finalAssign,
-        assignment: finalAssign,
+        duty:       'CUSTOM',
+        assignment: assign,
+        shiftType,
         flights,
       };
     }
@@ -646,7 +651,12 @@ function confirmRosterImport() {
     } else if (entry.duty === 'CUSTOM') {
       APP.assignments[ds] = 'CUSTOM';
       APP.customFlights[ds] = entry.flights;
-      delete APP.assignDetails[ds];
+      if (entry.shiftType) {
+        if (!APP.assignDetails[ds]) APP.assignDetails[ds] = {};
+        APP.assignDetails[ds].shiftType = entry.shiftType;
+      } else {
+        delete APP.assignDetails[ds];
+      }
 
     } else if (entry.duty === 'AL') {
       APP.assignments[ds] = 'AL';

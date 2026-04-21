@@ -357,12 +357,34 @@ function _cellClass(assign, type, ds, detail) {
 }
 
 function _customClass(ds) {
+  // Check assignDetails.shiftType first (set by roster import)
+  const detail = APP.assignDetails?.[ds];
+  if (detail?.shiftType === 'early') return 'early';
+  if (detail?.shiftType === 'late')  return 'late';
+
   const cfl = APP.customFlights?.[ds] || [];
   const wt  = cfl.filter(f => f.dep && f.arr);
   if (!wt.length) return 'early';
-  const toM = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-  const s = toM(wt[0].dep), e = toM(wt[wt.length-1].arr), noon = 720;
-  return (e - Math.max(noon,s)) > (Math.min(noon,e) - s) ? 'late' : 'early';
+
+  const toM  = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  const noon = 720;
+  let before = 0, after = 0;
+
+  for (const f of wt) {
+    let s = toM(f.dep);
+    let e = toM(f.arr);
+    if (e <= s) e += 1440; // overnight leg
+
+    // Minutes of this leg before noon
+    const legBefore = Math.max(0, Math.min(e, noon) - s);
+    // Minutes of this leg after noon
+    const legAfter  = Math.max(0, e - Math.max(s, noon));
+
+    before += legBefore;
+    after  += legAfter;
+  }
+
+  return after > before ? 'late' : 'early';
 }
 
 function _cellSub(ds, assign, type, sched) {
