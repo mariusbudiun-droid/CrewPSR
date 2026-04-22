@@ -97,9 +97,8 @@ async function syncPushAssignments() {
 
   // Upsert in batches of 100
   for (let i = 0; i < rows.length; i += 100) {
-    await _supa('assignments', {
+    await _supa('assignments?on_conflict=profile_id,date', {
       method:  'POST',
-      prefer:  'resolution=merge-duplicates,return=minimal',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body:    JSON.stringify(rows.slice(i, i + 100)),
     });
@@ -151,8 +150,9 @@ async function syncShareWith(targetCrewCode) {
   if (!rows?.length) return { ok: false, error: 'Crew code not found.' };
   const target = rows[0];
   try {
-    await _supa('sharing_permissions', {
+    await _supa('sharing_permissions?on_conflict=owner_id,viewer_id', {
       method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: target.id }),
     });
     return { ok: true, name: target.display_name };
@@ -239,8 +239,9 @@ async function syncRequestAccess(targetCrewCode) {
   // Add a `pending` column handled via upsert with status field
   // Actually: insert with pending=true, owner approves by setting pending=false
   try {
-    await _supa('access_requests', {
+    await _supa('access_requests?on_conflict=requester_id,owner_id', {
       method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
         requester_id: APP.syncProfileId,
         owner_id:     target.id,
@@ -279,15 +280,16 @@ async function syncApproveRequest(requestId, requesterId, mutual) {
   }).catch(() => {});
 
   // Grant requester view of my data (I share with them)
-  await _supa('sharing_permissions', {
+  await _supa('sharing_permissions?on_conflict=owner_id,viewer_id', {
     method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: requesterId }),
   }).catch(() => {});
 
   if (mutual) {
-    // Also grant me view of their data (they share with me)
-    await _supa('sharing_permissions', {
+    await _supa('sharing_permissions?on_conflict=owner_id,viewer_id', {
       method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({ owner_id: requesterId, viewer_id: APP.syncProfileId }),
     }).catch(() => {});
   }
