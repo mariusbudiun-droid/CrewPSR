@@ -191,9 +191,21 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
           if (typeof calcDayFtDp !== 'function') return '';
           const { ft, dp } = calcDayFtDp(ds);
           if (!ft && !dp) return '';
-          return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
-            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
-            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
+          const fmt = h => typeof fmtHours==='function' ? fmtHours(h) : h.toFixed(1)+'h';
+          return `<div style="display:flex;gap:16px;margin-top:10px;padding-top:10px;
+                               border-top:1px solid rgba(255,255,255,0.15)">
+            ${ft > 0 ? `<div style="text-align:center">
+              <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+                          opacity:0.65;margin-bottom:2px">Flight Time</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;
+                          opacity:0.95">${fmt(ft)}</div>
+            </div>` : ''}
+            ${dp > 0 ? `<div style="text-align:center">
+              <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+                          opacity:0.5;margin-bottom:2px">Duty Period</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;
+                          opacity:0.75">${fmt(dp)}</div>
+            </div>` : ''}
           </div>`;
         })()}
       </div>
