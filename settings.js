@@ -180,15 +180,20 @@ function renderSyncSettings() {
 async function syncPushThenShow() {
   const el = document.getElementById('syncSettingsContent');
   if (el) {
-    el.querySelector('button').textContent = '⏳ Syncing…';
-    el.querySelector('button').disabled = true;
+    const btn = el.querySelector('button');
+    if (btn) { btn.textContent = '⏳ Syncing…'; btn.disabled = true; }
   }
-  const res = await syncPushAssignments();
-  renderSyncSettings();
-  if (res.ok) {
-    alert('✅ Roster synced successfully!');
-  } else {
-    alert('❌ Sync failed: ' + res.error);
+  try {
+    const res = await syncPushAssignments();
+    renderSyncSettings();
+    if (res.ok) {
+      alert('✅ Roster synced successfully!');
+    } else {
+      alert('❌ Sync failed: ' + (res.error || 'Unknown error'));
+    }
+  } catch(e) {
+    renderSyncSettings();
+    alert('❌ Sync error: ' + e.message);
   }
 }
 window.syncPushThenShow = syncPushThenShow;
@@ -495,10 +500,12 @@ function _showSharedViewPicker(profiles) {
 }
 
 async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
+  // Remove existing if any
+  document.getElementById('sharedRosterScreen')?.remove();
+
   const screen = document.createElement('div');
   screen.id = 'sharedRosterScreen';
-  screen.style.cssText = `position:fixed;inset:0;background:var(--bg);z-index:200;
-    display:flex;flex-direction:column;overflow:hidden`;
+  screen.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow:hidden';
 
   screen.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;
@@ -508,9 +515,9 @@ async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
         style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);
                background:var(--bg);font-family:'Outfit',sans-serif;font-size:14px;
                font-weight:600;color:var(--text);cursor:pointer">‹ Back</button>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="background:var(--blue);color:white;width:30px;height:30px;border-radius:8px;
-                    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">
+      <div style="display:flex;align-items:center;gap:8px;flex:1">
+        <div style="background:var(--blue);color:white;width:32px;height:32px;border-radius:8px;
+                    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">
           ${crewCode.slice(0,2)}
         </div>
         <div>
@@ -519,15 +526,29 @@ async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
         </div>
       </div>
     </div>
-    <div id="sharedDots" style="display:flex;justify-content:center;gap:6px;padding:8px 0 4px;flex-shrink:0"></div>
-    <div id="sharedSlider" style="flex:1;overflow:hidden;position:relative">
-      <div id="sharedSlides" style="display:flex;height:100%;transition:transform 0.3s ease"></div>
+    <div id="sharedLoading" style="flex:1;display:flex;align-items:center;justify-content:center;
+         flex-direction:column;gap:12px;color:var(--text3)">
+      <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);
+                  border-radius:50%;animation:spin 0.8s linear infinite"></div>
+      <div style="font-size:13px">Loading roster…</div>
     </div>`;
 
   document.body.appendChild(screen);
 
-  // Load assignments
-  const assignments = await syncGetProfileAssignments(profileId);
+  const assignments = await syncGetProfileAssignments(profileId).catch(() => []);
+
+  // Remove loading, add slider
+  screen.querySelector('#sharedLoading').remove();
+
+  const sliderHtml = `
+    <div id="sharedDots" style="display:flex;justify-content:center;gap:6px;
+         padding:8px 0 4px;flex-shrink:0"></div>
+    <div style="flex:1;overflow:hidden;position:relative" id="sharedSliderWrap">
+      <div id="sharedSlides" style="display:flex;height:100%;transition:transform 0.3s ease;
+           will-change:transform"></div>
+    </div>`;
+  screen.insertAdjacentHTML('beforeend', sliderHtml);
+
   _buildSharedSlides(assignments, rosterNum, crewCode);
 }
 window.openSharedSlides = openSharedSlides;
@@ -535,67 +556,91 @@ window.openSharedSlides = openSharedSlides;
 function _buildSharedSlides(assignments, rosterNum, crewCode) {
   const slidesEl = document.getElementById('sharedSlides');
   const dotsEl   = document.getElementById('sharedDots');
-  if (!slidesEl) return;
+  const wrap     = document.getElementById('sharedSliderWrap');
+  if (!slidesEl || !dotsEl) return;
+
+  const MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS_S   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   const now = new Date();
   const dates = [];
   for (let i = -2; i <= 7; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + i);
-    dates.push(d.toISOString().slice(0, 10));
+    const d = new Date(now); d.setDate(d.getDate() + i);
+    dates.push(d.toISOString().slice(0,10));
   }
 
+  // Index by date string
   const byDate = {};
-  for (const a of assignments) byDate[a.date] = a;
+  for (const a of assignments) {
+    // date field may come as "2026-04-22" or "2026-04-22T00:00:00"
+    const key = (a.date || '').slice(0,10);
+    byDate[key] = a;
+  }
 
-  let currentIdx = 2; // today
+  let currentIdx = 2;
 
   dates.forEach((ds, idx) => {
-    const d    = new Date(ds + 'T12:00:00');
-    const dow  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][(d.getDay()+6)%7];
+    const d       = new Date(ds + 'T12:00:00');
+    const dow     = DAYS_S[d.getDay()];
     const isToday = idx === 2;
-    const entry = byDate[ds];
+    const entry   = byDate[ds];
 
-    let dutyHtml = '';
-    let bgColor  = 'var(--surface)';
-    let borderColor = 'var(--border)';
+    // Build duty content
+    let heroClass = isToday ? 'var(--blue)' : 'var(--text2)';
+    let dutyLabel = 'Day off 🌿';
+    let dutyColor = 'var(--off)';
+    let dutyDetails = '';
 
-    if (!entry || entry.assignment === 'OFF' || !entry.assignment) {
-      dutyHtml = `<div style="text-align:center;padding:20px;color:var(--off);font-weight:600">🌿 Day off</div>`;
-    } else if (['A1E','A1L','A2E','A2L','CUSTOM'].includes(entry.assignment)) {
-      bgColor = entry.assignment.endsWith('L') ? 'var(--late-lt)' : 'var(--early-lt)';
-      borderColor = entry.assignment.endsWith('L') ? 'var(--late)' : 'var(--early)';
-      const flights = entry.flights || [];
-      const flightRows = flights.map(f =>
-        `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)">${f.from}-${f.to}</span>
-          <span style="font-size:12px;color:var(--text2)">${f.dep}→${f.arr}</span>
-        </div>`).join('');
-      dutyHtml = flightRows || `<div style="color:var(--text2);font-size:13px;padding:8px 0">✈️ ${entry.assignment}</div>`;
-    } else if (entry.assignment === 'HSBY') {
-      bgColor = 'var(--yellow-lt)'; borderColor = 'var(--yellow)';
-      const st = entry.details?.start ? `${entry.details.start}–${entry.details.end}` : '';
-      dutyHtml = `<div style="color:var(--yellow);font-weight:700;padding:8px 0">☎ Home Standby${st ? ' · ' + st : ''}</div>`;
-    } else if (entry.assignment === 'AD') {
-      bgColor = 'var(--red-lt)'; borderColor = 'var(--red)';
-      const st = entry.details?.start ? `${entry.details.start}–${entry.details.end}` : '';
-      dutyHtml = `<div style="color:var(--red);font-weight:700;padding:8px 0">🏢 Airport Duty${st ? ' · ' + st : ''}</div>`;
-    } else {
-      dutyHtml = `<div style="color:var(--off);font-weight:700;padding:8px 0">${entry.assignment}</div>`;
+    if (entry && entry.assignment && entry.assignment !== 'OFF') {
+      const a = entry.assignment;
+      if (a === 'HSBY') {
+        dutyLabel = 'Home Standby';
+        dutyColor = 'var(--yellow)';
+        if (entry.details?.start) dutyDetails = `<div style="font-size:12px;opacity:0.8;margin-top:2px">${entry.details.start} – ${entry.details.end}</div>`;
+      } else if (a === 'AD') {
+        dutyLabel = 'Airport Duty';
+        dutyColor = 'var(--red)';
+        if (entry.details?.start) dutyDetails = `<div style="font-size:12px;opacity:0.8;margin-top:2px">${entry.details.start} – ${entry.details.end}</div>`;
+      } else if (a === 'AL') {
+        dutyLabel = 'Annual Leave'; dutyColor = 'var(--off)';
+      } else if (a === 'SICK') {
+        dutyLabel = 'Sick Leave'; dutyColor = 'var(--red)';
+      } else {
+        // Flight day
+        dutyLabel = a.endsWith('L') ? '✈ Late' : '✈ Early';
+        dutyColor = a.endsWith('L') ? 'var(--late)' : 'var(--early)';
+      }
     }
 
+    // Flight rows
+    const flights = entry?.flights || [];
+    const flightHtml = flights.filter(f=>f.from&&f.to).map(f => `
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  padding:8px 16px;border-bottom:1px solid var(--border)">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text)">${f.from}→${f.to}</span>
+        <span style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace">${f.dep||''}–${f.arr||''}</span>
+      </div>`).join('');
+
     const slide = document.createElement('div');
-    slide.style.cssText = 'min-width:100%;height:100%;overflow-y:auto;padding:16px;box-sizing:border-box';
+    slide.style.cssText = 'min-width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column';
     slide.innerHTML = `
-      <div style="background:var(--surface);border-radius:12px;padding:12px 14px;margin-bottom:12px;
-                  border:1px solid var(--border);text-align:center">
-        <div style="font-size:12px;color:var(--text3);font-weight:600">${dow}</div>
-        <div style="font-size:28px;font-weight:800;color:${isToday?'var(--blue)':'var(--text)'};line-height:1.1">${d.getDate()}</div>
-        <div style="font-size:12px;color:var(--text3)">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]} ${d.getFullYear()}</div>
-        ${isToday ? '<div style="font-size:10px;background:var(--blue);color:white;border-radius:6px;padding:2px 8px;margin-top:4px;display:inline-block;font-weight:700">TODAY</div>' : ''}
-      </div>
-      <div style="background:${bgColor};border:1.5px solid ${borderColor};border-radius:12px;padding:12px 14px">
-        ${dutyHtml}
+      <div style="background:var(--surface);margin:12px 16px 0;border-radius:16px;
+                  border:1px solid var(--border);overflow:hidden">
+        <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;
+                    align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;
+                        letter-spacing:1px">${dow}</div>
+            <div style="font-size:26px;font-weight:800;color:${heroClass};line-height:1.1">${d.getDate()} ${MONTHS_S[d.getMonth()]}</div>
+            <div style="font-size:11px;color:var(--text3)">${d.getFullYear()}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:800;color:${dutyColor}">${dutyLabel}</div>
+            ${dutyDetails}
+            ${isToday ? '<div style="font-size:10px;background:var(--blue);color:white;border-radius:6px;padding:2px 8px;margin-top:4px;display:inline-block;font-weight:700">TODAY</div>' : ''}
+          </div>
+        </div>
+        ${flightHtml ? `<div>${flightHtml}</div>` : ''}
       </div>`;
 
     slidesEl.appendChild(slide);
@@ -603,29 +648,40 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
     // Dot
     const dot = document.createElement('div');
     dot.style.cssText = `width:${isToday?8:6}px;height:${isToday?8:6}px;border-radius:50%;
-      background:${isToday?'var(--blue)':'var(--border)'};cursor:pointer;transition:all 0.2s`;
-    dot.onclick = () => _goSharedSlide(idx);
+      background:${isToday?'var(--blue)':'var(--border2)'};cursor:pointer;transition:all 0.2s`;
+    dot.onclick = () => goShared(idx);
     dotsEl.appendChild(dot);
   });
 
-  // Swipe support
-  let startX = 0;
-  slidesEl.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
-  slidesEl.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40) _goSharedSlide(currentIdx + (dx < 0 ? 1 : -1));
-  }, { passive: true });
-
-  function _goSharedSlide(idx) {
+  function goShared(idx) {
     idx = Math.max(0, Math.min(dates.length - 1, idx));
     currentIdx = idx;
     slidesEl.style.transform = `translateX(-${idx * 100}%)`;
     dotsEl.querySelectorAll('div').forEach((d, i) => {
-      d.style.background = i === idx ? 'var(--blue)' : 'var(--border)';
+      d.style.background = i === idx ? 'var(--blue)' : 'var(--border2)';
       d.style.width  = i === idx ? '8px' : '6px';
       d.style.height = i === idx ? '8px' : '6px';
     });
   }
 
-  _goSharedSlide(currentIdx);
+  // Swipe — attach to wrapper, not slides
+  if (wrap) {
+    let startX = 0, startY = 0, dragging = false;
+    wrap.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      dragging = true;
+    }, { passive: true });
+    wrap.addEventListener('touchend', e => {
+      if (!dragging) return;
+      dragging = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+        goShared(currentIdx + (dx < 0 ? 1 : -1));
+      }
+    }, { passive: true });
+  }
+
+  goShared(currentIdx);
 }
