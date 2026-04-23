@@ -348,8 +348,16 @@ async function _doShare() {
 window._doShare = _doShare;
 
 // ── Update password gate ──────────────────────────────────────
+const UPDATE_PWD = 'crewpsr_beta';
+
 function _checkUpdateWithPwd() {
-  checkForUpdates();
+  const pwd = prompt('Enter update password:');
+  if (pwd === null) return;
+  if (pwd === UPDATE_PWD) {
+    checkForUpdates();
+  } else {
+    alert('Incorrect password.');
+  }
 }
 window._checkUpdateWithPwd = _checkUpdateWithPwd;
 
@@ -591,14 +599,20 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
         dutyLabel = 'Airport Duty';
         dutyColor = 'var(--red)';
         if (entry.details?.start) dutyDetails = `<div style="font-size:12px;opacity:0.8;margin-top:2px">${entry.details.start} – ${entry.details.end}</div>`;
-      } else if (a === 'AL') {
-        dutyLabel = 'Annual Leave'; dutyColor = 'var(--off)';
-      } else if (a === 'SICK') {
-        dutyLabel = 'Sick Leave'; dutyColor = 'var(--red)';
+      } else if (a === 'AL')   { dutyLabel = 'Annual Leave';       dutyColor = 'var(--off)'; }
+      else if (a === 'SICK')   { dutyLabel = 'Sick Leave';          dutyColor = 'var(--red)'; }
+      else if (a === 'VTO')    { dutyLabel = 'Voluntary Time Off';  dutyColor = 'var(--off)'; }
+      else if (a === 'PL')     { dutyLabel = 'Parental Leave';      dutyColor = 'var(--off)'; }
+      else if (a === 'UL')     { dutyLabel = 'Unpaid Leave';        dutyColor = 'var(--text3)'; }
+      else if (['A1E','A1L','A2E','A2L','CUSTOM'].includes(a)) {
+        dutyLabel = a === 'A1E' ? '✈ Aereo 1 Early'
+                  : a === 'A1L' ? '✈ Aereo 1 Late'
+                  : a === 'A2E' ? '✈ Aereo 2 Early'
+                  : a === 'A2L' ? '✈ Aereo 2 Late'
+                  : '✈ Custom';
+        dutyColor = (a.endsWith('L')) ? 'var(--late)' : 'var(--early)';
       } else {
-        // Flight day
-        dutyLabel = a.endsWith('L') ? '✈ Late' : '✈ Early';
-        dutyColor = a.endsWith('L') ? 'var(--late)' : 'var(--early)';
+        dutyLabel = a; dutyColor = 'var(--text2)';
       }
     }
 

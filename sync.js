@@ -136,14 +136,37 @@ async function syncPushAssignments() {
   const customFlights = APP.customFlights || {};
   const assignDetails = APP.assignDetails || {};
 
-  const rows = Object.keys(assignments).map(date => ({
-    profile_id: APP.syncProfileId,
-    date,
-    assignment: assignments[date],
-    details: assignDetails[date] || null,
-    flights: customFlights[date] || null,
-    updated_at: new Date().toISOString(),
-  }));
+  const rows = Object.keys(assignments).map(date => {
+    const assign = assignments[date];
+    let flights = customFlights[date] || null;
+
+    // Resolve schedule flights for standard rotations if no custom flights saved
+    if (!flights && ['A1E','A1L','A2E','A2L'].includes(assign)) {
+      try {
+        const dow   = new Date(date + 'T12:00:00').getDay();
+        const sched = SCHEDULE?.days?.[dow];
+        if (sched) {
+          const useA2   = assign.startsWith('A2');
+          const useLate = assign.endsWith('L');
+          const plane   = useA2 ? sched.a2 : sched.a1;
+          const raw     = (useLate ? plane?.late : plane?.early) || [];
+          flights = raw.map(f => {
+            const [from, to] = f.route.split('-');
+            return { from, to, dep: f.dep, arr: f.arr };
+          });
+        }
+      } catch(e) {}
+    }
+
+    return {
+      profile_id: APP.syncProfileId,
+      date,
+      assignment: assign,
+      details:    assignDetails[date] || null,
+      flights,
+      updated_at: new Date().toISOString(),
+    };
+  });
 
   if (!rows.length) return { ok: true };
 
@@ -183,7 +206,25 @@ async function syncGetColleaguesOnDate(ds) {
     `assignments?date=eq.${ds}&profile_id=in.(${profileIds.join(',')})&select=profile_id,assignment,details,flights`
   ).catch(() => []);
 
-  const myFlights = APP.customFlights?.[ds] || [];
+  // Resolve my flights — custom or from schedule
+  let myFlights = APP.customFlights?.[ds] || [];
+  const myAssign = APP.assignments?.[ds];
+  if (!myFlights.length && ['A1E','A1L','A2E','A2L'].includes(myAssign)) {
+    try {
+      const dow   = new Date(ds + 'T12:00:00').getDay();
+      const sched = SCHEDULE?.days?.[dow];
+      if (sched) {
+        const useA2   = myAssign.startsWith('A2');
+        const useLate = myAssign.endsWith('L');
+        const plane   = useA2 ? sched.a2 : sched.a1;
+        const raw     = (useLate ? plane?.late : plane?.early) || [];
+        myFlights = raw.map(f => {
+          const [from, to] = f.route.split('-');
+          return { from, to };
+        });
+      }
+    } catch(e) {}
+  }
   const myRoutes = new Set(
     myFlights
       .filter(f => f && f.from && f.to)
