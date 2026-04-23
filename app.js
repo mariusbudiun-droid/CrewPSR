@@ -88,7 +88,7 @@ function finishSetup() {
 // ══════════════════════════════════════════════════════════════
 // SHARE & TUTORIAL
 // ══════════════════════════════════════════════════════════════
-function checkForUpdates() {
+async function checkForUpdates() {
   const btn = document.getElementById('updateBtn');
   const msg = document.getElementById('updateMsg');
 
@@ -96,42 +96,35 @@ function checkForUpdates() {
   btn.disabled = true;
   msg.style.display = 'none';
 
-  if (!navigator.onLine) {
-    btn.innerHTML = '🔄 Check for updates';
-    btn.disabled = false;
-    msg.textContent = '✈️ Sei offline — sei già alla versione più recente installata!';
-    msg.style.color = 'var(--yellow)';
-    msg.style.display = 'block';
-    return;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
-  fetch(location.href, { method: 'HEAD', cache: 'no-store', signal: controller.signal })
-    .then(res => {
-      clearTimeout(timeout);
-      if (!res || !res.ok) throw new Error('null or bad response');
-
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage('FORCE_UPDATE');
-        setTimeout(() => location.reload(), 2000);
-      } else {
-        location.reload();
-      }
-    })
-    .catch(err => {
-      clearTimeout(timeout);
+  try {
+    if (!navigator.onLine) {
       btn.innerHTML = '🔄 Check for updates';
       btn.disabled = false;
-
-      const isOffline = err.name === 'AbortError' || !navigator.onLine;
-      msg.textContent = isOffline
-        ? '✈️ Sei offline — sei già alla versione più recente installata!'
-        : '⚠️ Impossibile raggiungere il server. Riprova quando sei connesso.';
+      msg.textContent = '✈️ Sei offline — sei già alla versione più recente installata!';
       msg.style.color = 'var(--yellow)';
       msg.style.display = 'block';
-    });
+      return;
+    }
+
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.update();
+      }
+    }
+
+    location.reload();
+  } catch (err) {
+    btn.innerHTML = '🔄 Check for updates';
+    btn.disabled = false;
+
+    const isOffline = err.name === 'AbortError' || !navigator.onLine;
+    msg.textContent = isOffline
+      ? '✈️ Sei offline — sei già alla versione più recente installata!'
+      : '⚠️ Impossibile raggiungere il server. Riprova quando sei connesso.';
+    msg.style.color = 'var(--yellow)';
+    msg.style.display = 'block';
+  }
 }
 
 function shareApp() {
