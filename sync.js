@@ -164,10 +164,24 @@ async function syncPushAssignments() {
   return { ok: true };
 }
 
-// ── Fetch colleagues flying on a given date ──────────────────
+// ── Fetch colleagues on SAME FLIGHT for a given date ─────────
+// Rules:
+// - If my duty is A1E/A2E/A1L/A2L → match exact same assignment
+// - If my duty is CUSTOM → match by at least one common route
+// - If my duty is leave / HSBY / AD / OFF / empty → return []
 async function syncGetColleaguesOnDate(ds) {
   if (!APP.syncLoggedIn) return [];
   if (_dayDetailCache[ds]) return _dayDetailCache[ds];
+
+  const myAssignment = APP.assignments?.[ds] || null;
+  const myFlights = APP.customFlights?.[ds] || [];
+  const standardFlightAssignments = ['A1E', 'A2E', 'A1L', 'A2L'];
+  const nonFlightAssignments = ['AL', 'VTO', 'SICK', 'UL', 'PL', 'HSBY', 'AD', 'OFF'];
+
+  if (!myAssignment || nonFlightAssignments.includes(myAssignment)) {
+    _dayDetailCache[ds] = [];
+    return [];
+  }
 
   const profiles = await _supa(
     'profiles?approved=eq.true&select=id,crew_code,display_name,roster_num'
@@ -183,7 +197,6 @@ async function syncGetColleaguesOnDate(ds) {
     `assignments?date=eq.${ds}&profile_id=in.(${profileIds.join(',')})&select=profile_id,assignment,details,flights`
   ).catch(() => []);
 
-  const myFlights = APP.customFlights?.[ds] || [];
   const myRoutes = new Set(
     myFlights
       .filter(f => f && f.from && f.to)
@@ -194,31 +207,53 @@ async function syncGetColleaguesOnDate(ds) {
 
   for (const a of assignments) {
     if (!a.assignment || a.assignment === 'OFF') continue;
-    if (['AL', 'VTO', 'SICK', 'UL', 'PL', 'HSBY', 'AD'].includes(a.assignment)) continue;
 
     const profile = profiles.find(p => p.id === a.profile_id);
     if (!profile) continue;
 
-    const theirFlights = a.flights || [];
-    const theirRoutes = new Set(
-      theirFlights
-        .filter(f => f && f.from && f.to)
-        .map(f => `${f.from}-${f.to}`)
-    );
+    // Caso 1: duty standard → stesso assignment esatto
+    if (standardFlightAssignments.includes(myAssignment)) {
+      if (a.assignment !== myAssignment) continue;
 
-    const hasCommon = [...myRoutes].some(r => theirRoutes.has(r));
+      result.push({
+        crew_code: profile.crew_code,
+        display_name: profile.display_name,
+        roster_num: profile.roster_num,
+        assignment: a.assignment,
+        details: a.details,
+        flights: a.flights,
+      });
+      continue;
+    }
 
-    if (myRoutes.size > 0 && !hasCommon) continue;
-    if (myRoutes.size === 0 && theirRoutes.size === 0) continue;
+    // Caso 2: custom → almeno una rotta in comune
+    if (myAssignment === 'CUSTOM') {
+      if (
+        a.assignment !== 'CUSTOM' &&
+        !standardFlightAssignments.includes(a.assignment)
+      ) {
+        continue;
+      }
 
-    result.push({
-      crew_code: profile.crew_code,
-      display_name: profile.display_name,
-      roster_num: profile.roster_num,
-      assignment: a.assignment,
-      details: a.details,
-      flights: a.flights,
-    });
+      const theirFlights = a.flights || [];
+      const theirRoutes = new Set(
+        theirFlights
+          .filter(f => f && f.from && f.to)
+          .map(f => `${f.from}-${f.to}`)
+      );
+
+      const hasCommon = [...myRoutes].some(r => theirRoutes.has(r));
+      if (!hasCommon) continue;
+
+      result.push({
+        crew_code: profile.crew_code,
+        display_name: profile.display_name,
+        roster_num: profile.roster_num,
+        assignment: a.assignment,
+        details: a.details,
+        flights: a.flights,
+      });
+    }
   }
 
   _dayDetailCache[ds] = result;
