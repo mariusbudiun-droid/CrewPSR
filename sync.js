@@ -303,7 +303,7 @@ async function _loadSharedProfiles() {
   if (!APP.syncLoggedIn) return;
 
   const rows = await _supa(
-    `sharing_permissions?viewer_id=eq.${APP.syncProfileId}&select=owner_id,profiles!sharing_permissions_owner_id_fkey(crew_code,display_name,roster_num)`
+    `sharing_permissions?viewer_id=eq.${APP.syncProfileId}&select=owner_id,profiles!sharing_permissions_owner_id_fkey(id,crew_code,display_name,roster_num)`
   ).catch(() => []);
 
   _sharedProfiles = (rows || []).map(r => r.profiles).filter(Boolean);
@@ -450,14 +450,16 @@ async function syncGetSharedWithMe() {
   if (!APP.syncLoggedIn) return [];
 
   const rows = await _supa(
-    `sharing_permissions?viewer_id=eq.${APP.syncProfileId}&select=owner_id,profiles!sharing_permissions_owner_id_fkey(crew_code,display_name,roster_num)`
+    `sharing_permissions?viewer_id=eq.${APP.syncProfileId}&select=owner_id,profiles!sharing_permissions_owner_id_fkey(id,crew_code,display_name,roster_num)`
   ).catch(() => []);
 
   return (rows || []).map(r => r.profiles).filter(Boolean);
 }
 
 async function syncGetProfileAssignments(profileId) {
-  if (!profileId) return [];
+  if (!profileId) {
+    throw new Error('Missing shared profile id');
+  }
 
   const now = new Date();
   const from = new Date(now);
