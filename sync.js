@@ -95,9 +95,9 @@ async function syncPushAssignments() {
 
   if (!rows.length) return { ok: true };
 
-  // Upsert in batches of 100
+  // Upsert in batches of 100 using on_conflict for merge
   for (let i = 0; i < rows.length; i += 100) {
-    await _supa('assignments', {
+    await _supa('assignments?on_conflict=profile_id,date', {
       method:  'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body:    JSON.stringify(rows.slice(i, i + 100)),
@@ -122,13 +122,30 @@ async function syncGetColleaguesOnDate(ds) {
     `assignments?date=eq.${ds}&profile_id=in.(${profileIds.join(',')})&select=profile_id,assignment,details,flights`
   ).catch(() => []);
 
-  // Only show colleagues who are actually flying (not off/HSBY/AD)
+  // Get MY flights for this date to compare
+  const myAssignment  = APP.assignments?.[ds];
+  const myFlights     = APP.customFlights?.[ds] || [];
+  // Build set of my routes for comparison
+  const myRoutes = new Set(myFlights.filter(f=>f.from&&f.to).map(f=>`${f.from}-${f.to}`));
+
+  // Only show colleagues on the EXACT same flights
   const result = [];
   for (const a of assignments) {
     if (!a.assignment || a.assignment === 'OFF') continue;
-    if (['AL','VTO','SICK','UL','PL'].includes(a.assignment)) continue;
+    if (['AL','VTO','SICK','UL','PL','HSBY','AD'].includes(a.assignment)) continue;
     const profile = profiles.find(p => p.id === a.profile_id);
     if (!profile) continue;
+
+    // Check if they share at least one route with me
+    const theirFlights = a.flights || [];
+    const theirRoutes  = new Set(theirFlights.filter(f=>f.from&&f.to).map(f=>`${f.from}-${f.to}`));
+    const hasCommon    = [...myRoutes].some(r => theirRoutes.has(r));
+
+    // If I have no flights data (e.g. no sync yet), skip route check
+    if (myRoutes.size > 0 && !hasCommon) continue;
+    // If neither has flight data, skip
+    if (myRoutes.size === 0 && theirRoutes.size === 0) continue;
+
     result.push({
       crew_code:    profile.crew_code,
       display_name: profile.display_name,
@@ -147,26 +164,20 @@ async function syncGetColleaguesOnDate(ds) {
 
 // ── Sharing ───────────────────────────────────────────────────
 async function syncShareWith(targetCrewCode) {
-  if (!APP.syncLoggedIn) return { ok: false, error: 'Not logged in' };
+  if (!APP.syncLoggedIn || !APP.syncProfileId) return { ok: false, error: 'Not logged in' };
   targetCrewCode = targetCrewCode.toUpperCase().trim();
   const rows = await _supa(`profiles?crew_code=eq.${encodeURIComponent(targetCrewCode)}&select=id,display_name`).catch(() => []);
   if (!rows?.length) return { ok: false, error: 'Crew code not found.' };
   const target = rows[0];
   try {
-    // Check if already shared
-    const existing = await _supa(
-      `sharing_permissions?owner_id=eq.${APP.syncProfileId}&viewer_id=eq.${target.id}&select=id`
-    ).catch(() => []);
-    if (!existing?.length) {
-      await _supa('sharing_permissions', {
-        method: 'POST',
-        headers: { 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: target.id }),
-      });
-    }
+    await _supa('sharing_permissions', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: target.id }),
+    });
     return { ok: true, name: target.display_name };
   } catch (e) {
-    if (e.message.includes('23505')) return { ok: false, error: 'Already shared.' };
+    if (e.message.includes('23505')) return { ok: true, name: target.display_name }; // already shared = ok
     return { ok: false, error: e.message };
   }
 }
@@ -236,7 +247,7 @@ window.syncRestoreSession    = syncRestoreSession;
 
 // B sends a request to A
 async function syncRequestAccess(targetCrewCode) {
-  if (!APP.syncLoggedIn) return { ok: false, error: 'Not logged in' };
+  if (!APP.syncLoggedIn || !APP.syncProfileId) return { ok: false, error: 'Not logged in' };
   targetCrewCode = targetCrewCode.toUpperCase().trim();
 
   const rows = await _supa(`profiles?crew_code=eq.${encodeURIComponent(targetCrewCode)}&select=id,display_name`).catch(() => []);

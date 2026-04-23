@@ -825,7 +825,7 @@ function _renderDayDetail() {
         return _buildRosterCard(col.roster_num, members, accent, '');
       }).join('');
 
-      el.innerHTML = _ddCollapsible('Same flight (registered)', colleagues.length + ' colleague' + (colleagues.length!==1?'s':''), cards, true);
+      el.innerHTML = _ddCollapsible('Same flight', colleagues.length + ' colleague' + (colleagues.length!==1?'s':''), cards, true);
     }).catch(() => {
       const el = document.getElementById('syncColleaguesSection');
       if (el) el.remove();
