@@ -3,8 +3,8 @@
 // sync.js — loaded after app.js
 // ══════════════════════════════════════════════════════════════
 
-const SUPA_URL = 'https://abywawanxryiptcclszg.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFieXdhd2FueHJ5aXB0Y2Nsc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODIxMzIsImV4cCI6MjA5MjM1ODEzMn0.H5xrJALFhB3omyiYZgmhG6l57N4MduNvtqxSKrQbxzg';
+const SUPA_URL = 'https://wudxxjidvajrfutgvnoa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1ZHh4amlkdmFqcmZ1dGd2bm9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzkwNjQsImV4cCI6MjA5MjUxNTA2NH0.HwbS7g4cjK3IV_J7bvsTLKExfnCd_qGOd_m-AcB4PMo';
 
 // ── Low-level fetch helper ────────────────────────────────────
 async function _supa(path, opts = {}) {
