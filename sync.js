@@ -95,12 +95,18 @@ async function syncPushAssignments() {
 
   if (!rows.length) return { ok: true };
 
-  // Upsert in batches of 100 using on_conflict for merge
-  for (let i = 0; i < rows.length; i += 100) {
-    await _supa('assignments?on_conflict=profile_id,date', {
+  // Step 1: delete all existing assignments for this profile
+  await _supa(`assignments?profile_id=eq.${APP.syncProfileId}`, {
+    method:  'DELETE',
+    headers: { 'Prefer': 'return=minimal' },
+  });
+
+  // Step 2: insert fresh in batches of 50
+  for (let i = 0; i < rows.length; i += 50) {
+    await _supa('assignments', {
       method:  'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body:    JSON.stringify(rows.slice(i, i + 100)),
+      headers: { 'Prefer': 'return=minimal' },
+      body:    JSON.stringify(rows.slice(i, i + 50)),
     });
   }
   return { ok: true };
