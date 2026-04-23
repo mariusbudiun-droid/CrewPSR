@@ -8,11 +8,16 @@ const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 
 // ── Low-level fetch helper ────────────────────────────────────
 async function _supa(path, opts = {}) {
+  const profileId = APP?.syncProfileId || '';
+  const crewCode = APP?.syncCrewCode || '';
+
   const headers = {
     apikey: SUPA_ANON,
     Authorization: `Bearer ${SUPA_ANON}`,
     'Content-Type': 'application/json',
     Prefer: opts.prefer || 'return=representation',
+    'x-profile-id': profileId,
+    'x-crew-code': crewCode,
     ...(opts.headers || {}),
   };
 
