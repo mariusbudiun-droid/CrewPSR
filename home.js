@@ -191,31 +191,19 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
           if (typeof calcDayFtDp !== 'function') return '';
           const { ft, dp } = calcDayFtDp(ds);
           if (!ft && !dp) return '';
-          const fmt = h => typeof fmtHours==='function' ? fmtHours(h) : h.toFixed(1)+'h';
-          return `<div style="display:flex;gap:16px;margin-top:10px;padding-top:10px;
-                               border-top:1px solid rgba(255,255,255,0.15)">
-            ${ft > 0 ? `<div style="text-align:center">
-              <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-                          opacity:0.65;margin-bottom:2px">Flight Time</div>
-              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;
-                          opacity:0.95">${fmt(ft)}</div>
-            </div>` : ''}
-            ${dp > 0 ? `<div style="text-align:center">
-              <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-                          opacity:0.5;margin-bottom:2px">Duty Period</div>
-              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;
-                          opacity:0.75">${fmt(dp)}</div>
-            </div>` : ''}
+          return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
+            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
+            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
           </div>`;
         })()}
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
-      ${swapTitle ? _homeCollapsible(swapTitle, swapHtml) : ''}
+      ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
       ${type === 'off' && (day === 7 || day === 15) ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? _homeCollapsible('You could work instead of', reverseHtml) : ''}
+      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? `<div class="section-title">You could work instead of</div>${reverseHtml}` : ''}
       ${type === 'off' && day !== 7 && day !== 15 && !reverseHtml ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${sameShiftTitle ? _homeCollapsible(sameShiftTitle, sameShiftHtml) : ''}
+      ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
     `;
 
     slides.appendChild(slide);
@@ -330,34 +318,6 @@ function buildFlightBlock(flights, label, cls) {
     </div>
   `;
 }
-
-
-// ── Collapsible section for home slides ──────────────────────
-let _homeCollapseSeq = 0;
-function _homeCollapsible(title, content) {
-  const id = 'hc_' + (++_homeCollapseSeq);
-  return `
-    <div style="margin:0 16px 8px">
-      <button onclick="_homeToggle('${id}')" style="
-        width:100%;display:flex;align-items:center;justify-content:space-between;
-        padding:11px 14px;border-radius:10px;background:var(--surface);
-        border:1px solid var(--border);font-family:'Outfit',sans-serif;
-        cursor:pointer;text-align:left">
-        <span style="font-size:13px;font-weight:700;color:var(--text2)">${title}</span>
-        <span id="${id}_arrow" style="font-size:15px;color:var(--text3);transition:transform 0.2s">›</span>
-      </button>
-      <div id="${id}_body" style="display:none;padding:4px 0 4px">${content}</div>
-    </div>`;
-}
-function _homeToggle(id) {
-  const body  = document.getElementById(id + '_body');
-  const arrow = document.getElementById(id + '_arrow');
-  if (!body) return;
-  const isOpen = body.style.display !== 'none';
-  body.style.display  = isOpen ? 'none' : 'block';
-  arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
-}
-window._homeToggle = _homeToggle;
 
 function buildOwnCrewCard(rosterNum, members) {
   if (!members.length) return '';
