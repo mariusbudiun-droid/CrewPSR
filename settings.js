@@ -466,13 +466,8 @@ async function doShare() {
 window.doShare = doShare;
 
 // Update password gate
-const UPDATEPWD = 'crewpsrbeta';
-
 function checkUpdateWithPwd() {
-  const pwd = prompt('Enter update password');
-  if (pwd === null) return;
-  if (pwd === UPDATEPWD) checkForUpdates();
-  else alert('Incorrect password.');
+  checkForUpdates();
 }
 window.checkUpdateWithPwd = checkUpdateWithPwd;
 
