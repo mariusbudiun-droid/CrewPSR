@@ -122,8 +122,11 @@ async function syncGetColleaguesOnDate(ds) {
     `assignments?date=eq.${ds}&profile_id=in.(${profileIds.join(',')})&select=profile_id,assignment,details,flights`
   ).catch(() => []);
 
+  // Only show colleagues who are actually flying (not off/HSBY/AD)
   const result = [];
   for (const a of assignments) {
+    if (!a.assignment || a.assignment === 'OFF') continue;
+    if (['AL','VTO','SICK','UL','PL'].includes(a.assignment)) continue;
     const profile = profiles.find(p => p.id === a.profile_id);
     if (!profile) continue;
     result.push({
@@ -150,11 +153,17 @@ async function syncShareWith(targetCrewCode) {
   if (!rows?.length) return { ok: false, error: 'Crew code not found.' };
   const target = rows[0];
   try {
-    await _supa('sharing_permissions', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: target.id }),
-    });
+    // Check if already shared
+    const existing = await _supa(
+      `sharing_permissions?owner_id=eq.${APP.syncProfileId}&viewer_id=eq.${target.id}&select=id`
+    ).catch(() => []);
+    if (!existing?.length) {
+      await _supa('sharing_permissions', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: target.id }),
+      });
+    }
     return { ok: true, name: target.display_name };
   } catch (e) {
     if (e.message.includes('23505')) return { ok: false, error: 'Already shared.' };
@@ -239,18 +248,31 @@ async function syncRequestAccess(targetCrewCode) {
   // Add a `pending` column handled via upsert with status field
   // Actually: insert with pending=true, owner approves by setting pending=false
   try {
-    await _supa('access_requests', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({
-        requester_id: APP.syncProfileId,
-        owner_id:     target.id,
-        status:       'pending',
-      }),
-    });
+    // Check if request already exists
+    const existing = await _supa(
+      `access_requests?requester_id=eq.${APP.syncProfileId}&owner_id=eq.${target.id}&select=id,status`
+    ).catch(() => []);
+
+    if (existing?.length) {
+      // Update to pending (re-send)
+      await _supa(`access_requests?id=eq.${existing[0].id}`, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ status: 'pending' }),
+      });
+    } else {
+      await _supa('access_requests', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          requester_id: APP.syncProfileId,
+          owner_id:     target.id,
+          status:       'pending',
+        }),
+      });
+    }
     return { ok: true, name: target.display_name };
   } catch(e) {
-    if (e.message.includes('23505')) return { ok: false, error: 'Request already sent.' };
     return { ok: false, error: e.message };
   }
 }
@@ -280,18 +302,23 @@ async function syncApproveRequest(requestId, requesterId, mutual) {
   }).catch(() => {});
 
   // Grant requester view of my data (I share with them)
-  await _supa('sharing_permissions', {
-    method: 'POST',
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: requesterId }),
-  }).catch(() => {});
+  // Grant requester access to my data
+  const ex1 = await _supa(`sharing_permissions?owner_id=eq.${APP.syncProfileId}&viewer_id=eq.${requesterId}&select=id`).catch(()=>[]);
+  if (!ex1?.length) {
+    await _supa('sharing_permissions', {
+      method: 'POST', headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ owner_id: APP.syncProfileId, viewer_id: requesterId }),
+    }).catch(() => {});
+  }
 
   if (mutual) {
-    await _supa('sharing_permissions', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ owner_id: requesterId, viewer_id: APP.syncProfileId }),
-    }).catch(() => {});
+    const ex2 = await _supa(`sharing_permissions?owner_id=eq.${requesterId}&viewer_id=eq.${APP.syncProfileId}&select=id`).catch(()=>[]);
+    if (!ex2?.length) {
+      await _supa('sharing_permissions', {
+        method: 'POST', headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ owner_id: requesterId, viewer_id: APP.syncProfileId }),
+      }).catch(() => {});
+    }
   }
 }
 

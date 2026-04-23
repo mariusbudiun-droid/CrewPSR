@@ -46,8 +46,6 @@ function renderSettings() {
   document.getElementById('notifReport').checked = n.report !== false;
   document.getElementById('notifDep').value = n.dep || 'first';
   document.getElementById('notifArr').value = n.arr || 'last';
-
-  renderSyncSettings();
 }
 
 function setNotifPref(key, val) {
@@ -111,19 +109,19 @@ function changeSetting(type) {
 }
 
 // ── Sync UI ───────────────────────────────────────────────────
-function renderSyncSettings() {
-  const el = document.getElementById('syncSettingsContent');
+function renderSyncScreen() {
+  const el = document.getElementById('syncScreenContent');
   if (!el) return;
 
   if (!APP.syncLoggedIn) {
     el.innerHTML = `
-      <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5">
-        Sync your roster with colleagues. See who you fly with each day, and share your calendar.
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">
+        Sync your roster with colleagues. See who you fly with each day, and share your calendar with teammates.
       </div>
       <button onclick="showSyncLogin()"
-        style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);
-               font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
-               color:white;cursor:pointer;margin-bottom:8px">
+        style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+               color:white;cursor:pointer">
         🔗 Login / Register
       </button>`;
     return;
@@ -139,7 +137,7 @@ function renderSyncSettings() {
         <div style="font-size:14px;font-weight:700;color:var(--text)">${APP.syncCrewCode || ''}</div>
         <div style="font-size:12px;color:var(--green)">✓ Connected</div>
       </div>
-      <button onclick="syncLogout();renderSyncSettings()"
+      <button onclick="syncLogout();renderSyncScreen()"
         style="margin-left:auto;padding:6px 12px;border-radius:8px;border:1px solid var(--border);
                background:none;font-family:'Outfit',sans-serif;font-size:12px;
                color:var(--text3);cursor:pointer">Logout</button>
@@ -178,21 +176,21 @@ function renderSyncSettings() {
 }
 
 async function syncPushThenShow() {
-  const el = document.getElementById('syncSettingsContent');
+  const el = document.getElementById('syncScreenContent');
   if (el) {
     const btn = el.querySelector('button');
     if (btn) { btn.textContent = '⏳ Syncing…'; btn.disabled = true; }
   }
   try {
     const res = await syncPushAssignments();
-    renderSyncSettings();
+    renderSyncScreen();
     if (res.ok) {
       alert('✅ Roster synced successfully!');
     } else {
       alert('❌ Sync failed: ' + (res.error || 'Unknown error'));
     }
   } catch(e) {
-    renderSyncSettings();
+    renderSyncScreen();
     alert('❌ Sync error: ' + e.message);
   }
 }
@@ -291,7 +289,7 @@ async function _doLogin() {
   const res = await syncLogin(code, pin);
   if (res.ok) {
     msg.textContent='✅ Logged in!'; msg.style.color='var(--green)'; msg.style.display='block';
-    setTimeout(() => { closeModal('settingModal'); renderSettings(); renderSyncSettings(); }, 1000);
+    setTimeout(() => { closeModal('settingModal'); renderSettings(); renderSyncScreen(); }, 1000);
   } else {
     msg.textContent='❌ ' + res.error; msg.style.color='var(--red)'; msg.style.display='block';
   }
@@ -685,3 +683,5 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
 
   goShared(currentIdx);
 }
+
+window.renderSyncScreen = renderSyncScreen;
