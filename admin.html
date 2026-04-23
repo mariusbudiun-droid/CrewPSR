@@ -158,109 +158,111 @@
   </div>
 
   <script>
-    const SUPAURL = 'https://wudxxjidvajrfutgvnoa.supabase.co';
-    const SUPAANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1ZHh4amlkdmFqcmZ1dGd2bm9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzkwNjQsImV4cCI6MjA5MjUxNTA2NH0.HwbS7g4cjK3IV_J7bvsTLKExfnCd_qGOd_m-AcB4PMo';
-    const ADMINPWD = 'Marius87';
+  const SUPAURL = 'https://wudxxjidvajrfutgvnoa.supabase.co';
+  const SUPAANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1ZHh4amlkdmFqcmZ1dGd2bm9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzkwNjQsImV4cCI6MjA5MjUxNTA2NH0.HwbS7g4cjK3IV_J7bvsTLKExfnCd_qGOd_m-AcB4PMo';
+  const ADMINPWD = 'Marius87';
+  const ADMIN_PROFILE_ID = '2b5d4a90-9143-41d4-be6c-d5ba9655a41c';
 
-    function adminLogin() {
-      const pwd = document.getElementById('adminPwd').value;
-      if (pwd !== ADMINPWD) {
-        document.getElementById('loginErr').textContent = 'Wrong password';
-        document.getElementById('loginErr').style.display = 'block';
+  function adminLogin() {
+    const pwd = document.getElementById('adminPwd').value;
+    if (pwd !== ADMINPWD) {
+      document.getElementById('loginErr').textContent = 'Wrong password';
+      document.getElementById('loginErr').style.display = 'block';
+      return;
+    }
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    loadUsers();
+  }
+
+  async function supa(path, opts = {}) {
+    let res;
+    try {
+      res = await fetch(`${SUPAURL}/rest/v1/${path}`, {
+        ...opts,
+        headers: {
+          apikey: SUPAANON,
+          Authorization: `Bearer ${SUPAANON}`,
+          'Content-Type': 'application/json',
+          'x-profile-id': ADMIN_PROFILE_ID,
+          Prefer: 'return=representation',
+          ...(opts.headers || {}),
+        },
+      });
+    } catch (err) {
+      throw new Error(`Network/CORS error: ${err.message}`);
+    }
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText);
+      throw new Error(`Supabase ${res.status}: ${errText}`);
+    }
+
+    if (res.status === 204) return null;
+
+    const text = await res.text().catch(() => '');
+    if (!text || !text.trim()) return null;
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Invalid JSON response: ${text.slice(0, 200)}`);
+    }
+  }
+
+  async function loadUsers() {
+    const el = document.getElementById('userList');
+    el.innerHTML = `<p>Loading...</p>`;
+    try {
+      const users = await supa('profiles?select=*&order=created_at.desc');
+      if (!users?.length) {
+        el.innerHTML = `<p style="color:#888;">No users yet.</p>`;
         return;
       }
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'block';
-      loadUsers();
-    }
-
-    async function supa(path, opts = {}) {
-      let res;
-      try {
-        res = await fetch(`${SUPAURL}/rest/v1/${path}`, {
-          ...opts,
-          headers: {
-            apikey: SUPAANON,
-            Authorization: `Bearer ${SUPAANON}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
-            ...(opts.headers || {}),
-          },
-        });
-      } catch (err) {
-        throw new Error(`Network/CORS error: ${err.message}`);
-      }
-
-      if (!res.ok) {
-        const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`Supabase ${res.status}: ${errText}`);
-      }
-
-      if (res.status === 204) return null;
-
-      const text = await res.text().catch(() => '');
-      if (!text || !text.trim()) return null;
-
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Invalid JSON response: ${text.slice(0, 200)}`);
-      }
-    }
-
-    async function loadUsers() {
-      const el = document.getElementById('userList');
-      el.innerHTML = `<p>Loading...</p>`;
-      try {
-        const users = await supa('profiles?select=*&order=created_at.desc');
-        if (!users?.length) {
-          el.innerHTML = `<p style="color:#888;">No users yet.</p>`;
-          return;
-        }
-        el.innerHTML = users.map(u => `
-          <div class="card">
-            <div class="row">
-              <div>
-                <div class="name">
-                  ${u.display_name || '-'}
-                  <span class="badge ${u.approved ? 'approved' : 'pending'}">
-                    ${u.approved ? 'Approved' : 'Pending'}
-                  </span>
-                </div>
-                <div class="sub2">
-                  ${u.crew_code || '-'} • Roster ${u.roster_num ?? '-'} •
-                  ${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}
-                </div>
+      el.innerHTML = users.map(u => `
+        <div class="card">
+          <div class="row">
+            <div>
+              <div class="name">
+                ${u.display_name || '-'}
+                <span class="badge ${u.approved ? 'approved' : 'pending'}">
+                  ${u.approved ? 'Approved' : 'Pending'}
+                </span>
               </div>
-              <div>
-                ${u.approved
-                  ? `<button class="btn-revoke" onclick="setApproved('${u.id}', false)">Revoke</button>`
-                  : `<button class="btn-approve" onclick="setApproved('${u.id}', true)">Approve</button>`
-                }
+              <div class="sub2">
+                ${u.crew_code || '-'} • Roster ${u.roster_num ?? '-'} •
+                ${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}
               </div>
             </div>
+            <div>
+              ${u.approved
+                ? `<button class="btn-revoke" onclick="setApproved('${u.id}', false)">Revoke</button>`
+                : `<button class="btn-approve" onclick="setApproved('${u.id}', true)">Approve</button>`
+              }
+            </div>
           </div>
-        `).join('');
-      } catch (e) {
-        el.innerHTML = `<p style="color:#dc2626;">Error loading users: ${e.message}</p>`;
-      }
+        </div>
+      `).join('');
+    } catch (e) {
+      el.innerHTML = `<p style="color:#dc2626;">Error loading users: ${e.message}</p>`;
     }
+  }
 
-    async function setApproved(id, val) {
-      try {
-        await supa(`profiles?id=eq.${id}`, {
-          method: 'POST',
-          headers: {
-            Prefer: 'return=minimal',
-            'X-HTTP-Method-Override': 'PATCH',
-          },
-          body: JSON.stringify({ approved: val }),
-        });
-        loadUsers();
-      } catch (e) {
-        alert(`Update failed: ${e.message}`);
-      }
+  async function setApproved(id, val) {
+    try {
+      await supa(`profiles?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ approved: val }),
+      });
+
+      loadUsers();
+    } catch (e) {
+      alert(`Update failed: ${e.message}`);
     }
-  </script>
+  }
+</script>
 </body>
 </html>
