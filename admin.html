@@ -249,20 +249,20 @@
   }
 
   async function setApproved(id, val) {
-    try {
-      await supa(`profiles?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: {
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({ approved: val }),
-      });
+  try {
+    await supa(`profiles?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ approved: val }),
+    });
 
-      loadUsers();
-    } catch (e) {
-      alert(`Update failed: ${e.message}`);
-    }
+    loadUsers();
+  } catch (e) {
+    alert(`Update failed: ${e.message}`);
   }
+}
 </script>
 </body>
 </html>
