@@ -1,3 +1,6 @@
+
+Copy
+
 // ── Theme names ───────────────────────────────────────────────
 const THEMES = [
   { id: 'ocean',    label: '🌊 Ocean Blue'  },
@@ -7,7 +10,7 @@ const THEMES = [
   { id: 'rose',     label: '🌸 Rose'        },
   { id: 'slate',    label: '🩶 Slate'       },
 ];
-
+ 
 function setTheme(theme, mode) {
   if (theme !== undefined) APP.themeName = theme;
   if (mode  !== undefined) APP.themeMode = mode;
@@ -15,30 +18,30 @@ function setTheme(theme, mode) {
   applyTheme();
   renderSettings();
 }
-
+ 
 function applyTheme() {
   const name = APP.themeName || 'ocean';
   const mode = APP.themeMode || 'system';
   document.documentElement.setAttribute('data-theme', name);
   document.documentElement.setAttribute('data-mode',  mode);
 }
-
+ 
 function renderSettings() {
   const rEl = document.getElementById('settingRoster');
   if (rEl) rEl.textContent = APP.roster ? `Roster ${APP.roster}` : '-';
-
+ 
   const dEl = document.getElementById('settingDate');
   if (dEl) dEl.textContent = APP.refDate || '-';
-
+ 
   const vEl = document.getElementById('settingSchedVersion');
   if (vEl) vEl.textContent = `${SCHEDULE.version} • ${SCHEDULE.period}`;
-
+ 
   // Theme selectors
   const tSel = document.getElementById('themeNameSelect');
   if (tSel) tSel.value = APP.themeName || 'ocean';
   const mSel = document.getElementById('themeModeSelect');
   if (mSel) mSel.value = APP.themeMode || 'system';
-
+ 
   const n = APP.notif || {};
   const enabled = document.getElementById('notifEnabled');
   if (enabled) enabled.checked = !!n.enabled;
@@ -47,7 +50,7 @@ function renderSettings() {
   document.getElementById('notifDep').value = n.dep || 'first';
   document.getElementById('notifArr').value = n.arr || 'last';
 }
-
+ 
 function setNotifPref(key, val) {
   if (!APP.notif) APP.notif = {};
   APP.notif[key] = val;
@@ -55,11 +58,11 @@ function setNotifPref(key, val) {
   renderSettings();
   if (APP.notif.enabled) scheduleAllNotifications();
 }
-
+ 
 function changeSetting(type) {
   const title = document.getElementById('settingModalTitle');
   const body  = document.getElementById('settingModalBody');
-
+ 
   if (type === 'roster') {
     title.textContent = 'Change Roster';
     const opts = Array.from({ length: 16 }, (_, i) =>
@@ -69,14 +72,14 @@ function changeSetting(type) {
       <select id="chRoster">${opts}</select>
       <button class="btn" onclick="APP.roster=parseInt(document.getElementById('chRoster').value);save();renderSettings();renderHome();closeModal('settingModal')">Save</button>
       <button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>`;
-
+ 
   } else if (type === 'date') {
     title.textContent = 'Change Cycle Date';
     body.innerHTML = `
       <input type="date" id="chDate" value="${APP.refDate || ''}">
       <button class="btn" onclick="APP.refDate=document.getElementById('chDate').value;save();renderSettings();renderHome();renderCalendar();closeModal('settingModal')">Save</button>
       <button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>`;
-
+ 
   } else if (type === 'pin') {
     title.textContent = 'Sicurezza Accesso';
     body.innerHTML = `
@@ -104,15 +107,15 @@ function changeSetting(type) {
         save();closeModal('settingModal');renderSettings();">Salva</button>
       <button class="btn secondary" onclick="closeModal('settingModal')">Annulla</button>`;
   }
-
+ 
   document.getElementById('settingModal').classList.add('open');
 }
-
+ 
 // ── Sync UI ───────────────────────────────────────────────────
 function renderSyncScreen() {
   const el = document.getElementById('syncScreenContent');
   if (!el) return;
-
+ 
   if (!APP.syncLoggedIn) {
     el.innerHTML = `
       <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">
@@ -126,7 +129,7 @@ function renderSyncScreen() {
       </button>`;
     return;
   }
-
+ 
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <div style="background:var(--blue);color:white;width:36px;height:36px;border-radius:10px;
@@ -174,7 +177,7 @@ function renderSyncScreen() {
       👥 Manage my shares
     </button>`;
 }
-
+ 
 async function syncPushThenShow() {
   const el = document.getElementById('syncScreenContent');
   if (el) {
@@ -195,7 +198,7 @@ async function syncPushThenShow() {
   }
 }
 window.syncPushThenShow = syncPushThenShow;
-
+ 
 function showSyncLogin() {
   document.getElementById('settingModalTitle').textContent = 'Roster Sync';
   document.getElementById('settingModalBody').innerHTML = `
@@ -218,7 +221,7 @@ function showSyncLogin() {
   document.getElementById('settingModal').classList.add('open');
 }
 window.showSyncLogin = showSyncLogin;
-
+ 
 function showSyncRegisterForm() {
   document.getElementById('settingModalTitle').textContent = 'Register';
   document.getElementById('settingModalBody').innerHTML = `
@@ -240,20 +243,20 @@ function showSyncRegisterForm() {
   document.getElementById('settingModal').classList.add('open');
 }
 window.showSyncRegisterForm = showSyncRegisterForm;
-
+ 
 async function _doRegister() {
   const code  = document.getElementById('regCode').value.toUpperCase().trim();
   const name  = document.getElementById('regName').value.trim();
   const roster= parseInt(document.getElementById('regRoster').value);
   const pin   = document.getElementById('regPin').value;
   const msg   = document.getElementById('regMsg');
-
+ 
   if (!code || code.length < 3) { msg.textContent='Enter your crew code'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
   if (!name) { msg.textContent='Enter your name'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
   if (pin.length !== 4 || isNaN(pin)) { msg.textContent='PIN must be 4 digits'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
-
+ 
   msg.textContent='Registering…'; msg.style.color='var(--text2)'; msg.style.display='block';
-
+ 
   const res = await syncRegister(code, name, roster, pin);
   if (res.ok) {
     msg.textContent='✅ Registered! Waiting for approval by Marius. You\'ll be able to login once approved.';
@@ -264,7 +267,7 @@ async function _doRegister() {
   }
 }
 window._doRegister = _doRegister;
-
+ 
 function showSyncLoginForm() {
   document.getElementById('settingModalTitle').textContent = 'Login';
   document.getElementById('settingModalBody').innerHTML = `
@@ -280,7 +283,7 @@ function showSyncLoginForm() {
   document.getElementById('settingModal').classList.add('open');
 }
 window.showSyncLoginForm = showSyncLoginForm;
-
+ 
 async function _doLogin() {
   const code = document.getElementById('loginCode').value.toUpperCase().trim();
   const pin  = document.getElementById('loginPin').value;
@@ -295,14 +298,14 @@ async function _doLogin() {
   }
 }
 window._doLogin = _doLogin;
-
+ 
 async function showSharingManager() {
   document.getElementById('settingModalTitle').textContent = 'Sharing';
   document.getElementById('settingModalBody').innerHTML = `<div style="font-size:13px;color:var(--text2);padding:8px 0">Loading…</div>`;
   document.getElementById('settingModal').classList.add('open');
-
+ 
   const shares = await syncGetMyShares().catch(() => []);
-
+ 
   const rows = shares.length
     ? shares.map(s => `
         <div style="display:flex;align-items:center;justify-content:space-between;
@@ -317,7 +320,7 @@ async function showSharingManager() {
                    color:var(--red);cursor:pointer">Revoke</button>
         </div>`).join('')
     : '<div style="font-size:13px;color:var(--text3);padding:8px 0">No active shares yet.</div>';
-
+ 
   document.getElementById('settingModalBody').innerHTML = `
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">
       You share your roster with these colleagues. They can see your full current week.
@@ -331,7 +334,7 @@ async function showSharingManager() {
     <button class="btn secondary" onclick="closeModal('settingModal')">Done</button>`;
 }
 window.showSharingManager = showSharingManager;
-
+ 
 async function _doShare() {
   const code = document.getElementById('shareTargetCode').value.toUpperCase().trim();
   const msg  = document.getElementById('shareMsg');
@@ -346,22 +349,34 @@ async function _doShare() {
   }
 }
 window._doShare = _doShare;
-
-// ── Update password gate ──────────────────────────────────────
-const UPDATE_PWD = 'crewpsr_beta';
-
+ 
+// ── Check for updates ─────────────────────────────────────────
 function _checkUpdateWithPwd() {
-  const pwd = prompt('Enter update password:');
-  if (pwd === null) return;
-  if (pwd === UPDATE_PWD) {
+  const msg = document.getElementById('updateMsg');
+ 
+  if (!navigator.onLine) {
+    if (msg) {
+      msg.textContent = '✈️ You are offline — already on the latest cached version.';
+      msg.style.color = 'var(--yellow)';
+      msg.style.display = 'block';
+    }
+    return;
+  }
+ 
+  if (msg) {
+    msg.textContent = '⏳ Checking… App version: v1.7.0';
+    msg.style.color = 'var(--text3)';
+    msg.style.display = 'block';
+  }
+ 
+  if (typeof checkForUpdates === 'function') {
     checkForUpdates();
-  } else {
-    alert('Incorrect password.');
+  } else if (typeof window.checkForUpdates === 'function') {
+    window.checkForUpdates();
   }
 }
 window._checkUpdateWithPwd = _checkUpdateWithPwd;
-
-
+ 
 // ── Sharing request UI ────────────────────────────────────────
 async function showRequestAccess() {
   document.getElementById('settingModalTitle').textContent = 'Request Access';
@@ -378,7 +393,7 @@ async function showRequestAccess() {
   document.getElementById('settingModal').classList.add('open');
 }
 window.showRequestAccess = showRequestAccess;
-
+ 
 async function _doRequestAccess() {
   const code = document.getElementById('reqTargetCode').value.toUpperCase().trim();
   const msg  = document.getElementById('reqMsg');
@@ -394,21 +409,21 @@ async function _doRequestAccess() {
   }
 }
 window._doRequestAccess = _doRequestAccess;
-
+ 
 async function showPendingRequests() {
   document.getElementById('settingModalTitle').textContent = 'Access Requests';
   document.getElementById('settingModalBody').innerHTML = `<div style="color:var(--text2);font-size:13px;padding:8px 0">Loading…</div>`;
   document.getElementById('settingModal').classList.add('open');
-
+ 
   const reqs = await syncGetPendingRequests().catch(() => []);
-
+ 
   if (!reqs.length) {
     document.getElementById('settingModalBody').innerHTML = `
       <div style="font-size:13px;color:var(--text3);padding:12px 0">No pending requests.</div>
       <button class="btn secondary" onclick="closeModal('settingModal')">Close</button>`;
     return;
   }
-
+ 
   const rows = reqs.map(r => `
     <div style="padding:12px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">
@@ -432,12 +447,12 @@ async function showPendingRequests() {
                  color:var(--text3);cursor:pointer">✕</button>
       </div>
     </div>`).join('');
-
+ 
   document.getElementById('settingModalBody').innerHTML = rows +
     `<button class="btn secondary" style="margin-top:12px" onclick="closeModal('settingModal')">Done</button>`;
 }
 window.showPendingRequests = showPendingRequests;
-
+ 
 async function _approveReq(reqId, requesterCode, mutual) {
   const rows = await _supa(`profiles?crew_code=eq.${requesterCode}&select=id`).catch(() => []);
   if (!rows?.length) return;
@@ -445,16 +460,16 @@ async function _approveReq(reqId, requesterCode, mutual) {
   showPendingRequests();
 }
 window._approveReq = _approveReq;
-
+ 
 async function _declineReq(reqId) {
   await syncDeclineRequest(reqId);
   showPendingRequests();
 }
 window._declineReq = _declineReq;
-
+ 
 // Expose _supa for admin calls from settings
 window._supa = typeof _supa !== 'undefined' ? _supa : null;
-
+ 
 async function showPendingRequestsBadge() {
   showPendingRequests();
   // Update badge count
@@ -465,7 +480,7 @@ async function showPendingRequestsBadge() {
   }
 }
 window.showPendingRequestsBadge = showPendingRequestsBadge;
-
+ 
 async function openSharedView() {
   const profiles = await syncGetSharedWithMe().catch(() => []);
   if (!profiles.length) {
@@ -475,7 +490,7 @@ async function openSharedView() {
   _showSharedViewPicker(profiles);
 }
 window.openSharedView = openSharedView;
-
+ 
 function _showSharedViewPicker(profiles) {
   document.getElementById('settingModalTitle').textContent = 'Shared Rosters';
   const rows = profiles.map(p => `
@@ -497,15 +512,15 @@ function _showSharedViewPicker(profiles) {
     `<button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>`;
   document.getElementById('settingModal').classList.add('open');
 }
-
+ 
 async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
   // Remove existing if any
   document.getElementById('sharedRosterScreen')?.remove();
-
+ 
   const screen = document.createElement('div');
   screen.id = 'sharedRosterScreen';
   screen.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow:hidden';
-
+ 
   screen.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;
                 padding-top:max(14px,env(safe-area-inset-top));
@@ -531,14 +546,14 @@ async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
                   border-radius:50%;animation:spin 0.8s linear infinite"></div>
       <div style="font-size:13px">Loading roster…</div>
     </div>`;
-
+ 
   document.body.appendChild(screen);
-
+ 
   const assignments = await syncGetProfileAssignments(profileId).catch(() => []);
-
+ 
   // Remove loading, add slider
   screen.querySelector('#sharedLoading').remove();
-
+ 
   const sliderHtml = `
     <div id="sharedDots" style="display:flex;justify-content:center;gap:6px;
          padding:8px 0 4px;flex-shrink:0"></div>
@@ -547,27 +562,27 @@ async function openSharedSlides(crewCode, displayName, rosterNum, profileId) {
            will-change:transform"></div>
     </div>`;
   screen.insertAdjacentHTML('beforeend', sliderHtml);
-
+ 
   _buildSharedSlides(assignments, rosterNum, crewCode);
 }
 window.openSharedSlides = openSharedSlides;
-
+ 
 function _buildSharedSlides(assignments, rosterNum, crewCode) {
   const slidesEl = document.getElementById('sharedSlides');
   const dotsEl   = document.getElementById('sharedDots');
   const wrap     = document.getElementById('sharedSliderWrap');
   if (!slidesEl || !dotsEl) return;
-
+ 
   const MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const DAYS_S   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
+ 
   const now = new Date();
   const dates = [];
   for (let i = -2; i <= 7; i++) {
     const d = new Date(now); d.setDate(d.getDate() + i);
     dates.push(d.toISOString().slice(0,10));
   }
-
+ 
   // Index by date string
   const byDate = {};
   for (const a of assignments) {
@@ -575,21 +590,21 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
     const key = (a.date || '').slice(0,10);
     byDate[key] = a;
   }
-
+ 
   let currentIdx = 2;
-
+ 
   dates.forEach((ds, idx) => {
     const d       = new Date(ds + 'T12:00:00');
     const dow     = DAYS_S[d.getDay()];
     const isToday = idx === 2;
     const entry   = byDate[ds];
-
+ 
     // Build duty content
     let heroClass = isToday ? 'var(--blue)' : 'var(--text2)';
     let dutyLabel = 'Day off 🌿';
     let dutyColor = 'var(--off)';
     let dutyDetails = '';
-
+ 
     if (entry && entry.assignment && entry.assignment !== 'OFF') {
       const a = entry.assignment;
       if (a === 'HSBY') {
@@ -600,23 +615,17 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
         dutyLabel = 'Airport Duty';
         dutyColor = 'var(--red)';
         if (entry.details?.start) dutyDetails = `<div style="font-size:12px;opacity:0.8;margin-top:2px">${entry.details.start} – ${entry.details.end}</div>`;
-      } else if (a === 'AL')   { dutyLabel = 'Annual Leave';       dutyColor = 'var(--off)'; }
-      else if (a === 'SICK')   { dutyLabel = 'Sick Leave';          dutyColor = 'var(--red)'; }
-      else if (a === 'VTO')    { dutyLabel = 'Voluntary Time Off';  dutyColor = 'var(--off)'; }
-      else if (a === 'PL')     { dutyLabel = 'Parental Leave';      dutyColor = 'var(--off)'; }
-      else if (a === 'UL')     { dutyLabel = 'Unpaid Leave';        dutyColor = 'var(--text3)'; }
-      else if (['A1E','A1L','A2E','A2L','CUSTOM'].includes(a)) {
-        dutyLabel = a === 'A1E' ? '✈ Aereo 1 Early'
-                  : a === 'A1L' ? '✈ Aereo 1 Late'
-                  : a === 'A2E' ? '✈ Aereo 2 Early'
-                  : a === 'A2L' ? '✈ Aereo 2 Late'
-                  : '✈ Custom';
-        dutyColor = (a.endsWith('L')) ? 'var(--late)' : 'var(--early)';
+      } else if (a === 'AL') {
+        dutyLabel = 'Annual Leave'; dutyColor = 'var(--off)';
+      } else if (a === 'SICK') {
+        dutyLabel = 'Sick Leave'; dutyColor = 'var(--red)';
       } else {
-        dutyLabel = a; dutyColor = 'var(--text2)';
+        // Flight day
+        dutyLabel = a.endsWith('L') ? '✈ Late' : '✈ Early';
+        dutyColor = a.endsWith('L') ? 'var(--late)' : 'var(--early)';
       }
     }
-
+ 
     // Flight rows
     const flights = entry?.flights || [];
     const flightHtml = flights.filter(f=>f.from&&f.to).map(f => `
@@ -625,7 +634,7 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
         <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text)">${f.from}→${f.to}</span>
         <span style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace">${f.dep||''}–${f.arr||''}</span>
       </div>`).join('');
-
+ 
     const slide = document.createElement('div');
     slide.style.cssText = 'min-width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column';
     slide.innerHTML = `
@@ -647,9 +656,9 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
         </div>
         ${flightHtml ? `<div>${flightHtml}</div>` : ''}
       </div>`;
-
+ 
     slidesEl.appendChild(slide);
-
+ 
     // Dot
     const dot = document.createElement('div');
     dot.style.cssText = `width:${isToday?8:6}px;height:${isToday?8:6}px;border-radius:50%;
@@ -657,7 +666,7 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
     dot.onclick = () => goShared(idx);
     dotsEl.appendChild(dot);
   });
-
+ 
   function goShared(idx) {
     idx = Math.max(0, Math.min(dates.length - 1, idx));
     currentIdx = idx;
@@ -668,7 +677,7 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
       d.style.height = i === idx ? '8px' : '6px';
     });
   }
-
+ 
   // Swipe — attach to wrapper, not slides
   if (wrap) {
     let startX = 0, startY = 0, dragging = false;
@@ -687,8 +696,9 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
       }
     }, { passive: true });
   }
-
+ 
   goShared(currentIdx);
 }
-
+ 
 window.renderSyncScreen = renderSyncScreen;
+ 
