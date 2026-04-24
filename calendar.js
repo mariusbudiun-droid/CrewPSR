@@ -212,7 +212,11 @@ function renderCalendar() {
       <div class="cal-topbar">
         <div class="cal-topbar-row1">
           <span class="cal-topbar-title">Calendar</span>
-          <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import Roster</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${APP.syncLoggedIn ? `<button class="cal-import-btn" onclick="syncPushThenNotify()"
+              style="background:var(--blue-lt);color:var(--blue);border-color:var(--blue)">☁️</button>` : ''}
+            <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import</button>
+          </div>
         </div>
         <div class="cal-topbar-row2">
           <span class="cal-month-indicator" id="calMonthIndicator"></span>

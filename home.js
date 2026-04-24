@@ -155,26 +155,9 @@ function buildHomeSlides() {
         if (isLate && theirDay >= 9 && theirDay <= 13) sameShiftList.push(r);
       }
 
-      const ownCrew = (APP.crew?.[APP.roster] || []).filter(c => c && c.code && c.code.trim());
-
-      if (ownCrew.length || sameShiftList.length) {
+      if (sameShiftList.length) {
         sameShiftTitle = 'Same shift';
-        sameShiftHtml = buildOwnCrewCard(APP.roster, ownCrew) + buildSameShiftCards(sameShiftList);
-      }
-    }
-
-    // Reverse swap for off days (6, 8, 14, 16)
-    let reverseHtml = '';
-    if (type === 'off' && day !== 7 && day !== 15) {
-      const revCandidates = typeof reverseSwapCandidates === 'function'
-        ? reverseSwapCandidates(day, ds)
-        : [];
-      if (revCandidates.length) {
-        const legend = `<div style="display:flex;gap:12px;padding:0 16px 6px;font-size:11px;color:var(--text3)">
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> sicuro</span>
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--yellow);display:inline-block"></span> verifica riposo</span>
-        </div>`;
-        reverseHtml = legend + revCandidates.map(c => buildReverseSwapCardHome(c)).join('');
+        sameShiftHtml = buildSameShiftCards(sameShiftList);
       }
     }
 
@@ -191,18 +174,32 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
           if (typeof calcDayFtDp !== 'function') return '';
           const { ft, dp } = calcDayFtDp(ds);
           if (!ft && !dp) return '';
-          return `<div style="display:flex;gap:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">
-            ${ft > 0 ? `<span style="color:var(--blue)">Flight Time ${typeof fmtHours==='function'?fmtHours(ft):ft.toFixed(1)+'h'}</span>` : ''}
-            ${dp > 0 ? `<span style="color:var(--text3)">Duty Period ${typeof fmtHours==='function'?fmtHours(dp):dp.toFixed(1)+'h'}</span>` : ''}
+          const fmt = h => typeof fmtHours === 'function' ? fmtHours(h) : h.toFixed(1)+'h';
+          return `<div style="display:flex;gap:20px;margin-top:8px;padding-top:8px;
+                              border-top:1px solid rgba(255,255,255,0.18)">
+            ${ft > 0 ? `<div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;
+                          text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:1px">
+                Flight Time</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;
+                          font-weight:800;color:rgba(255,255,255,0.95)">
+                ${fmt(ft)}</div>
+            </div>` : ''}
+            ${dp > 0 ? `<div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;
+                          text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:1px">
+                Duty Period</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;
+                          font-weight:800;color:rgba(255,255,255,0.65)">
+                ${fmt(dp)}</div>
+            </div>` : ''}
           </div>`;
         })()}
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
       ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
-      ${type === 'off' && (day === 7 || day === 15) ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${type === 'off' && day !== 7 && day !== 15 && reverseHtml ? `<div class="section-title">You could work instead of</div>${reverseHtml}` : ''}
-      ${type === 'off' && day !== 7 && day !== 15 && !reverseHtml ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
+      ${type === 'off' ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
       ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
     `;
 
@@ -319,31 +316,6 @@ function buildFlightBlock(flights, label, cls) {
   `;
 }
 
-function buildOwnCrewCard(rosterNum, members) {
-  if (!members.length) return '';
-  const pills = members.map(m => {
-    const name = m.name || m.code;
-    const phone = (m.phone || '').replace(/\D/g, '');
-    return phone
-      ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
-      : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap">${name}</span>`;
-  }).join('');
-
-  return `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);
-                border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;
-                margin:0 16px 6px">
-      <div style="background:var(--green);color:white;width:30px;height:30px;border-radius:8px;
-                  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
-                  flex-shrink:0">${rosterNum}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-        <span style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:0.5px;text-transform:uppercase">You</span>
-        ${pills}
-      </div>
-    </div>
-  `;
-}
-
 function buildSameShiftCards(rosterList) {
   return rosterList.map(r => {
     const members = (APP.crew?.[r] || []).filter(m => m && (m.name || m.phone || (m.code && m.code.trim())));
@@ -401,28 +373,4 @@ function buildSwapCard(c) {
       <div class="swap-info">${inner}</div>
     </div>
   `;
-}
-
-function buildReverseSwapCardHome(c) {
-  const colleagues = (APP.crew?.[c.roster] || []).filter(x => x && x.code && x.code.trim());
-  const borderColor = c.certain ? 'var(--green)' : 'var(--yellow)';
-
-  const inner = colleagues.length > 0
-    ? colleagues.map(x => {
-        const phone = (x.phone || '').replace(/\D/g, '');
-        const name  = x.name || x.code;
-        return phone
-          ? `<div style="margin-top:4px"><a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a></div>`
-          : `<div style="font-family:JetBrains Mono,monospace;font-size:13px;margin-top:4px">${name}</div>`;
-      }).join('')
-    : `<div class="swap-codes empty">No crew codes yet</div>`;
-
-  return `
-    <div class="swap-card" style="border-left:3px solid ${borderColor}">
-      <div class="swap-roster-badge">
-        <span class="srb-label">Roster</span>
-        <span class="srb-num">${c.roster}</span>
-      </div>
-      <div class="swap-info">${inner}</div>
-    </div>`;
 }
