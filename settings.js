@@ -347,20 +347,6 @@ async function _doShare() {
 }
 window._doShare = _doShare;
 
-// ── Update password gate ──────────────────────────────────────
-const UPDATE_PWD = 'crewpsr_beta';
-
-function _checkUpdateWithPwd() {
-  const pwd = prompt('Enter update password:');
-  if (pwd === null) return;
-  if (pwd === UPDATE_PWD) {
-    checkForUpdates();
-  } else {
-    alert('Incorrect password.');
-  }
-}
-window._checkUpdateWithPwd = _checkUpdateWithPwd;
-
 // ── Sharing request UI ────────────────────────────────────────
 async function showRequestAccess() {
   document.getElementById('settingModalTitle').textContent = 'Request Access';
