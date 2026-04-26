@@ -148,7 +148,6 @@ function buildHomeSlides() {
       const sameShiftList = [];
 
       for (let r = 1; r <= 16; r++) {
-        if (r === APP.roster) continue;
         const theirDay = cycleDay(r, ds);
 
         if (isEarly && theirDay >= 1 && theirDay <= 5) sameShiftList.push(r);
@@ -189,9 +188,9 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
-      ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
+      ${swapTitle ? _homeCollapsibleSection('home-swap-' + i, swapTitle, swapHtml) : ''}
       ${type === 'off' ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
+      ${sameShiftTitle ? _homeCollapsibleSection('home-same-' + i, sameShiftTitle, sameShiftHtml) : ''}
     `;
 
     slides.appendChild(slide);
@@ -365,3 +364,31 @@ function buildSwapCard(c) {
     </div>
   `;
 }
+
+// ── Collapsible section helper ─────────────────────────────────
+function _homeCollapsibleSection(id, title, contentHtml) {
+  return `
+    <div onclick="toggleHomeSection('${id}')"
+      style="display:flex;align-items:center;justify-content:space-between;
+             margin:18px 16px 6px;padding:8px 14px;border-radius:10px;
+             background:var(--surface);border:1px solid var(--border);
+             cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;
+                   text-transform:uppercase;color:var(--text2);">${title}</span>
+      <span id="${id}-arrow"
+            style="font-size:14px;color:var(--text3);font-weight:700;">›</span>
+    </div>
+    <div id="${id}-body" style="display:none;">${contentHtml}</div>
+  `;
+}
+
+function toggleHomeSection(id) {
+  const body = document.getElementById(id + '-body');
+  const arrow = document.getElementById(id + '-arrow');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.textContent = isOpen ? '›' : '⌄';
+}
+
+window.toggleHomeSection = toggleHomeSection;

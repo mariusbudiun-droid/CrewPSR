@@ -81,10 +81,10 @@
         <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment</div>
         <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
-        <div style="margin-bottom:8px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info</div>
+        <div style="margin-bottom:8px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info, Share, Support</div>
       </div>
       <div style="font-size:12px; color:var(--text3); text-align:center; margin-bottom:16px">
-        Need help? Use <strong>Feedback &amp; Support</strong> in the Info tab — don't be shy! 😊
+        Need help? Use <strong>Feedback &amp; Support</strong> in the More tab — don't be shy! 😊
       </div>
       <button class="btn" onclick="finishSetup()">Get started →</button>
     </div>
@@ -294,7 +294,7 @@
     </div>
 
     <div style="margin:0 16px 12px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
-      <div style="padding:13px 16px;border-bottom:1px solid var(--border)">
+      <div style="padding:13px 16px">
         <div class="setting-label" style="margin-bottom:8px">Theme</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <select id="themeNameSelect" onchange="setTheme(this.value, undefined)"
@@ -316,37 +316,6 @@
           </select>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px">
-        <div><div class="setting-label">Notifications</div><div class="setting-sub">Reminder before report time</div></div>
-        <input type="checkbox" id="notifEnabled" onchange="setNotifPref('enabled',this.checked)"
-          style="flex-shrink:0;width:22px;height:22px;margin:0;accent-color:var(--blue);cursor:pointer">
-      </div>
-    </div>
-
-    <div id="notifOptions" style="display:none;margin:0 16px 12px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px">
-        <div><div class="setting-label">⏰ Report time</div><div class="setting-sub">Alert 45 min before first dep</div></div>
-        <input type="checkbox" id="notifReport" onchange="setNotifPref('report',this.checked)"
-          style="flex-shrink:0;width:22px;height:22px;margin:0;accent-color:var(--blue);cursor:pointer">
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-top:1px solid var(--border)">
-        <div><div class="setting-label">🛫 Departures</div><div class="setting-sub">Alert before each flight</div></div>
-        <select id="notifDep" onchange="setNotifPref('dep',this.value)"
-          style="width:auto;margin-bottom:0;padding:7px 10px;font-size:12px;font-weight:600;flex-shrink:0">
-          <option value="none">Off</option>
-          <option value="first">First only</option>
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-top:1px solid var(--border)">
-        <div><div class="setting-label">🛬 Arrivals</div><div class="setting-sub">Alert at each landing</div></div>
-        <select id="notifArr" onchange="setNotifPref('arr',this.value)"
-          style="width:auto;margin-bottom:0;padding:7px 10px;font-size:12px;font-weight:600;flex-shrink:0">
-          <option value="none">Off</option>
-          <option value="last">Last only</option>
-          <option value="all">All</option>
-        </select>
-      </div>
     </div>
 
     <div style="padding:4px 16px 16px">
@@ -361,18 +330,6 @@
     </div>
 
     <div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
-      <button onclick="shareApp()" class="info-tile" style="background:var(--blue-lt);border-color:var(--blue-lt);color:var(--blue)">
-        <span style="font-size:24px">📤</span>
-        <span>Share App</span>
-      </button>
-      <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
-         target="_blank" class="info-tile" style="background:#f0fdf4;border-color:#dcfce7;color:#16a34a;text-decoration:none">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.204-1.448A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.366l-.36-.213-3.681.859.924-3.573-.234-.368A9.818 9.818 0 1112 21.818z"/>
-        </svg>
-        <span>Support</span>
-      </a>
       <button onclick="toggleInfoSection('tutorialContent','tutArrow')" class="info-tile" style="background:var(--surface);border-color:var(--border);color:var(--text)">
         <span style="font-size:24px">📖</span>
         <span>Tutorial <span id="tutArrow" style="font-size:11px">›</span></span>
@@ -391,7 +348,7 @@
 
         <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:10px">📱 Screens</div>
 
-        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today with Flight Time and Duty Period. Swipe left/right to browse the week. On off days (6, 8, 14, 16) you'll see colleagues you could work instead of.</div>
+        <div style="margin-bottom:8px">🏠 <strong>Home</strong> — your shift today with Flight Time and Duty Period. Swipe left/right to browse the week. Tap <strong>Available for swap</strong> or <strong>Same shift</strong> to expand and see colleagues. On off days (6, 8, 14, 16) you'll see colleagues you could work instead of.</div>
 
         <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to see detail or add a duty. The month header shows total FT and DP. Each cell shows destinations for flight days, or HSBY/AD/OFF labels.</div>
 
@@ -399,7 +356,7 @@
 
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — select your roster and shift to find who can swap with you. Also works for off days to find reverse-swap candidates.</div>
 
-        <div style="margin-bottom:16px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info, and Check for updates.</div>
+        <div style="margin-bottom:16px">⋯ <strong>More</strong> — Statistics, Crew Directory, Roster Sync, Settings, Info, Share App, Feedback &amp; Support, Check for updates.</div>
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
           <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📅 Day Detail</div>
@@ -409,7 +366,7 @@
           <div style="margin-bottom:4px">• <strong>Swap available</strong> — who can cover your shift</div>
           <div style="margin-bottom:4px">• <strong>Same shift</strong> — colleagues flying the same day</div>
           <div style="margin-bottom:10px">• <strong>You could work instead of</strong> — on off days 6, 8, 14, 16</div>
-          <div style="margin-bottom:6px">Tap <strong>Edit duty</strong> to change your assignment. For HSBY and AD, tap <strong>Duty change</strong> to switch to a different rotation or add called-to-fly flights.</div>
+          <div style="margin-bottom:6px">Tap <strong>Edit duty</strong> or <strong>Edit leave</strong> to open the picker. You can tap multiple options and edit details — nothing is finalised until you tap <strong>✓ Done</strong>. For HSBY and AD, tap <strong>Duty change</strong> to switch to a different rotation or add called-to-fly flights.</div>
         </div>
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
@@ -427,7 +384,7 @@
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
           <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📊 Statistics</div>
           <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Shows Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 00:30 on day 13).</div>
-          <div style="margin-bottom:10px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference).</div>
+          <div style="margin-bottom:10px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference). Airport counts represent number of landings (one count per leg).</div>
         </div>
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
@@ -522,7 +479,27 @@
         Info &amp; Tutorial
         <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
       </button>
-      <button onclick="_checkUpdateWithPwd()" id="updateBtn"
+      <button onclick="shareApp()"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">📤</span>
+        Share App
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+      <a href="https://wa.me/393407894585?text=Hi%2C%20I'm%20writing%20about%20CrewPSR%20%E2%80%94%20"
+        target="_blank" rel="noopener noreferrer"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left;text-decoration:none;
+               box-sizing:border-box">
+        <span style="font-size:22px;width:32px;text-align:center">💬</span>
+        Feedback &amp; Support
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </a>
+      <button onclick="checkForUpdates()" id="updateBtn"
         style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
                background:none;border:none;
                font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;

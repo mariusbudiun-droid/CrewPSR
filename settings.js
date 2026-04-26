@@ -44,10 +44,14 @@ function renderSettings() {
   const n = APP.notif || {};
   const enabled = document.getElementById('notifEnabled');
   if (enabled) enabled.checked = !!n.enabled;
-  document.getElementById('notifOptions').style.display = n.enabled ? 'block' : 'none';
-  document.getElementById('notifReport').checked = n.report !== false;
-  document.getElementById('notifDep').value = n.dep || 'first';
-  document.getElementById('notifArr').value = n.arr || 'last';
+  const opts = document.getElementById('notifOptions');
+  if (opts) opts.style.display = n.enabled ? 'block' : 'none';
+  const rep = document.getElementById('notifReport');
+  if (rep) rep.checked = n.report !== false;
+  const dep = document.getElementById('notifDep');
+  if (dep) dep.value = n.dep || 'first';
+  const arr = document.getElementById('notifArr');
+  if (arr) arr.value = n.arr || 'last';
 }
 
 function setNotifPref(key, val) {
@@ -349,17 +353,10 @@ async function _doShare() {
 }
 window._doShare = _doShare;
 
-// ── Update password gate ──────────────────────────────────────
-const UPDATE_PWD = 'crewpsr_beta';
-
+// ── Update password gate removed — Check for updates is now public ──
+// (kept _checkUpdateWithPwd as alias for backwards compat in case any old cached HTML calls it)
 function _checkUpdateWithPwd() {
-  const pwd = prompt('Enter update password:');
-  if (pwd === null) return;
-  if (pwd === UPDATE_PWD) {
-    checkForUpdates();
-  } else {
-    alert('Incorrect password.');
-  }
+  checkForUpdates();
 }
 window._checkUpdateWithPwd = _checkUpdateWithPwd;
 

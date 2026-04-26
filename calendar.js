@@ -860,7 +860,7 @@ function _openDutyPicker(ds) {
       style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
              background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
              color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
-    <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>
+    <button class="btn" style="margin-top:8px" onclick="_finishDutyEdit('${ds}')">✓ Done</button>
   `;
   document.getElementById('settingModal').classList.add('open');
 }
@@ -961,7 +961,7 @@ function _openLeavePicker(ds) {
   document.getElementById('settingModalTitle').textContent='Set leave';
   document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:50vh;overflow-y:auto">${buildLeaveOptions(ds)}</div>
-    <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
+    <button class="btn" style="margin-top:10px" onclick="_finishDutyEdit('${ds}')">✓ Done</button>`;
   document.getElementById('settingModal').classList.add('open');
 }
 
@@ -1136,22 +1136,57 @@ function setAssign(ds, val) {
   if (val) APP.assignments[ds]=val;
   else { delete APP.assignments[ds]; if(APP.customFlights)delete APP.customFlights[ds]; if(APP.assignDetails)delete APP.assignDetails[ds]; }
   save();
-  // Don't close modal for HSBY/AD so user can set shift type
-  if (val==='HSBY'||val==='AD') {
-    // Refresh picker content to show shift-type picker
-    const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
-    document.querySelector('#settingModal .modal-body, #settingModalBody').innerHTML=`
-      <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
-      <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
-    renderCalendar(); renderHome();
+  renderCalendar(); renderHome();
+
+  // Keep modal open — user can tap multiple options, then tap Done to apply
+  const isLeaveType = ['AL','VTO','SICK','UL','PL'].includes(val);
+
+  if (isLeaveType) {
+    document.getElementById('settingModalTitle').textContent = 'Set leave';
+    document.getElementById('settingModalBody').innerHTML = `
+      <div style="max-height:50vh;overflow-y:auto">${buildLeaveOptions(ds)}</div>
+      <button class="btn" style="margin-top:10px" onclick="_finishDutyEdit('${ds}')">✓ Done</button>`;
     return;
   }
+
+  // Duty types (A1E/A1L/A2E/A2L/HSBY/AD/CUSTOM) — re-render full duty picker
+  const sched = SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
+  const assign = APP.assignments[ds];
+  const isHsbyAd = assign === 'HSBY' || assign === 'AD';
+
+  document.getElementById('settingModalTitle').textContent = 'Set duty';
+  document.getElementById('settingModalBody').innerHTML = `
+    <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds, sched)}</div>
+    ${isHsbyAd ? `
+    <button onclick="_openDutyChange('${ds}')"
+      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;
+             border:1.5px solid var(--blue);background:var(--blue-lt);
+             font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;
+             color:var(--blue);cursor:pointer">✈ Duty change</button>` : ''}
+    ${assign ? `
+    <button onclick="if(confirm('Sei sicuro di voler cancellare il duty?')){_clearDuty('${ds}');closeModal('settingModal')}"
+      style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
+             background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+             color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
+    <button class="btn" style="margin-top:8px" onclick="_finishDutyEdit('${ds}')">✓ Done</button>
+  `;
+}
+
+// Called when user taps Done in the duty/leave picker.
+// Closes the modal and applies side-effects (custom flights, day detail refresh, notifications).
+function _finishDutyEdit(ds) {
+  const assign = APP.assignments?.[ds];
   closeModal('settingModal');
   renderCalendar(); renderHome();
-  if (val==='CUSTOM') openCustomFlights(ds);
-  else { _detailDs=ds; _renderDayDetail(); }
+  if (assign === 'CUSTOM') {
+    openCustomFlights(ds);
+  } else {
+    _detailDs = ds;
+    _renderDayDetail();
+  }
   if (APP.notif?.enabled) scheduleAllNotifications();
 }
+window._finishDutyEdit = _finishDutyEdit;
 
 
 // ══════════════════════════════════════════════════════════════

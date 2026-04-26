@@ -149,8 +149,8 @@ function calcStats() {
 
     for (const f of flights) {
       totalSectors++;
-      if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
-      if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
+      // Count only landings (destination) — each leg = 1 visit to that airport
+      if (f.to) airportCount[f.to] = (airportCount[f.to] || 0) + 1;
       if (f.from === 'PSR' && f.to) routeCount[`PSR-${f.to}`] = (routeCount[`PSR-${f.to}`] || 0) + 1;
     }
 
@@ -266,8 +266,8 @@ function calcMonthStats(year, month) {
     sectors += flights.length;
 
     for (const f of flights) {
-      if (f.from) airportCount[f.from] = (airportCount[f.from] || 0) + 1;
-      if (f.to)   airportCount[f.to]   = (airportCount[f.to]   || 0) + 1;
+      // Count only landings (destination) — each leg = 1 visit to that airport
+      if (f.to) airportCount[f.to] = (airportCount[f.to] || 0) + 1;
       if (f.from === 'PSR' && f.to) routeCount[`PSR-${f.to}`] = (routeCount[`PSR-${f.to}`] || 0) + 1;
     }
 

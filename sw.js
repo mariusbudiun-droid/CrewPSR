@@ -1,4 +1,4 @@
-const CACHE = 'crewpsr-v6';
+const CACHE = 'crewpsr-v7';
  
 const ASSETS = [
   '/',
