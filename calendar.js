@@ -212,7 +212,11 @@ function renderCalendar() {
       <div class="cal-topbar">
         <div class="cal-topbar-row1">
           <span class="cal-topbar-title">Calendar</span>
-          <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import Roster</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${APP.syncLoggedIn ? `<button class="cal-import-btn" onclick="syncPushThenNotify()"
+              style="background:var(--blue-lt);color:var(--blue);border-color:var(--blue)">☁️ Sync</button>` : ''}
+            <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import</button>
+          </div>
         </div>
         <div class="cal-topbar-row2">
           <span class="cal-month-indicator" id="calMonthIndicator"></span>
@@ -856,7 +860,7 @@ function _openDutyPicker(ds) {
       style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid var(--red);
              background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
              color:var(--red);cursor:pointer">🗑 Clear duty</button>` : ''}
-    <button class="btn" style="margin-top:8px" onclick="closeModal('settingModal');if(_detailDs){_renderDayDetail()}">✓ Done</button>
+    <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>
   `;
   document.getElementById('settingModal').classList.add('open');
 }
@@ -957,7 +961,7 @@ function _openLeavePicker(ds) {
   document.getElementById('settingModalTitle').textContent='Set leave';
   document.getElementById('settingModalBody').innerHTML=`
     <div style="max-height:50vh;overflow-y:auto">${buildLeaveOptions(ds)}</div>
-    <button class="btn" style="margin-top:10px" onclick="closeModal('settingModal');if(_detailDs){_renderDayDetail()}">✓ Done</button>`;
+    <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
   document.getElementById('settingModal').classList.add('open');
 }
 
@@ -1138,7 +1142,7 @@ function setAssign(ds, val) {
     const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
     document.querySelector('#settingModal .modal-body, #settingModalBody').innerHTML=`
       <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
-      <button class="btn" style="margin-top:10px" onclick="closeModal('settingModal');if(_detailDs){_renderDayDetail()}">✓ Done</button>`;
+      <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
     renderCalendar(); renderHome();
     return;
   }
@@ -1253,3 +1257,18 @@ window._openDutyPicker  = _openDutyPicker;
 window._openLeavePicker = _openLeavePicker;
 window._clearDuty       = _clearDuty;
 window._setShiftType    = _setShiftType;
+
+async function syncPushThenNotify() {
+  if (!APP.syncLoggedIn) return;
+  const btn = document.querySelector('[onclick="syncPushThenNotify()"]');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    const res = await syncPushAssignments();
+    if (btn) { btn.textContent = res.ok ? '✓ Synced' : '✗ Error'; btn.disabled = false; }
+    setTimeout(() => renderCalendar(), 2500);
+  } catch(e) {
+    if (btn) { btn.textContent = '✗ Error'; btn.disabled = false; }
+    setTimeout(() => renderCalendar(), 2500);
+  }
+}
+window.syncPushThenNotify = syncPushThenNotify;
