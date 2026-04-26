@@ -347,17 +347,17 @@ async function _doShare() {
 }
 window._doShare = _doShare;
 
-// ── Update password gate ──────────────────────────────────────
-const UPDATE_PWD = 'crewpsr_beta';
 
+// ── Check for updates ─────────────────────────────────────────
 function _checkUpdateWithPwd() {
-  const pwd = prompt('Enter update password:');
-  if (pwd === null) return;
-  if (pwd === UPDATE_PWD) {
-    checkForUpdates();
-  } else {
-    alert('Incorrect password.');
+  const msg = document.getElementById('updateMsg');
+  if (msg) {
+    msg.textContent = '⏳ Checking… App version: v1.7.0';
+    msg.style.color = 'var(--text3)';
+    msg.style.display = 'block';
   }
+  if (typeof checkForUpdates === 'function') checkForUpdates();
+  else if (typeof window.checkForUpdates === 'function') window.checkForUpdates();
 }
 window._checkUpdateWithPwd = _checkUpdateWithPwd;
 

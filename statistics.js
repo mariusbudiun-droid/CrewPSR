@@ -177,15 +177,17 @@ function calcStats() {
   const topAirports = Object.entries(airportCount).sort((a,b) => b[1]-a[1]);
   const topRoutes   = Object.entries(routeCount).sort((a,b) => b[1]-a[1]);
 
-  let maxFt = 0, longestDays = [];
-  for (const [ds, h] of Object.entries(dayFtMap)) {
-    if (h > maxFt) {
-      maxFt = h;
-      longestDays = [ds];
-    } else if (h === maxFt && h > 0) {
-      longestDays.push(ds);
-    }
+  let maxFt = 0, longestFtDays = [];
+  let maxDp = 0, longestDpDays = [];
+  for (const ds of Object.keys(dayFtMap)) {
+    const ft = dayFtMap[ds] || 0;
+    const dp = dayDpMap[ds] || 0;
+    if (ft > maxFt) { maxFt = ft; longestFtDays = [ds]; }
+    else if (ft === maxFt && ft > 0) longestFtDays.push(ds);
+    if (dp > maxDp) { maxDp = dp; longestDpDays = [ds]; }
+    else if (dp === maxDp && dp > 0) longestDpDays.push(ds);
   }
+  const longestDays = longestFtDays;
 
   const monthFtMins = {};
   for (const ds of Object.keys(dayFtMap)) {
@@ -217,7 +219,7 @@ function calcStats() {
     totalSectors,
     topAirports,
     topRoutes,
-    longestDays,
+    longestDays: longestFtDays,
     longestFt: maxFt,
     longestDpDays,
     longestDp: maxDp,
@@ -275,14 +277,15 @@ function calcMonthStats(year, month) {
     }
   }
 
-  let maxFt = 0, longestDays = [];
-  for (const [ds, h] of Object.entries(dayFtMap)) {
-    if (h > maxFt) {
-      maxFt = h;
-      longestDays = [ds];
-    } else if (h === maxFt && h > 0) {
-      longestDays.push(ds);
-    }
+  let maxFt = 0, longestFtDays = [];
+  let maxDp = 0, longestDpDays = [];
+  for (const ds of Object.keys(dayFtMap)) {
+    const ft = dayFtMap[ds] || 0;
+    const dp = dayDpMap[ds] || 0;
+    if (ft > maxFt) { maxFt = ft; longestFtDays = [ds]; }
+    else if (ft === maxFt && ft > 0) longestFtDays.push(ds);
+    if (dp > maxDp) { maxDp = dp; longestDpDays = [ds]; }
+    else if (dp === maxDp && dp > 0) longestDpDays.push(ds);
   }
 
   return {
@@ -294,7 +297,7 @@ function calcMonthStats(year, month) {
     sectors,
     topAirports: Object.entries(airportCount).sort((a,b) => b[1]-a[1]),
     topRoutes: Object.entries(routeCount).sort((a,b) => b[1]-a[1]),
-    longestDays,
+    longestDays: longestFtDays,
     longestFt: maxFt,
     longestDpDays,
     longestDp: maxDp,
