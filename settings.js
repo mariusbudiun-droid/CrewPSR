@@ -6,6 +6,8 @@ const THEMES = [
   { id: 'forest',   label: '🌿 Forest'      },
   { id: 'rose',     label: '🌸 Rose'        },
   { id: 'slate',    label: '🩶 Slate'       },
+  { id: 'amber',    label: '🌟 Amber'       },
+  { id: 'lavender', label: '💜 Lavender'    },
 ];
 
 function setTheme(theme, mode) {
@@ -347,17 +349,17 @@ async function _doShare() {
 }
 window._doShare = _doShare;
 
+// ── Update password gate ──────────────────────────────────────
+const UPDATE_PWD = 'crewpsr_beta';
 
-// ── Check for updates ─────────────────────────────────────────
 function _checkUpdateWithPwd() {
-  const msg = document.getElementById('updateMsg');
-  if (msg) {
-    msg.textContent = '⏳ Checking… App version: v1.7.0';
-    msg.style.color = 'var(--text3)';
-    msg.style.display = 'block';
+  const pwd = prompt('Enter update password:');
+  if (pwd === null) return;
+  if (pwd === UPDATE_PWD) {
+    checkForUpdates();
+  } else {
+    alert('Incorrect password.');
   }
-  if (typeof checkForUpdates === 'function') checkForUpdates();
-  else if (typeof window.checkForUpdates === 'function') window.checkForUpdates();
 }
 window._checkUpdateWithPwd = _checkUpdateWithPwd;
 
@@ -614,36 +616,32 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
     const flights = entry?.flights || [];
     const flightHtml = flights.filter(f=>f.from&&f.to).map(f => `
       <div style="display:flex;align-items:center;justify-content:space-between;
-                  padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:var(--text)">${f.from} → ${f.to}</span>
-        <span style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace">${f.dep||''}  ${f.arr||''}</span>
+                  padding:8px 16px;border-bottom:1px solid var(--border)">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--text)">${f.from}→${f.to}</span>
+        <span style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace">${f.dep||''}–${f.arr||''}</span>
       </div>`).join('');
-
-    // Hero gradient based on duty
-    const hGrad = (entry?.assignment === 'HSBY') ? 'linear-gradient(135deg,#92400e,#d97706)'
-      : (entry?.assignment === 'AD')  ? 'linear-gradient(135deg,#991b1b,#dc2626)'
-      : (!entry?.assignment || entry?.assignment === 'OFF') ? 'linear-gradient(135deg,#065f46,#059669)'
-      : ['AL','VTO','PL','UL'].includes(entry?.assignment) ? 'linear-gradient(135deg,#065f46,#10b981)'
-      : entry?.assignment?.endsWith('L') ? 'linear-gradient(135deg,#4c1d95,#7c3aed)'
-      : 'linear-gradient(135deg,#1a4fba,#2563eb)';
 
     const slide = document.createElement('div');
     slide.style.cssText = 'min-width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column';
     slide.innerHTML = `
-      <div style="${hGrad};margin:12px 16px 0;border-radius:16px;
-                  overflow:hidden;color:white;position:relative;
-                  box-shadow:0 4px 20px rgba(0,0,0,0.2)">
-        <div style="position:absolute;right:-8px;bottom:-16px;font-size:90px;opacity:0.08;line-height:1">✈</div>
-        <div style="padding:18px;position:relative">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-                      opacity:0.65;margin-bottom:4px">${dow} · ${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}</div>
-          <div style="font-size:22px;font-weight:800;line-height:1.15;margin-bottom:2px">${dutyLabel}</div>
-          ${dutyDetails}
-          ${isToday ? '<div style="margin-top:8px;font-size:10px;background:rgba(255,255,255,0.25);border-radius:6px;padding:3px 10px;display:inline-block;font-weight:700;letter-spacing:1px">TODAY</div>' : ''}
+      <div style="background:var(--surface);margin:12px 16px 0;border-radius:16px;
+                  border:1px solid var(--border);overflow:hidden">
+        <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;
+                    align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;
+                        letter-spacing:1px">${dow}</div>
+            <div style="font-size:26px;font-weight:800;color:${heroClass};line-height:1.1">${d.getDate()} ${MONTHS_S[d.getMonth()]}</div>
+            <div style="font-size:11px;color:var(--text3)">${d.getFullYear()}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:800;color:${dutyColor}">${dutyLabel}</div>
+            ${dutyDetails}
+            ${isToday ? '<div style="font-size:10px;background:var(--blue);color:white;border-radius:6px;padding:2px 8px;margin-top:4px;display:inline-block;font-weight:700">TODAY</div>' : ''}
+          </div>
         </div>
-      </div>
-      ${flightHtml ? `<div style="margin:8px 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">${flightHtml}</div>` : ''}
-      <div style="height:16px"></div>`;
+        ${flightHtml ? `<div>${flightHtml}</div>` : ''}
+      </div>`;
 
     slidesEl.appendChild(slide);
 
