@@ -155,47 +155,10 @@ function buildHomeSlides() {
         if (isLate && theirDay >= 9 && theirDay <= 13) sameShiftList.push(r);
       }
 
-        // Own roster in same shift
-      const ownCrew = (APP.crew?.[APP.roster] || []).filter(m => m && (m.name || m.phone || (m.code && m.code.trim())));
-      if (sameShiftList.length || ownCrew.length) {
+      if (sameShiftList.length) {
         sameShiftTitle = 'Same shift';
-        // Own roster card first (green accent)
-        const ownCard = ownCrew.length
-          ? `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;margin:0 16px 6px;">
-              <div style="background:var(--green);color:white;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">${APP.roster}</div>
-              <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-                <span style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px">You</span>
-                ${ownCrew.map(m => {
-                  const name = m.name || m.code || '';
-                  const phone = (m.phone || '').replace(/\D/g, '');
-                  return phone
-                    ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer">${name}</a>`
-                    : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</span>`;
-                }).join('')}
-              </div>
-            </div>`
-          : '';
-        sameShiftHtml = ownCard + buildSameShiftCards(sameShiftList);
+        sameShiftHtml = buildSameShiftCards(sameShiftList);
       }
-    }
-
-    // Collapsible helper (unique ID per slide)
-    const slideId = `s${i}_${Date.now()}`;
-    function _col(id, title, count, content) {
-      return `<div style="margin:0 0 4px">
-        <button onclick="(function(b,c){c.style.display=c.style.display==='none'?'block':'none';b.querySelector('.carr').textContent=c.style.display==='none'?'›':'⌄'})(this,document.getElementById('${id}'))"
-          style="width:100%;display:flex;align-items:center;justify-content:space-between;
-                 padding:10px 14px;margin:0 16px;width:calc(100% - 32px);border-radius:10px;
-                 background:var(--surface);border:1px solid var(--border);
-                 font-family:'Outfit',sans-serif;cursor:pointer">
-          <span style="font-size:13px;font-weight:700;color:var(--text2)">${title}</span>
-          <span style="display:flex;align-items:center;gap:6px">
-            ${count ? `<span style="font-size:11px;color:var(--text3);font-weight:600">${count}</span>` : ''}
-            <span class="carr" style="font-size:15px;color:var(--text3)">›</span>
-          </span>
-        </button>
-        <div id="${id}" style="display:none;padding-top:4px">${content}</div>
-      </div>`;
     }
 
    const slide = document.createElement('div');
@@ -207,12 +170,28 @@ slide.style.cssText = 'min-width:100%; width:100%; flex-shrink:0; overflow-y:aut
         <div class="shift-name">${lbl.main}</div>
         ${lbl.sub ? `<div class="cycle-info">${lbl.sub}</div>` : ''}
         ${reportHtml}
+        ${(() => {
+          if (typeof calcDayFtDp !== 'function') return '';
+          const { ft, dp } = calcDayFtDp(ds);
+          if (!ft && !dp) return '';
+          const fmt = h => typeof fmtHours === 'function' ? fmtHours(h) : h.toFixed(1) + 'h';
+          return `<div style="display:flex;gap:20px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.18)">
+            ${ft > 0 ? `<div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:1px">Flight Time</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:rgba(255,255,255,0.95)">${fmt(ft)}</div>
+            </div>` : ''}
+            ${dp > 0 ? `<div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:1px">Duty Period</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:rgba(255,255,255,0.65)">${fmt(dp)}</div>
+            </div>` : ''}
+          </div>`;
+        })()}
       </div>
 
       ${flightsTitle ? `<div class="section-title">${flightsTitle}</div>${flightsHtml}` : ''}
-      ${swapTitle ? _col('swap_'+slideId, swapTitle, '', swapHtml) : ''}
+      ${swapTitle ? `<div class="section-title">${swapTitle}</div>${swapHtml}` : ''}
       ${type === 'off' ? `<div class="card" style="margin:0 16px;text-align:center;color:var(--off);font-weight:600;">Enjoy your day off!</div>` : ''}
-      ${sameShiftTitle ? _col('same_'+slideId, sameShiftTitle, '', sameShiftHtml) : ''}
+      ${sameShiftTitle ? `<div class="section-title">${sameShiftTitle}</div>${sameShiftHtml}` : ''}
     `;
 
     slides.appendChild(slide);
