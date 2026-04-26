@@ -529,7 +529,7 @@ function _renderStatsContent() {
         ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${s.longestDays.length}</span>`
         : '';
 
-      html += _section('Longest Flight Time' + note, ftRows);
+      html += _section('Longest Flight Time' + note, rows);
     }
     if (s.longestDpDays && s.longestDpDays.length) {
       const dpRows = s.longestDpDays.slice(0, 3).map(ds => `
