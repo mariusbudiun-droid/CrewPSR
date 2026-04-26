@@ -212,7 +212,11 @@ function renderCalendar() {
       <div class="cal-topbar">
         <div class="cal-topbar-row1">
           <span class="cal-topbar-title">Calendar</span>
-          <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import Roster</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${APP.syncLoggedIn ? `<button class="cal-import-btn" onclick="syncPushThenNotify()"
+              style="background:var(--blue-lt);color:var(--blue);border-color:var(--blue)">☁️</button>` : ''}
+            <button class="cal-import-btn" onclick="triggerRosterImport()">+ Import</button>
+          </div>
         </div>
         <div class="cal-topbar-row2">
           <span class="cal-month-indicator" id="calMonthIndicator"></span>
@@ -1138,8 +1142,7 @@ function setAssign(ds, val) {
     const sched=SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
     document.querySelector('#settingModal .modal-body, #settingModalBody').innerHTML=`
       <div style="max-height:60vh;overflow-y:auto">${buildDutyOptions(ds,sched)}</div>
-      <button class="btn" style="margin-top:10px" onclick="closeModal('settingModal');_detailDs='${ds}';_renderDayDetail()">Done</button>
-      <button class="btn secondary" style="margin-top:8px" onclick="closeModal('settingModal')">Cancel</button>`;
+      <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal')">Cancel</button>`;
     renderCalendar(); renderHome();
     return;
   }

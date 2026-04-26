@@ -219,6 +219,8 @@ function calcStats() {
     topRoutes,
     longestDays,
     longestFt: maxFt,
+    longestDpDays,
+    longestDp: maxDp,
     busiestMonth,
     busiestFt: busiestFtMins / 60,
     countries: [...countries].sort(),
@@ -294,6 +296,8 @@ function calcMonthStats(year, month) {
     topRoutes: Object.entries(routeCount).sort((a,b) => b[1]-a[1]),
     longestDays,
     longestFt: maxFt,
+    longestDpDays,
+    longestDp: maxDp,
     lateFinishes,
     lateFinishDates,
     dayFtMap,
@@ -411,19 +415,24 @@ function _renderStatsContent() {
     </div>`;
 
     if (data.longestDays.length) {
-      const rows = data.longestDays.map(ds => `
+      const ftRows = data.longestDays.map(ds => `
         <div style="display:flex;justify-content:space-between;align-items:center;
                     padding:6px 0;border-bottom:1px solid var(--border)">
           <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:13px;
                        font-weight:700;color:var(--blue)">${fmtH(data.longestFt)}</span>
         </div>`).join('');
-
-      const note = data.longestDays.length > 1
-        ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${data.longestDays.length}</span>`
-        : '';
-
-      html += _section('Longest day' + note, rows);
+      html += _section('Longest Flight Time', ftRows);
+    }
+    if (data.longestDpDays && data.longestDpDays.length) {
+      const dpRows = data.longestDpDays.map(ds => `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;
+                       font-weight:700;color:var(--text2)">${fmtH(data.longestDp)}</span>
+        </div>`).join('');
+      html += _section('Longest Duty Period', dpRows);
     }
 
     if (data.lateFinishDates.length) {
@@ -517,7 +526,17 @@ function _renderStatsContent() {
         ? ` <span style="font-size:11px;color:var(--text3);font-weight:600">×${s.longestDays.length}</span>`
         : '';
 
-      html += _section('Longest day' + note, rows);
+      html += _section('Longest Flight Time' + note, ftRows);
+    }
+    if (s.longestDpDays && s.longestDpDays.length) {
+      const dpRows = s.longestDpDays.slice(0, 3).map(ds => `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:14px;color:var(--text)">${fmtDate(ds)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;
+                       font-weight:700;color:var(--text2)">${fmtH(s.longestDp)}</span>
+        </div>`).join('');
+      html += _section('Longest Duty Period', dpRows);
     }
 
     if (s.lateFinishDates.length) {
