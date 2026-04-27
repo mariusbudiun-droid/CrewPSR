@@ -161,6 +161,8 @@
     const SUPAURL = 'https://wudxxjidvajrfutgvnoa.supabase.co';
     const SUPAANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1ZHh4amlkdmFqcmZ1dGd2bm9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzkwNjQsImV4cCI6MjA5MjUxNTA2NH0.HwbS7g4cjK3IV_J7bvsTLKExfnCd_qGOd_m-AcB4PMo';
     const ADMINPWD = 'Marius87';
+    // Must match the secret used in the Supabase RLS policy "profiles_admin_approve"
+    const ADMIN_SECRET = 'psr_admin_kx9m2pq7vnw3rt8';
 
     function adminLogin() {
       const pwd = document.getElementById('adminPwd').value;
@@ -187,6 +189,7 @@
             Authorization: `Bearer ${SUPAANON}`,
             'Content-Type': 'application/json',
             Prefer: 'return=representation',
+            'x-admin-secret': ADMIN_SECRET,
             ...(opts.headers || {}),
           },
         });
@@ -262,13 +265,19 @@
             'apikey': SUPAANON,
             'Authorization': `Bearer ${SUPAANON}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=minimal',
+            'Prefer': 'return=representation',
+            'x-admin-secret': ADMIN_SECRET,
           },
           body: JSON.stringify({ approved: val }),
         });
         if (!res.ok) {
           const err = await res.text();
           throw new Error(`${res.status}: ${err}`);
+        }
+        // Verify a row was actually modified — RLS may return 200 OK with 0 rows
+        const updated = await res.json().catch(() => []);
+        if (!Array.isArray(updated) || updated.length === 0) {
+          throw new Error('No rows updated — check RLS policy and ADMIN_SECRET');
         }
         await loadUsers();
       } catch (e) {
