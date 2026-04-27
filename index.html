@@ -39,7 +39,8 @@
       <label class="inp-label">A date when you were on Day 1</label>
       <input type="date" id="setupDate">
       <div style="font-size:11px; color:var(--text3); margin:-8px 0 14px; line-height:1.5">
-        Day 1 = first Early shift of your cycle
+        Day 1 = first Early shift of your cycle<br>
+        <span style="color:var(--text2)">Es: se la tua prima Early dopo i giorni off è stata il 15 marzo 2026, metti quella data.</span>
       </div>
       <button class="btn" onclick="setupNext()">Continue →</button>
     </div>
@@ -317,7 +318,10 @@
       </div>
     </div>
 
-    <div style="padding:4px 16px 16px">
+    <div style="padding:4px 16px 8px">
+      <button class="btn secondary" onclick="resetPinOnly()">🔓 Forgot PIN? Reset PIN only</button>
+    </div>
+    <div style="padding:0 16px 16px">
       <button class="btn secondary" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset all data</button>
     </div>
   </div>

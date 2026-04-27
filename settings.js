@@ -676,3 +676,29 @@ function _buildSharedSlides(assignments, rosterNum, crewCode) {
 }
 
 window.renderSyncScreen = renderSyncScreen;
+
+// ── Forgot PIN / Reset PIN only ───────────────────────────────
+// Wipes APP.pin and APP.password while keeping crew, assignments, theme,
+// roster, refDate, and everything else intact. Used when the user forgets
+// their PIN but doesn't want to lose their data.
+function resetPinOnly() {
+  const hasPin = !!APP.pin;
+  const hasPwd = !!APP.usePassword;
+  if (!hasPin && !hasPwd) {
+    alert('Nessun PIN o password impostati.');
+    return;
+  }
+  const ok = confirm(
+    'Reset del PIN?\n\n' +
+    'La Crew Directory tornerà ad essere accessibile senza protezione. ' +
+    'I tuoi dati (crew, calendario, impostazioni) NON vengono cancellati.'
+  );
+  if (!ok) return;
+  APP.pin = null;
+  APP.password = null;
+  APP.usePassword = false;
+  save();
+  alert('PIN rimosso. La Crew Directory non è più protetta.');
+  if (typeof renderSettings === 'function') renderSettings();
+}
+window.resetPinOnly = resetPinOnly;

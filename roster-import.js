@@ -382,6 +382,18 @@ function convertVisionDays(days) {
     } else if (d.type === 'al' || d.assignment === 'AL') {
       result[ds] = { duty: 'AL' };
 
+    } else if (d.type === 'vto' || d.assignment === 'VTO') {
+      result[ds] = { duty: 'VTO' };
+
+    } else if (d.type === 'sick' || d.assignment === 'SICK') {
+      result[ds] = { duty: 'SICK' };
+
+    } else if (d.type === 'ul' || d.assignment === 'UL') {
+      result[ds] = { duty: 'UL' };
+
+    } else if (d.type === 'pl' || d.assignment === 'PL') {
+      result[ds] = { duty: 'PL' };
+
     } else if (d.flights && d.flights.length > 0) {
       const assign = ['A1E','A1L','A2E','A2L'].includes(d.assignment) ? d.assignment : 'CUSTOM';
       const flights = d.flights.map(f => ({
@@ -566,6 +578,26 @@ function showImportPreview(parsed) {
       dutyHtml = `<span style="color:var(--blue);font-weight:700">✈️ Flights</span>${routes}`;
       bg = 'var(--early-lt)';
       borderColor = 'var(--early)';
+    } else if (entry.duty === 'AL') {
+      dutyHtml = `<span style="color:var(--off);font-weight:700">🌴 Annual Leave</span>`;
+      bg = 'var(--off-lt)';
+      borderColor = 'var(--off)';
+    } else if (entry.duty === 'VTO') {
+      dutyHtml = `<span style="color:var(--off);font-weight:700">✋ VTO</span>`;
+      bg = 'var(--off-lt)';
+      borderColor = 'var(--off)';
+    } else if (entry.duty === 'SICK') {
+      dutyHtml = `<span style="color:var(--red);font-weight:700">🤒 Sick</span>`;
+      bg = 'var(--red-lt)';
+      borderColor = 'var(--red)';
+    } else if (entry.duty === 'UL') {
+      dutyHtml = `<span style="color:var(--off);font-weight:700">📄 Unpaid Leave</span>`;
+      bg = 'var(--off-lt)';
+      borderColor = 'var(--off)';
+    } else if (entry.duty === 'PL') {
+      dutyHtml = `<span style="color:var(--off);font-weight:700">📄 Parental Leave</span>`;
+      bg = 'var(--off-lt)';
+      borderColor = 'var(--off)';
     }
 
     html += `
@@ -660,6 +692,11 @@ function confirmRosterImport() {
 
     } else if (entry.duty === 'AL') {
       APP.assignments[ds] = 'AL';
+      delete APP.customFlights[ds];
+      delete APP.assignDetails[ds];
+
+    } else if (['VTO','SICK','UL','PL'].includes(entry.duty)) {
+      APP.assignments[ds] = entry.duty;
       delete APP.customFlights[ds];
       delete APP.assignDetails[ds];
     }

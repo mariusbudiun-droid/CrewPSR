@@ -1210,11 +1210,26 @@ function renderCustomFlightsBody(ds) {
   screen.setAttribute('data-ds',ds);
   const cfl=APP.customFlights?.[ds]||[], report=cfl.length?calcReport(cfl):null;
   let html='';
-  if (report&&report!=='—') html+=`<div style="display:flex;align-items:center;gap:8px;background:var(--blue-lt);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:15px;font-weight:700;color:var(--blue)">🕐 Report ${report}</div>`;
+  // Always emit the report container so we can update it in place without re-rendering
+  // (avoids destroying input focus while user is typing in dep/arr fields).
+  const showReport = report && report !== '—';
+  html+=`<div id="cfReportPill" style="display:${showReport?'flex':'none'};align-items:center;gap:8px;background:var(--blue-lt);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:15px;font-weight:700;color:var(--blue)">🕐 Report <span id="cfReportTime">${showReport?report:''}</span></div>`;
   cfl.forEach((f,idx)=>{ html+=buildCustomFlightRow(ds,idx,f); });
   html+=`<button class="btn secondary" style="margin-top:4px" onclick="addCustomFlight('${ds}')">+ Add leg</button>`;
   if (cfl.length) html+=`<button class="btn" style="margin-top:8px" onclick="closeCustomFlights()">✓ Done</button>`;
   document.getElementById('customFlightsBody').innerHTML=html;
+}
+
+// Update only the report pill text without re-rendering the whole body — preserves input focus.
+function updateCustomFlightsReportOnly(ds) {
+  const cfl = APP.customFlights?.[ds] || [];
+  const report = cfl.length ? calcReport(cfl) : null;
+  const pill = document.getElementById('cfReportPill');
+  const txt = document.getElementById('cfReportTime');
+  if (!pill || !txt) return;
+  const showReport = report && report !== '—';
+  pill.style.display = showReport ? 'flex' : 'none';
+  if (showReport) txt.textContent = report;
 }
 
 function buildCustomFlightRow(ds,idx,f) {
@@ -1271,11 +1286,11 @@ function updateCustomFlight(ds, idx, field, val) {
   if (!APP.customFlights[ds][idx]) APP.customFlights[ds][idx] = {};
   APP.customFlights[ds][idx][field] = val;
   save();
-  // Only re-render when a time field changes (updates report time display)
-  // For text fields (from/to) do NOT re-render — it destroys the input focus
+  // For time fields, just update the report pill in place — DO NOT re-render the body,
+  // because that destroys the focus on the input the user is typing into.
+  // For text fields (from/to) we don't re-render either; focus stays put.
   if (field === 'dep' || field === 'arr') {
-    const screen = document.getElementById('customFlightsScreen');
-    if (screen && screen.style.display !== 'none') renderCustomFlightsBody(ds);
+    updateCustomFlightsReportOnly(ds);
   }
 }
 
