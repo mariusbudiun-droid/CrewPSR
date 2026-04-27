@@ -970,7 +970,6 @@ function _clearDuty(ds) {
   if (APP.customFlights) delete APP.customFlights[ds];
   if (APP.assignDetails) delete APP.assignDetails[ds];
   save(); renderCalendar(); renderHome(); _renderDayDetail();
-  if (APP.notif?.enabled) scheduleAllNotifications();
 }
 
 
@@ -1184,7 +1183,6 @@ function _finishDutyEdit(ds) {
     _detailDs = ds;
     _renderDayDetail();
   }
-  if (APP.notif?.enabled) scheduleAllNotifications();
 }
 window._finishDutyEdit = _finishDutyEdit;
 

@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════════
-// ROSTER IMPORT — Ryanair Connect PDF + Screenshot OCR
-// Requires PDF.js + Tesseract.js loaded via CDN in index.html
+// ROSTER IMPORT — Ryanair Connect PDF + Screenshot (AI vision)
+// Requires PDF.js loaded via CDN in index.html
 // ══════════════════════════════════════════════════════════════
 
 // Italy DST: +2 (last Sun Mar → last Sun Oct), else +1

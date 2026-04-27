@@ -1,4 +1,12 @@
 // ══════════════════════════════════════════════════════════════
+// VERSION
+// ══════════════════════════════════════════════════════════════
+// Bump this when releasing a new version. The number is shown in the
+// Info screen footer AND used by sw.js for the cache name (so a bump
+// invalidates the old cache automatically). Keep in sync with sw.js APP_VERSION.
+const APP_VERSION = '1.9.2';
+
+// ══════════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════════
 let APP = {
@@ -6,12 +14,6 @@ let APP = {
   refDate: null,
   pin: null,
   crew: {},
-  notif: {
-    enabled: false,
-    report: true,
-    dep: 'first',   // 'none' | 'first' | 'all'
-    arr: 'last',    // 'none' | 'last' | 'all'
-  },
   customFlights: {},  // { '2026-04-15': [{from,to,dep,arr}] }
   assignDetails: {},  // { "2026-04-15": { start: "08:00", end: "16:00" } }
 };
@@ -196,15 +198,17 @@ function initApp() {
   if (!APP.assignments) APP.assignments = {};
   if (!APP.assignDetails) APP.assignDetails = {};
   if (!APP.customFlights) APP.customFlights = {};
-  if (!APP.notif) APP.notif = { enabled: false, report: true, dep: 'first', arr: 'last' };
 
   applyTheme();
   renderHome();
   renderSettings();
 
+  // Inject version into Info footer
+  const verEl = document.getElementById('appVersionFooter');
+  if (verEl) verEl.textContent = `CrewPSR · Pescara Cabin Crew · v${APP_VERSION}`;
+
   setTimeout(() => {
     initModalSwipe();
-    if (APP.notif?.enabled) scheduleAllNotifications();
   }, 100);
 }
 
@@ -217,7 +221,15 @@ if (load() && APP.roster && APP.refDate) {
   document.getElementById('mainApp').style.display = 'flex';
   initApp();
 } else {
-  document.getElementById('setupDate').value = new Date().toISOString().split('T')[0];
+  // Recovery: if data was partially loaded (e.g. roster exists but refDate is missing),
+  // pre-fill the setup wizard so the user doesn't lose context.
+  const dateField = document.getElementById('setupDate');
+  if (dateField) {
+    dateField.value = APP.refDate || new Date().toISOString().split('T')[0];
+  }
+  const rosterField = document.getElementById('setupRoster');
+  if (rosterField && APP.roster) rosterField.value = APP.roster;
+
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('step1').classList.add('active');
   document.getElementById('step2').classList.remove('active');

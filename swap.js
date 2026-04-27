@@ -136,35 +136,3 @@ function toggleSwapCrew() {
     document.getElementById('crewPinErr').style.display = 'none';
   }
 }
-
-function renderSwapCrewContent() {
-  const section = document.getElementById('swapCrewSection');
-  if (!section) return;
-
-  if (!crewUnlocked && APP.pin) {
-    section.innerHTML = `<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Unlock the Crew tab first to view contacts</div>`;
-    return;
-  }
-
-  let html = '';
-  for (let R = 1; R <= 16; R++) {
-    const colleagues = (APP.crew[R] || []).filter(c => c && c.code && c.code.trim());
-    if (!colleagues.length) continue;
-
-    const pills = colleagues.map(c => {
-      const phone = (c.phone || '').replace(/\D/g, '');
-      const name  = c.name || c.code;
-      return phone
-        ? `<a class="wa-pill" href="https://wa.me/${phone}" target="_blank" rel="noopener noreferrer" style="margin:2px">${name}</a>`
-        : `<span style="font-family:monospace;font-size:12px;background:var(--bg2);padding:3px 8px;border-radius:6px;margin:2px">${name}</span>`;
-    }).join('');
-
-    html += `
-      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;gap:6px">
-        <span style="font-family:monospace;font-size:11px;color:var(--blue);background:var(--blue-lt);padding:2px 8px;border-radius:6px;flex-shrink:0">R${R}</span>
-        ${pills}
-      </div>`;
-  }
-
-  section.innerHTML = html || `<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">No crew codes added yet</div>`;
-}

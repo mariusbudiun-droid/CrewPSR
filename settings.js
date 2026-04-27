@@ -25,6 +25,18 @@ function applyTheme() {
   document.documentElement.setAttribute('data-mode',  mode);
 }
 
+// Listen for OS-level dark/light mode changes (iOS sunset/sunrise auto-switch)
+// Only re-apply when user has theme set to 'system'.
+(function bindSystemThemeListener() {
+  if (!window.matchMedia) return;
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const onChange = () => {
+    if ((APP.themeMode || 'system') === 'system') applyTheme();
+  };
+  if (mq.addEventListener) mq.addEventListener('change', onChange);
+  else if (mq.addListener) mq.addListener(onChange); // older Safari
+})();
+
 function renderSettings() {
   const rEl = document.getElementById('settingRoster');
   if (rEl) rEl.textContent = APP.roster ? `Roster ${APP.roster}` : '-';
@@ -40,26 +52,6 @@ function renderSettings() {
   if (tSel) tSel.value = APP.themeName || 'ocean';
   const mSel = document.getElementById('themeModeSelect');
   if (mSel) mSel.value = APP.themeMode || 'system';
-
-  const n = APP.notif || {};
-  const enabled = document.getElementById('notifEnabled');
-  if (enabled) enabled.checked = !!n.enabled;
-  const opts = document.getElementById('notifOptions');
-  if (opts) opts.style.display = n.enabled ? 'block' : 'none';
-  const rep = document.getElementById('notifReport');
-  if (rep) rep.checked = n.report !== false;
-  const dep = document.getElementById('notifDep');
-  if (dep) dep.value = n.dep || 'first';
-  const arr = document.getElementById('notifArr');
-  if (arr) arr.value = n.arr || 'last';
-}
-
-function setNotifPref(key, val) {
-  if (!APP.notif) APP.notif = {};
-  APP.notif[key] = val;
-  save();
-  renderSettings();
-  if (APP.notif.enabled) scheduleAllNotifications();
 }
 
 function changeSetting(type) {
