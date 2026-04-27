@@ -951,7 +951,7 @@ function _calledFromDuty(ds) {
   if (!APP.assignDetails[ds]) APP.assignDetails[ds] = {};
   APP.assignDetails[ds].calledToFly = true;
   if (!APP.customFlights) APP.customFlights = {};
-  if (!APP.customFlights[ds]) APP.customFlights[ds] = [{ from:'PSR', to:'', dep:'', arr:'' }];
+  if (!APP.customFlights[ds]) APP.customFlights[ds] = [_newCustomLegDefault(0)];
   save();
   closeModal('settingModal');
   openCustomFlights(ds);
@@ -1137,6 +1137,20 @@ function setAssign(ds, val) {
   save();
   renderCalendar(); renderHome();
 
+  // Special case: CUSTOM opens the flights page directly — there's nothing more
+  // to choose in the picker, the next step is to add legs.
+  if (val === 'CUSTOM') {
+    // Make sure there's at least one leg to edit (with smart default).
+    if (!APP.customFlights) APP.customFlights = {};
+    if (!APP.customFlights[ds] || APP.customFlights[ds].length === 0) {
+      APP.customFlights[ds] = [_newCustomLegDefault(0)];
+      save();
+    }
+    closeModal('settingModal');
+    openCustomFlights(ds);
+    return;
+  }
+
   // Keep modal open — user can tap multiple options, then tap Done to apply
   const isLeaveType = ['AL','VTO','SICK','UL','PL'].includes(val);
 
@@ -1148,7 +1162,7 @@ function setAssign(ds, val) {
     return;
   }
 
-  // Duty types (A1E/A1L/A2E/A2L/HSBY/AD/CUSTOM) — re-render full duty picker
+  // Duty types (A1E/A1L/A2E/A2L/HSBY/AD) — re-render full duty picker
   const sched = SCHEDULE.days[new Date(ds+'T12:00:00').getDay()];
   const assign = APP.assignments[ds];
   const isHsbyAd = assign === 'HSBY' || assign === 'AD';
@@ -1266,10 +1280,22 @@ function calcReport(flights) {
   return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
 }
 
+// Smart defaults for a new custom flight leg.
+// PSR crew typically does PSR-X-PSR-Y-PSR pattern: odd-numbered legs depart from PSR,
+// even-numbered legs return to PSR. So:
+//   leg 0, 2, 4 (1st, 3rd, 5th) → from='PSR', to=''
+//   leg 1, 3, 5 (2nd, 4th, 6th) → from='', to='PSR'
+// Both remain editable — user can override for atypical routings.
+function _newCustomLegDefault(legIndex) {
+  if (legIndex % 2 === 0) return { from: 'PSR', to: '',    dep: '', arr: '' };
+  else                    return { from: '',    to: 'PSR', dep: '', arr: '' };
+}
+
 function addCustomFlight(ds) {
   if(!APP.customFlights)APP.customFlights={};
   if(!APP.customFlights[ds])APP.customFlights[ds]=[];
-  APP.customFlights[ds].push({from:'PSR',to:'',dep:'',arr:''});
+  const idx = APP.customFlights[ds].length;
+  APP.customFlights[ds].push(_newCustomLegDefault(idx));
   save(); renderCustomFlightsBody(ds);
 }
 

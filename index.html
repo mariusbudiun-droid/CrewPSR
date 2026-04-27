@@ -81,7 +81,7 @@
         <div style="margin-bottom:8px">📅 <strong>Calendar</strong> — tap any day to set your assignment</div>
         <div style="margin-bottom:8px">✈️ <strong>Schedule</strong> — full flight timetable for every day of the week</div>
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — find who can cover your shift</div>
-        <div style="margin-bottom:8px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info, Share, Support</div>
+        <div style="margin-bottom:8px">⋯ <strong>More</strong> — Statistics, Crew Directory, Settings, Info, Calendar export, Share, Support</div>
       </div>
       <div style="font-size:12px; color:var(--text3); text-align:center; margin-bottom:16px">
         Need help? Use <strong>Feedback &amp; Support</strong> in the More tab — don't be shy! 😊
@@ -359,7 +359,7 @@
 
         <div style="margin-bottom:8px">🔄 <strong>Swap</strong> — select your roster and shift to find who can swap with you. Also works for off days to find reverse-swap candidates.</div>
 
-        <div style="margin-bottom:16px">⋯ <strong>More</strong> — Statistics, Crew Directory, Roster Sync, Settings, Info, Share App, Feedback &amp; Support, Check for updates.</div>
+        <div style="margin-bottom:16px">⋯ <strong>More</strong> — Statistics, Crew Directory, Roster Sync, Settings, Info, Export to Calendar, Share App, Feedback &amp; Support, Check for updates.</div>
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
           <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📅 Day Detail</div>
@@ -386,8 +386,16 @@
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
           <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📊 Statistics</div>
-          <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Shows Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 00:30 on day 13).</div>
-          <div style="margin-bottom:10px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference). Airport counts represent number of landings (one count per leg).</div>
+          <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 00:30 on day 13).</div>
+          <div style="margin-bottom:4px"><strong>Yearly</strong> tab — same metrics aggregated per year, plus busiest month and top routes for the year.</div>
+          <div style="margin-bottom:4px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference). Airport counts represent landings (one per leg).</div>
+          <div style="margin-bottom:10px"><strong>🏅 Achievements</strong> at the bottom of General — milestone badges for sectors flown, flight hours, airports, countries, and more. Tap to expand.</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
+          <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">🗓️ Export to Calendar</div>
+          <div style="margin-bottom:6px">In More → <strong>Export to Calendar</strong>, choose a date range to download a <code>.ics</code> file with all your duties. Open it on iPhone to import into the native Calendar app — you'll get system notifications automatically (15 min before report, 1 hr before HSBY/AD).</div>
+          <div style="margin-bottom:6px;font-size:11px;color:var(--text3)">Times are in Italian local time. Re-export anytime after changes; old events are replaced when imported again.</div>
         </div>
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
@@ -480,6 +488,15 @@
                color:var(--text);cursor:pointer;text-align:left">
         <span style="font-size:22px;width:32px;text-align:center">ℹ️</span>
         Info &amp; Tutorial
+        <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
+      </button>
+      <button onclick="exportToCalendar()"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:16px;
+               background:none;border:none;border-bottom:1px solid var(--border);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+               color:var(--text);cursor:pointer;text-align:left">
+        <span style="font-size:22px;width:32px;text-align:center">🗓️</span>
+        Export to Calendar
         <span style="margin-left:auto;color:var(--text3);font-size:18px">›</span>
       </button>
       <button onclick="shareApp()"
@@ -634,6 +651,7 @@
 <script src="crew.js"></script>
 <script src="statistics.js"></script>
 <script src="sync.js"></script>
+<script src="ical-export.js"></script>
 <script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {

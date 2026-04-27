@@ -8,7 +8,7 @@
 //   3. If a network update fails mid-flight, the previous cached version is preserved
 //      so the app never breaks.
 
-const APP_VERSION = '1.9.3';
+const APP_VERSION = '1.9.4';
 const CACHE = `crewpsr-v${APP_VERSION}`;
 
 const ASSETS = [
@@ -29,6 +29,7 @@ const ASSETS = [
   '/swap.js',
   '/sync.js',
   '/statistics.js',
+  '/ical-export.js',
   '/icon-192.png',
   '/icon-512.png',
 ];
