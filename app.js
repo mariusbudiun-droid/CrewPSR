@@ -4,7 +4,7 @@
 // Bump this when releasing a new version. The number is shown in the
 // Info screen footer AND used by sw.js for the cache name (so a bump
 // invalidates the old cache automatically). Keep in sync with sw.js APP_VERSION.
-const APP_VERSION = '1.9.6';
+const APP_VERSION = '1.9.8';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
