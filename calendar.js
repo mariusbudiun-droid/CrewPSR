@@ -369,7 +369,7 @@ function _cellClass(assign, type, ds, detail) {
     return 'off'; // unset → neutral
   }
   if (assign === 'CUSTOM') return _customClass(ds);
-  if (['AL','VTO','UL','PL'].includes(assign)) return 'off';
+  if (['AL','VTO','UL','PL','SWAP'].includes(assign)) return 'off';
   return type;
 }
 
@@ -429,7 +429,7 @@ function _cellSub(ds, assign, type, sched) {
     }
     return assign === 'HSBY' ? 'HSBY' : 'AD';
   }
-  return { AL:'AL', VTO:'VTO', SICK:'SICK', UL:'UL', PL:'PL' }[assign] || assign;
+  return { AL:'AL', VTO:'VTO', SICK:'SICK', UL:'UL', PL:'PL', SWAP:'Swap' }[assign] || assign;
 }
 
 // ── Hours ──────────────────────────────────────────────────────
@@ -734,6 +734,9 @@ function _renderDayDetail() {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Unpaid Leave</div></div>`;
   } else if (assign==='PL') {
     dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">Parental Leave</div></div>`;
+  } else if (assign==='SWAP') {
+    dutyHtml=`<div class="dd-card dd-leave"><div class="dd-duty-name">🔄 OFF (Swap)</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">Shift given to a colleague</div></div>`;
   } else if (type==='off') {
     dutyHtml=`<div class="dd-empty">Day off 🌿</div>`;
   }
@@ -766,6 +769,27 @@ function _renderDayDetail() {
       });
       const total = (ownCrew.length ? 1 : 0) + sameList.length;
       crewHtml += _ddCollapsible('Same shift', total + ' roster' + (total!==1?'s':''), cards, false);
+    }
+
+  } else if (assign === 'SWAP') {
+    // Day off because shift was given away. Show all colleagues who are Off in
+    // their cycle on this date — any of them could have taken the swap.
+    const candidates = [];
+    for (let r = 1; r <= 16; r++) {
+      if (r === APP.roster) continue;
+      const theirDay = cycleDay(r, ds);
+      if (!theirDay) continue;
+      // Their off days in cabin cycle are 6,7,8,14,15,16
+      if ([6,7,8,14,15,16].includes(theirDay)) {
+        candidates.push({ roster: r, certain: true });
+      }
+    }
+    if (candidates.length) {
+      const cards = candidates.map(c => {
+        const members = (APP.crew?.[c.roster]||[]).filter(m=>m&&(m.name||(m.code&&m.code.trim())));
+        return _buildRosterCard(c.roster, members, 'var(--green)', '');
+      }).join('');
+      crewHtml = _ddCollapsible('Colleagues off — could have taken your shift', candidates.length + ' roster' + (candidates.length!==1?'s':''), cards, false);
     }
 
   } else {
@@ -1117,7 +1141,8 @@ function buildLeaveOptions(ds) {
     {id:'VTO',label:'VTO · Voluntary Time Off',icon:'🌿',color:'var(--off)',cls:'selected-vto'},
     {id:'SICK',label:'Sick Leave (SICK)',icon:'🏥',color:'#e11d48',cls:'selected-sick'},
     {id:'UL',label:'Unpaid Leave (UL)',icon:'💸',color:'var(--off)',cls:'selected-ul'},
-    {id:'PL',label:'Parental Leave (PL)',icon:'👨‍👩‍👧‍👦',color:'var(--off)',cls:'selected-pl'}
+    {id:'PL',label:'Parental Leave (PL)',icon:'👨‍👩‍👧‍👦',color:'var(--off)',cls:'selected-pl'},
+    {id:'SWAP',label:'OFF (Swap)',icon:'🔄',color:'var(--off)',cls:'selected-swap'}
   ].map(opt=>{
     const sel=assign===opt.id;
     return `<div class="assign-option ${sel?opt.cls:''}" onclick="setAssign('${ds}','${opt.id}')">
@@ -1152,7 +1177,7 @@ function setAssign(ds, val) {
   }
 
   // Keep modal open — user can tap multiple options, then tap Done to apply
-  const isLeaveType = ['AL','VTO','SICK','UL','PL'].includes(val);
+  const isLeaveType = ['AL','VTO','SICK','UL','PL','SWAP'].includes(val);
 
   if (isLeaveType) {
     document.getElementById('settingModalTitle').textContent = 'Set leave';

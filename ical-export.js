@@ -73,6 +73,7 @@
       SICK:'🤒 Sick',
       UL:  '📄 Unpaid Leave',
       PL:  '📄 Parental Leave',
+      SWAP:'🔄 OFF (Swap)',
     };
     if (leaveLabels[assign]) {
       const [y, mo, d] = ds.split('-').map(Number);
@@ -428,7 +429,9 @@
     const suffix  = shiftFilter === 'all' ? '' : `-${shiftFilter}`;
     const filename = `CrewPSR-${dateTag}${suffix}.ics`;
 
-    // iOS Safari: use share sheet if available; otherwise fallback to <a download>.
+    // iOS Safari: use share sheet if available — this triggers the native
+    // "calendar invite" popup which actually imports events into Calendar.
+    // If share is unavailable (desktop browsers, etc.) fall back to download.
     const file = new File([blob], filename, { type: 'text/calendar' });
 
     closeModal('settingModal');
@@ -441,11 +444,11 @@
       }).catch(() => {
         _fallbackDownload(url, filename);
       }).finally(() => {
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
       });
     } else {
       _fallbackDownload(url, filename);
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
   }
 
