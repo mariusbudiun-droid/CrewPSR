@@ -2,85 +2,18 @@
 // STATISTICS
 // ══════════════════════════════════════════════════════════════
 
-// Comprehensive mapping for Ryanair's European network. Covers all
-// PSR-served destinations plus other airports that can appear via custom
-// flights / imported rosters. Add new entries here if any are missing.
 const AIRPORT_COUNTRY = {
-  // Italy
-  PSR:'Italy', BGY:'Italy', MXP:'Italy', TRN:'Italy', CTA:'Italy', TPS:'Italy', CAG:'Italy',
-  FCO:'Italy', NAP:'Italy', AHO:'Italy', LIN:'Italy', VRN:'Italy', VCE:'Italy',
-  TSF:'Italy', BLQ:'Italy', PMO:'Italy', BRI:'Italy', PSA:'Italy', FLR:'Italy',
-  RMI:'Italy', GOA:'Italy', AOI:'Italy', PEG:'Italy', REG:'Italy', SUF:'Italy',
-  CIY:'Italy', CMF:'Italy', CRV:'Italy', LMP:'Italy', TRS:'Italy', PMF:'Italy',
-  // UK & Ireland
-  STN:'UK', LHR:'UK', LGW:'UK', LTN:'UK', MAN:'UK', LPL:'UK', BHX:'UK', EMA:'UK',
-  EDI:'UK', GLA:'UK', PIK:'UK', BFS:'UK', BHD:'UK', NCL:'UK', LBA:'UK', BOH:'UK',
-  BRS:'UK', CWL:'UK', SEN:'UK', NWI:'UK',
-  DUB:'Ireland', ORK:'Ireland', SNN:'Ireland', NOC:'Ireland', KIR:'Ireland',
-  // Benelux
-  CRL:'Belgium', BRU:'Belgium', ANR:'Belgium',
-  EIN:'Netherlands', AMS:'Netherlands', MST:'Netherlands', RTM:'Netherlands', GRQ:'Netherlands',
-  LUX:'Luxembourg',
-  // Germany
-  NRN:'Germany', CGN:'Germany', BER:'Germany', MUC:'Germany', HHN:'Germany',
-  FRA:'Germany', FMM:'Germany', DTM:'Germany', HAM:'Germany', LEJ:'Germany',
-  BRE:'Germany', NUE:'Germany', STR:'Germany', DUS:'Germany', FKB:'Germany',
-  // France
-  BVA:'France', CDG:'France', ORY:'France', NCE:'France', MRS:'France', LYS:'France',
-  TLS:'France', BOD:'France', NTE:'France', LIL:'France', MPL:'France', BIQ:'France',
-  PGF:'France', BES:'France', BZR:'France', LDE:'France', RNS:'France', LRH:'France',
-  // Spain
-  VLC:'Spain', BCN:'Spain', MAD:'Spain', AGP:'Spain', ALC:'Spain', PMI:'Spain',
-  SVQ:'Spain', BIO:'Spain', IBZ:'Spain', LPA:'Spain', TFS:'Spain', TFN:'Spain',
-  ACE:'Spain', FUE:'Spain', SCQ:'Spain', OVD:'Spain', VGO:'Spain', GRO:'Spain',
-  REU:'Spain', XRY:'Spain', SDR:'Spain', RJL:'Spain', MJV:'Spain', VIT:'Spain',
-  ZAZ:'Spain', PNA:'Spain',
-  // Portugal
-  OPO:'Portugal', LIS:'Portugal', FAO:'Portugal', FNC:'Portugal', PDL:'Portugal',
-  TER:'Portugal',
-  // Poland
-  KRK:'Poland', WRO:'Poland', WAW:'Poland', WMI:'Poland', GDN:'Poland', POZ:'Poland',
-  KTW:'Poland', LCJ:'Poland', SZZ:'Poland', RZE:'Poland', LUZ:'Poland', BZG:'Poland',
-  // Romania, Bulgaria
-  OTP:'Romania', CLJ:'Romania', TSR:'Romania', BCM:'Romania', IAS:'Romania', SBZ:'Romania',
-  CRA:'Romania', SCV:'Romania',
-  SOF:'Bulgaria', VAR:'Bulgaria', BOJ:'Bulgaria', PDV:'Bulgaria',
-  // Baltic & Scandinavia
-  KUN:'Lithuania', VNO:'Lithuania', PLQ:'Lithuania',
-  RIX:'Latvia',
-  TLL:'Estonia',
-  CPH:'Denmark', AAR:'Denmark', BLL:'Denmark', AAL:'Denmark',
-  ARN:'Sweden', GOT:'Sweden', NYO:'Sweden', MMX:'Sweden', VST:'Sweden',
-  OSL:'Norway', TRF:'Norway', HAU:'Norway',
-  HEL:'Finland', TMP:'Finland',
-  // Central / Eastern Europe
-  PRG:'Czech Republic', BRQ:'Czech Republic', OSR:'Czech Republic',
-  VIE:'Austria', SZG:'Austria', GRZ:'Austria', INN:'Austria', LNZ:'Austria', KLU:'Austria',
-  BUD:'Hungary', DEB:'Hungary',
-  BTS:'Slovakia', KSC:'Slovakia',
-  LJU:'Slovenia',
-  ZAG:'Croatia', SPU:'Croatia', DBV:'Croatia', PUY:'Croatia', ZAD:'Croatia', RJK:'Croatia',
-  SJJ:'Bosnia and Herzegovina', BNX:'Bosnia and Herzegovina', TZL:'Bosnia and Herzegovina',
-  BEG:'Serbia', INI:'Serbia',
-  TGD:'Montenegro', TIV:'Montenegro',
-  SKP:'North Macedonia', OHD:'North Macedonia',
-  TIA:'Albania',
-  // Greece & Mediterranean
-  ATH:'Greece', SKG:'Greece', RHO:'Greece', HER:'Greece', CHQ:'Greece', CFU:'Greece',
-  ZTH:'Greece', KGS:'Greece', JMK:'Greece', JTR:'Greece', KLX:'Greece', PVK:'Greece',
-  KVA:'Greece',
-  MLA:'Malta',
-  // Cyprus, Turkey, Middle East
-  PFO:'Cyprus', LCA:'Cyprus',
-  IST:'Turkey', SAW:'Turkey', AYT:'Turkey',
-  // Morocco
-  RAK:'Morocco', AGA:'Morocco', FEZ:'Morocco', NDR:'Morocco', TNG:'Morocco', RBA:'Morocco',
-  OZZ:'Morocco', VIL:'Morocco', ESU:'Morocco', UAR:'Morocco',
-  // Israel & Jordan
-  TLV:'Israel', ETM:'Israel', VDA:'Israel',
-  AMM:'Jordan', AQJ:'Jordan',
-  // Ukraine (legacy)
-  KBP:'Ukraine', LWO:'Ukraine', IEV:'Ukraine',
+  PSR:'Italy',BGY:'Italy',MXP:'Italy',TRN:'Italy',CTA:'Italy',TPS:'Italy',CAG:'Italy',
+  STN:'UK',LHR:'UK',LGW:'UK',MAN:'UK',
+  CRL:'Belgium',BRU:'Belgium',
+  OTP:'Romania',CLJ:'Romania',
+  KRK:'Poland',WRO:'Poland',WAW:'Poland',
+  KUN:'Lithuania',VNO:'Lithuania',
+  TIA:'Albania', MLA:'Malta', PRG:'Czech Republic',
+  VLC:'Spain',BCN:'Spain',MAD:'Spain',
+  NRN:'Germany',CGN:'Germany',BER:'Germany',MUC:'Germany',
+  VIE:'Austria', BUD:'Hungary', SOF:'Bulgaria', ATH:'Greece',
+  FCO:'Italy',NAP:'Italy',
 };
 
 // ── Global helpers ────────────────────────────────────────────

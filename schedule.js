@@ -1,9 +1,9 @@
 // ══════════════════════════════════════════════════════════════
-// FLIGHT SCHEDULE DATA — V2 05 May – 30 May 2026
+// FLIGHT SCHEDULE DATA — V1 01 Apr – 04 May 2026
 // ══════════════════════════════════════════════════════════════
 const SCHEDULE = {
-  version: "V2",
-  period:  "05 May – 30 May 2026",
+  version: "V1",
+  period:  "01 Apr – 04 May 2026",
   days: {
     1: { // Monday
       a1: {
@@ -16,8 +16,8 @@ const SCHEDULE = {
         late: [
           { route:"PSR-CRL", dep:"15:05", arr:"17:10" },
           { route:"CRL-PSR", dep:"17:35", arr:"19:35" },
-          { route:"PSR-MXP", dep:"20:00", arr:"21:25" },
-          { route:"MXP-PSR", dep:"22:00", arr:"23:20" },
+          { route:"PSR-CTA", dep:"20:00", arr:"21:20" },
+          { route:"CTA-PSR", dep:"21:45", arr:"23:10" },
         ]
       },
       a2: {
@@ -118,15 +118,15 @@ const SCHEDULE = {
         late: [
           { route:"PSR-KRK", dep:"16:05", arr:"17:55" },
           { route:"KRK-PSR", dep:"18:20", arr:"20:05" },
-          { route:"PSR-MXP", dep:"20:30", arr:"21:55" },
-          { route:"MXP-PSR", dep:"22:20", arr:"23:40" },
+          { route:"PSR-BGY", dep:"20:45", arr:"22:00" },
+          { route:"BGY-PSR", dep:"22:25", arr:"23:35" },
         ]
       },
       a2: {
-        reportEarly: "06:20",
+        reportEarly: "06:40",
         early: [
-          { route:"PSR-MXP", dep:"07:05", arr:"08:30" },
-          { route:"MXP-PSR", dep:"08:55", arr:"10:15" },
+          { route:"PSR-BGY", dep:"07:25", arr:"08:40" },
+          { route:"BGY-PSR", dep:"09:05", arr:"10:15" },
           { route:"PSR-OTP", dep:"10:40", arr:"12:30" },
           { route:"OTP-PSR", dep:"12:55", arr:"14:45" },
         ],

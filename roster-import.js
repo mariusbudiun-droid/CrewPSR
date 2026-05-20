@@ -156,10 +156,40 @@ function parseRosterText(text) {
 // ══════════════════════════════════════════════════════════════
 // IMPORT ENTRY POINT
 // ══════════════════════════════════════════════════════════════
-// Single path now: screenshot only (the text paste option was removed because
-// it confused users and rarely worked reliably). Goes straight to the file picker.
 function triggerRosterImport() {
-  triggerScreenshotImport();
+  // Show choice modal: Screenshot (AI) or text paste
+  document.getElementById('settingModalTitle').textContent = 'Import Roster';
+  document.getElementById('settingModalBody').innerHTML = `
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      Choose how to import your roster from Ryanair Connect.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+
+      <button onclick="triggerScreenshotImport()"
+        style="padding:16px;border-radius:12px;border:1.5px solid var(--blue);
+               background:var(--blue-lt);font-family:'Outfit',sans-serif;
+               font-size:14px;font-weight:700;color:var(--blue);cursor:pointer;text-align:left">
+        📷 Screenshot — AI reads it for you
+        <div style="font-size:11px;font-weight:400;color:var(--text2);margin-top:4px">
+          Take a screenshot of your roster in Ryanair Connect, then upload it here.
+          Claude Vision reads the flights automatically.
+        </div>
+      </button>
+
+      <button onclick="triggerTextImport()"
+        style="padding:16px;border-radius:12px;border:1.5px solid var(--border);
+               background:var(--surface);font-family:'Outfit',sans-serif;
+               font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left">
+        📋 Paste text — copy from Ryanair Connect
+        <div style="font-size:11px;font-weight:400;color:var(--text2);margin-top:4px">
+          Select all text on the roster page, copy, and paste it here.
+        </div>
+      </button>
+
+    </div>
+    <button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>
+  `;
+  document.getElementById('settingModal').classList.add('open');
 }
 
 // ── Screenshot path (Vision API) ──────────────────────────────
@@ -243,7 +273,7 @@ function triggerScreenshotImport() {
       const response = await fetch('/api/import-roster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mediaType, role: APP.role || 'cabin' }),
+        body: JSON.stringify({ imageBase64: base64, mediaType }),
       });
 
       const result = await response.json();
@@ -396,6 +426,56 @@ function convertVisionDays(days) {
     }
   }
   return result;
+}
+
+// ── Text paste path (existing) ────────────────────────────────
+function triggerTextImport() {
+  closeModal('settingModal');
+  // Show text paste UI inline in calendar screen
+  const existing = document.getElementById('rosterTextPasteBox');
+  if (existing) { existing.style.display = 'block'; return; }
+
+  const box = document.createElement('div');
+  box.id = 'rosterTextPasteBox';
+  box.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom))';
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top));
+                background:var(--surface);border-bottom:1px solid var(--border);
+                position:sticky;top:0;z-index:10">
+      <button onclick="document.getElementById('rosterTextPasteBox').remove()"
+        style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--bg);font-family:'Outfit',sans-serif;font-size:14px;
+               font-weight:600;color:var(--text);cursor:pointer">✕ Cancel</button>
+      <div style="font-size:16px;font-weight:700;color:var(--text)">Paste Roster Text</div>
+      <div style="width:70px"></div>
+    </div>
+    <div style="padding:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+        On Ryanair Connect, open your roster, select all text (tap & hold → Select All), copy, then paste below.
+      </div>
+      <textarea id="rosterPasteArea" placeholder="Paste roster text here..."
+        style="height:200px;font-family:'JetBrains Mono',monospace;font-size:12px;
+               margin-bottom:12px"></textarea>
+      <button onclick="_processPastedRoster()"
+        style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);
+               font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+               color:white;cursor:pointer">Parse roster →</button>
+    </div>`;
+  document.body.appendChild(box);
+}
+
+function _processPastedRoster() {
+  const text = document.getElementById('rosterPasteArea')?.value || '';
+  if (!text.trim()) { showImportError('Please paste some text first.'); return; }
+  document.getElementById('rosterTextPasteBox')?.remove();
+  showImportLoading('Parsing...');
+  const parsed = parseRosterText(text);
+  if (Object.keys(parsed).length > 0) {
+    showImportPreview(parsed);
+  } else {
+    showImportError('No roster data found. Try a clearer screenshot or copy more text.');
+  }
 }
 
 // ── Shared UI ─────────────────────────────────────────────────
