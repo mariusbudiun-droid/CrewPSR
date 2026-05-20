@@ -73,6 +73,7 @@
       SICK:'🤒 Sick',
       UL:  '📄 Unpaid Leave',
       PL:  '📄 Parental Leave',
+      SWAP:'🔄 OFF (Swap)',
     };
     if (leaveLabels[assign]) {
       const [y, mo, d] = ds.split('-').map(Number);
