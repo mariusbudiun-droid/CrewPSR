@@ -50,6 +50,7 @@ For each day return:
 Rules:
 - Departure airport is almost always PSR (Pescara)
 - Return ALL times exactly as shown in UTC — do not adjust for timezone
+- Time format MUST be "HH:MM" exactly — no "Z", no "UTC", no seconds, no AM/PM. Examples: "06:25", "14:50", "23:10". WRONG: "06:25 Z", "06:25 UTC", "6:25am".
 - If a day shows flight numbers and routes, it's a flight day
 - HSBY = Home Standby, AD = Airport Duty
 - OFF = day off (including rest days)
@@ -93,7 +94,7 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
         }],
         generationConfig: {
           temperature: 0.1,        // deterministic extraction
-          maxOutputTokens: 8192,
+          maxOutputTokens: 32768,  // raised from 8192 — long roster screenshots (full month, multi-day) can exceed 8k tokens
           responseMimeType: 'application/json',  // ask Gemini to enforce JSON output
         },
       }),
@@ -137,13 +138,27 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
     // but defensive parsing never hurts).
     const clean = text.replace(/```json|```/g, '').trim();
 
+    // Log the finish reason — "MAX_TOKENS" means we hit the output token limit
+    // and the JSON is truncated.
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason && finishReason !== 'STOP') {
+      console.warn('Gemini finished with reason:', finishReason);
+    }
+
     let days;
     try {
       days = JSON.parse(clean);
     } catch (parseErr) {
-      console.error('JSON parse failed. Raw text:', clean.slice(0, 500));
+      console.error('JSON parse failed. Finish reason:', finishReason, 'Raw text length:', clean.length);
+      console.error('Raw text head:', clean.slice(0, 300));
+      console.error('Raw text tail:', clean.slice(-300));
+
+      const truncated = finishReason === 'MAX_TOKENS';
       return res.status(500).json({
-        error: 'AI returned invalid JSON. Try again with a clearer screenshot.',
+        error: truncated
+          ? 'Risposta troppo lunga. Prova un screenshot di meno giorni alla volta.'
+          : 'AI returned invalid JSON. Try again with a clearer screenshot.',
+        finishReason,
         detail: clean.slice(0, 200),
       });
     }
@@ -152,6 +167,28 @@ Respond ONLY with a valid JSON array, no markdown, no explanation:
       return res.status(500).json({
         error: 'AI did not return an array. Try again with a clearer screenshot.',
       });
+    }
+
+    // Defensive sanitisation: strip any stray time suffixes that some models add
+    // despite the explicit prompt instructions (e.g. "15:40 Z", "06:25 UTC").
+    // Returns "HH:MM" or null/undefined if the input wasn't a parsable time.
+    function sanitiseTime(t) {
+      if (!t || typeof t !== 'string') return t;
+      // Match "HH:MM" anywhere in the string and return just that portion
+      const m = t.match(/(\d{1,2}):(\d{2})/);
+      if (!m) return t;
+      return `${m[1].padStart(2, '0')}:${m[2]}`;
+    }
+
+    for (const day of days) {
+      if (day.hsbyStart) day.hsbyStart = sanitiseTime(day.hsbyStart);
+      if (day.hsbyEnd)   day.hsbyEnd   = sanitiseTime(day.hsbyEnd);
+      if (Array.isArray(day.flights)) {
+        for (const f of day.flights) {
+          if (f.dep) f.dep = sanitiseTime(f.dep);
+          if (f.arr) f.arr = sanitiseTime(f.arr);
+        }
+      }
     }
 
     return res.status(200).json({ success: true, days });
