@@ -17,7 +17,7 @@
 //   - Online users get the new version on next page load after we publish.
 //   - No manual "Check for updates" tap needed (kept for backward compatibility).
 
-const APP_VERSION = '1.11.0';
+const APP_VERSION = '1.11.2';
 const CACHE = `crewpsr-v${APP_VERSION}`;
 
 const ASSETS = [

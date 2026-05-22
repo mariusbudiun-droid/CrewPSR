@@ -156,10 +156,46 @@ function parseRosterText(text) {
 // ══════════════════════════════════════════════════════════════
 // IMPORT ENTRY POINT
 // ══════════════════════════════════════════════════════════════
-// Single path now: screenshot only (the text paste option was removed because
-// it confused users and rarely worked reliably). Goes straight to the file picker.
+// Shows a brief instructional modal with the exact steps to get the right
+// screenshot (from connect.ryanair.com, NOT the Crew Member app calendar),
+// then opens the file picker. The instructions matter — many users were
+// uploading the wrong screenshot before this was added.
 function triggerRosterImport() {
-  triggerScreenshotImport();
+  document.getElementById('settingModalTitle').textContent = 'Import Roster';
+  document.getElementById('settingModalBody').innerHTML = `
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">
+      Upload a screenshot of your roster from <strong>connect.ryanair.com</strong>.
+      The AI will read it and update your calendar.
+    </div>
+
+    <div style="background:var(--blue-lt);border:1px solid var(--blue);border-radius:12px;
+                padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+                  color:var(--blue);margin-bottom:8px">How to get the screenshot</div>
+      <ol style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:var(--text)">
+        <li>Go to <strong>connect.ryanair.com</strong> in your browser</li>
+        <li>Login with your credentials</li>
+        <li>Open the menu and find <strong>Roster</strong></li>
+        <li>Save it as image or take a screenshot</li>
+        <li>Come back here and upload it</li>
+      </ol>
+    </div>
+
+    <div style="background:var(--yellow-lt);border-left:3px solid var(--yellow);
+                border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;
+                line-height:1.5;color:var(--text2)">
+      ⚠️ <strong>Not the Ryanair Crew Member app calendar.</strong>
+      That one looks like a calendar grid — it won't work. We need the roster
+      table from connect.ryanair.com.
+    </div>
+
+    <button class="btn" onclick="triggerScreenshotImport()"
+            style="background:var(--blue);color:white;margin-bottom:8px">
+      📷 Choose roster screenshot
+    </button>
+    <button class="btn secondary" onclick="closeModal('settingModal')">Cancel</button>
+  `;
+  document.getElementById('settingModal').classList.add('open');
 }
 
 // ── Screenshot path (Vision API) ──────────────────────────────
@@ -178,7 +214,8 @@ function _showImportOverlay(msg) {
                 border-top-color:white;border-radius:50%;
                 animation:spin 0.8s linear infinite"></div>
     <div style="color:white;font-family:'Outfit',sans-serif;font-size:15px;
-                font-weight:600;text-align:center;padding:0 32px">${msg}</div>`;
+                font-weight:600;text-align:center;padding:0 32px;line-height:1.6;
+                white-space:pre-line">${msg}</div>`;
   if (!document.getElementById('importSpinStyle')) {
     const s = document.createElement('style');
     s.id = 'importSpinStyle';
@@ -228,7 +265,7 @@ function triggerScreenshotImport() {
     document.body.removeChild(input);
     if (!file) return;
 
-    _showImportOverlay('Sending to AI…\nThis takes ~15 seconds');
+    _showImportOverlay('Sending to AI…\nThis can take up to 1 minute\n⚠️ Please don\'t close the app');
 
     try {
       const base64 = await new Promise((resolve, reject) => {

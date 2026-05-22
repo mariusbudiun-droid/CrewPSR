@@ -4,7 +4,7 @@
 // Bump this when releasing a new version. The number is shown in the
 // Info screen footer AND used by sw.js for the cache name (so a bump
 // invalidates the old cache automatically). Keep in sync with sw.js APP_VERSION.
-const APP_VERSION = '1.11.0';
+const APP_VERSION = '1.11.2';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -117,7 +117,7 @@ async function _processSetupScreenshot(file) {
 
     const mediaType = file.type || 'image/jpeg';
 
-    setStatus('🤖 AI is reading… this takes ~15-30 seconds');
+    setStatus('🤖 AI is reading… up to 1 minute. ⚠️ Don\'t close the app');
 
     const response = await fetch('/api/import-roster', {
       method: 'POST',
