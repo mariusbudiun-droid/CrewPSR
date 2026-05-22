@@ -386,6 +386,10 @@
         <span style="font-size:24px">ℹ️</span>
         <span>About <span id="discArrow" style="font-size:11px">›</span></span>
       </button>
+      <button onclick="showReleaseNotes(true)" class="info-tile" style="background:var(--surface);border-color:var(--border);color:var(--text)">
+        <span style="font-size:24px">📋</span>
+        <span>Release notes <span style="font-size:11px">›</span></span>
+      </button>
     </div>
     <div style="text-align:center;font-size:11px;color:var(--text3);padding:4px 16px 8px" id="appVersionFooter">
       CrewPSR · Pescara Cabin Crew
@@ -697,6 +701,7 @@
 <script src="statistics.js"></script>
 <script src="sync.js"></script>
 <script src="ical-export.js"></script>
+<script src="releases.js"></script>
 <script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
