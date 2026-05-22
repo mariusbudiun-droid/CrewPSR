@@ -36,13 +36,58 @@
         <option value="13">Roster 13</option><option value="14">Roster 14</option>
         <option value="15">Roster 15</option><option value="16">Roster 16</option>
       </select>
-      <label class="inp-label">A date when you were on Day 1</label>
-      <input type="date" id="setupDate">
-      <div style="font-size:11px; color:var(--text3); margin:-8px 0 14px; line-height:1.5">
-        Day 1 = first Early shift of your cycle<br>
-        <span style="color:var(--text2)">Es: se la tua prima Early dopo i giorni off è stata il 15 marzo 2026, metti quella data.</span>
+
+      <!-- Smart import card (default path) -->
+      <div id="setupSmartCard" style="background:var(--blue-lt); border:1.5px solid var(--blue);
+                                       border-radius:14px; padding:14px; margin:14px 0">
+        <div style="font-size:14px; font-weight:700; color:var(--blue); margin-bottom:6px">
+          📷 Upload your roster
+        </div>
+        <div style="font-size:12px; color:var(--text2); line-height:1.5; margin-bottom:10px">
+          Take a screenshot of your roster from <strong>connect.ryanair.com</strong>. The app
+          will read it and find your cycle day automatically.
+        </div>
+
+        <details style="margin-bottom:10px; font-size:12px">
+          <summary style="cursor:pointer; color:var(--blue); font-weight:600">
+            How to get the screenshot →
+          </summary>
+          <ol style="margin:8px 0 0 0; padding-left:18px; color:var(--text2); line-height:1.7">
+            <li>Go to <strong>connect.ryanair.com</strong> in your browser</li>
+            <li>Login with your credentials</li>
+            <li>Open the menu and find <strong>Roster</strong></li>
+            <li>Save it as image or take a screenshot</li>
+            <li>Come back here and upload it</li>
+          </ol>
+        </details>
+
+        <button class="btn" id="setupSmartBtn" onclick="setupSmartImport()"
+                style="margin:0; background:var(--blue); color:white">
+          📷 Choose roster screenshot
+        </button>
+        <div id="setupSmartStatus" style="font-size:12px; margin-top:8px; min-height:16px; color:var(--text2)"></div>
       </div>
-      <button class="btn" onclick="setupNext()">Continue →</button>
+
+      <!-- Manual fallback (hidden by default) -->
+      <details id="setupManualDetails" style="margin-bottom:14px; font-size:12px">
+        <summary style="cursor:pointer; color:var(--text3); font-weight:600; padding:6px 0">
+          Prefer to enter the date manually? →
+        </summary>
+        <div style="padding-top:8px">
+          <label class="inp-label">A date when you were on Day 1</label>
+          <input type="date" id="setupDate">
+          <div style="font-size:11px; color:var(--text3); margin:-8px 0 0; line-height:1.5">
+            Day 1 = first Early shift of your cycle.<br>
+            <span style="color:var(--text2)">Eg: if your first Early after the days off was on March 15th, enter that date.</span>
+          </div>
+        </div>
+      </details>
+
+      <button class="btn" onclick="setupNext()" id="setupContinueBtn" disabled
+              style="opacity:0.4">Continue →</button>
+      <div style="font-size:11px; color:var(--text3); margin-top:6px; text-align:center">
+        Upload roster or enter date to continue
+      </div>
     </div>
 
     <div class="step" id="step2">
@@ -229,7 +274,7 @@
           <div style="font-size:13px; color:var(--text2)">🔒 Stored only on your device</div>
         </div>
         <div style="display:flex; gap:8px">
-          <button class="btn small" style="width:auto; padding:9px 14px; margin-bottom:0" onclick="openCrewEdit()">✏️ Edit</button>
+          <button class="btn small" style="width:auto; padding:9px 14px; margin-bottom:0" onclick="openCrewEdit()">👥 Add colleagues</button>
           <button class="btn secondary small" style="width:auto; padding:9px 14px; margin-bottom:0" onclick="lockCrew()">🔒</button>
         </div>
       </div>
@@ -656,9 +701,45 @@
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  // Track whether we've already done an auto-reload this session, to avoid loops.
+  let _autoReloaded = false;
+
   navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data === 'RELOAD') location.reload();
+    // Legacy: manual "Check for updates" button posts RELOAD — force immediate reload.
+    if (e.data === 'RELOAD') {
+      location.reload();
+      return;
+    }
+    // New: SW detected a fresh version on the server and just activated it.
+    // Don't reload mid-action — wait until the page is hidden (user switched
+    // tab/app) and reload then. Next time they open CrewPSR they see the new
+    // version, with zero friction.
+    if (e.data && e.data.type === 'NEW_VERSION') {
+      if (_autoReloaded) return;
+      _autoReloaded = true;
+      console.log('[CrewPSR] New version detected:', e.data.version);
+
+      const reloadWhenSafe = () => {
+        if (document.hidden) {
+          location.reload();
+        } else {
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) location.reload();
+          }, { once: true });
+        }
+      };
+      // Defer a tick to let any in-flight UI work settle.
+      setTimeout(reloadWhenSafe, 500);
+    }
   });
+
+  // Also: periodically poll the SW for updates (every 30 min while app is open).
+  // Browsers do this automatically on navigation, but we add a manual nudge for
+  // users who keep the app open for hours.
+  setInterval(() => {
+    navigator.serviceWorker.getRegistration().then(reg => reg && reg.update().catch(() => {}));
+  }, 30 * 60 * 1000);
 }
 (function() {
   try {

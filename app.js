@@ -4,7 +4,7 @@
 // Bump this when releasing a new version. The number is shown in the
 // Info screen footer AND used by sw.js for the cache name (so a bump
 // invalidates the old cache automatically). Keep in sync with sw.js APP_VERSION.
-const APP_VERSION = '1.10.2';
+const APP_VERSION = '1.11.0';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -29,11 +29,29 @@ let setupPinVal = '';
 // ══════════════════════════════════════════════════════════════
 // SETUP
 // ══════════════════════════════════════════════════════════════
+
+// Detected refDate from the smart import. If set, takes priority over
+// the manual date input on Continue.
+let _setupDetectedDate = null;
+
+// Enables the Continue button when we have everything we need:
+// roster number + (smart-detected date OR manual date)
+function _refreshSetupContinueState() {
+  const btn = document.getElementById('setupContinueBtn');
+  if (!btn) return;
+  const r = document.getElementById('setupRoster')?.value;
+  const dManual = document.getElementById('setupDate')?.value;
+  const ok = !!r && (!!_setupDetectedDate || !!dManual);
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.4';
+}
+
 function setupNext() {
   const r = document.getElementById('setupRoster').value;
-  const d = document.getElementById('setupDate').value;
+  const dManual = document.getElementById('setupDate')?.value;
+  const d = _setupDetectedDate || dManual;
   if (!r || !d) {
-    alert('Please fill in both fields.');
+    alert('Please select your roster and either upload a screenshot or enter a date.');
     return;
   }
 
@@ -49,6 +67,137 @@ function setupNext() {
   document.getElementById('step1').classList.remove('active');
   document.getElementById('step2').classList.add('active');
 }
+
+// ── Smart import: upload screenshot, AI extracts roster, deduce Day 1 ──
+function setupSmartImport() {
+  // Need roster number first to make sense of any detected pattern.
+  const r = document.getElementById('setupRoster')?.value;
+  if (!r) {
+    alert('Please select your Roster Number first, then upload the screenshot.');
+    document.getElementById('setupRoster')?.focus();
+    return;
+  }
+
+  // Reuse the existing screenshot picker mechanism.
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.style.display = 'none';
+  input.onchange = async () => {
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    await _processSetupScreenshot(file);
+    input.remove();
+  };
+  document.body.appendChild(input);
+  input.click();
+}
+
+async function _processSetupScreenshot(file) {
+  const statusEl  = document.getElementById('setupSmartStatus');
+  const btnEl     = document.getElementById('setupSmartBtn');
+  const setStatus = msg => { if (statusEl) statusEl.textContent = msg; };
+  const setBtnEnabled = on => { if (btnEl) btnEl.disabled = !on; };
+
+  setBtnEnabled(false);
+  setStatus('📤 Uploading & reading roster…');
+
+  try {
+    // Convert image to base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        const comma = result.indexOf(',');
+        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+
+    const mediaType = file.type || 'image/jpeg';
+
+    setStatus('🤖 AI is reading… this takes ~15-30 seconds');
+
+    const response = await fetch('/api/import-roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64, mediaType, role: APP.role || 'cabin' }),
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'AI could not read the roster.');
+    }
+
+    const days = result.days || [];
+    if (days.length === 0) {
+      throw new Error('No days found in the screenshot. Try a clearer image.');
+    }
+
+    // Find Day 1: first Early day that comes after at least one OFF (start of a cycle).
+    // The AI returns days sorted by date in the screenshot (usually). We resort defensively.
+    days.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+    // Helper: is this a working/early day (A1E or A2E)?
+    const isEarly = d => d.assignment === 'A1E' || d.assignment === 'A2E';
+    const isOff   = d => d.type === 'off' || d.assignment === 'OFF';
+
+    let detected = null;
+    for (let i = 0; i < days.length; i++) {
+      const cur = days[i];
+      if (!isEarly(cur)) continue;
+      // First early in the screenshot — if it's at index 0, accept (best-effort)
+      if (i === 0) {
+        detected = cur.date;
+        break;
+      }
+      // Look back: previous day must be Off (start of cycle)
+      const prev = days[i - 1];
+      if (isOff(prev)) {
+        detected = cur.date;
+        break;
+      }
+    }
+
+    // Fallback: if no Off→Early transition, take the first Early found at all
+    if (!detected) {
+      const firstEarly = days.find(isEarly);
+      if (firstEarly) detected = firstEarly.date;
+    }
+
+    if (!detected) {
+      throw new Error('Could not find an Early day in your roster. Please try the manual date option below.');
+    }
+
+    _setupDetectedDate = detected;
+
+    // Format detected date nicely (e.g. "Mon, 15 Mar 2026")
+    const dt = new Date(detected + 'T12:00:00');
+    const pretty = dt.toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    });
+
+    setStatus(`✅ Day 1 detected: ${pretty}`);
+    if (btnEl) btnEl.textContent = '📷 Use a different screenshot';
+    setBtnEnabled(true);
+    _refreshSetupContinueState();
+
+  } catch (err) {
+    console.error('Setup smart import error:', err);
+    setStatus(`❌ ${err.message || 'Something went wrong.'} Try again or use the manual option below.`);
+    setBtnEnabled(true);
+  }
+}
+
+// Wire up reactive enable/disable of Continue button.
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('setupRoster')?.addEventListener('change', _refreshSetupContinueState);
+  document.getElementById('setupDate')?.addEventListener('input',  _refreshSetupContinueState);
+});
+
+window.setupSmartImport = setupSmartImport;
+window.setupNext = setupNext;
 
 function setupPin(k) {
   if (k === 'skip') {

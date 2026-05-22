@@ -240,7 +240,7 @@ function showCrewEditModal() {
     `;
   }
 
-  document.getElementById('settingModalTitle').textContent = 'Edit Crew Directory';
+  document.getElementById('settingModalTitle').textContent = 'Add colleagues';
   document.getElementById('settingModalBody').innerHTML = `
     <div style="max-height:62vh; overflow-y:auto">${html}</div>
     <button class="btn secondary" style="margin-top:10px" onclick="closeModal('settingModal'); renderCrewList(); runSwap()">Done</button>

@@ -476,7 +476,19 @@ function showImportPreview(parsed) {
     let borderColor = 'var(--border)';
 
     if (entry.duty === 'OFF') {
-      dutyHtml = `<span style="color:var(--off);font-weight:700">🌿 Day Off</span>`;
+      // Show "Swap" hint if this OFF day falls on a cycle working day —
+      // it'll be marked as SWAP on confirm.
+      const dayInCycle = (typeof cycleDay === 'function') ? cycleDay(APP.roster, ds) : null;
+      const isCycleWorking = dayInCycle && (
+        (dayInCycle >= 1 && dayInCycle <= 5) ||
+        (dayInCycle >= 9 && dayInCycle <= 13)
+      );
+      if (isCycleWorking) {
+        dutyHtml = `<span style="color:var(--off);font-weight:700">🔄 Off (Swap)</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:6px">shift given away</span>`;
+      } else {
+        dutyHtml = `<span style="color:var(--off);font-weight:700">🌿 Day Off</span>`;
+      }
       bg = 'var(--off-lt)';
       borderColor = 'var(--off)';
     } else if (entry.duty === 'HSBY') {
@@ -566,9 +578,24 @@ function confirmRosterImport() {
 
   for (const [ds, entry] of Object.entries(parsed)) {
     if (entry.duty === 'OFF') {
-      delete APP.assignments[ds];
-      delete APP.customFlights[ds];
-      delete APP.assignDetails[ds];
+      // If Ryanair shows OFF on a day that the cycle says is a working day
+      // (Early 1-5 or Late 9-13), it means the user gave the shift away (swap).
+      // Mark it as SWAP so the day appears "Off · Swap" in the calendar.
+      // On a true cycle off-day, just clear the assignment.
+      const dayInCycle = (typeof cycleDay === 'function') ? cycleDay(APP.roster, ds) : null;
+      const isCycleWorking = dayInCycle && (
+        (dayInCycle >= 1 && dayInCycle <= 5) ||      // Early block
+        (dayInCycle >= 9 && dayInCycle <= 13)        // Late block (cabin crew)
+      );
+      if (isCycleWorking) {
+        APP.assignments[ds] = 'SWAP';
+        delete APP.customFlights[ds];
+        delete APP.assignDetails[ds];
+      } else {
+        delete APP.assignments[ds];
+        delete APP.customFlights[ds];
+        delete APP.assignDetails[ds];
+      }
 
     } else if (entry.duty === 'HSBY') {
       APP.assignments[ds] = 'HSBY';
