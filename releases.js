@@ -11,6 +11,17 @@
 
 const RELEASES = [
   {
+    version: '1.11.4',
+    date: 'May 2026',
+    title: 'Schedule V3 — June to September',
+    notes: [
+      "✈️ Flight schedule updated to V3 (01 Jun – 24 Sep 2026)",
+      "🆕 Monday A1 Early now has 4 flights — added PSR-MXP/MXP-PSR (11:05/12:55)",
+      "🔄 Tuesday A1 Early & Wednesday A2 Early: PSR-TIA replaced by PSR-AHO (Alghero)",
+      "🔄 Saturday A1 Late: PSR-TRN replaced by PSR-AHO (Alghero)",
+    ],
+  },
+  {
     version: '1.11.3',
     date: 'May 2026',
     title: 'Release notes are here',

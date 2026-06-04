@@ -1,9 +1,9 @@
 // ══════════════════════════════════════════════════════════════
-// FLIGHT SCHEDULE DATA — V2 05 May – 30 May 2026
+// FLIGHT SCHEDULE DATA — V3 01 Jun – 24 Sep 2026
 // ══════════════════════════════════════════════════════════════
 const SCHEDULE = {
-  version: "V2",
-  period:  "05 May – 30 May 2026",
+  version: "V3",
+  period:  "01 Jun – 24 Sep 2026",
   days: {
     1: { // Monday
       a1: {
@@ -11,6 +11,8 @@ const SCHEDULE = {
         early: [
           { route:"PSR-CRL", dep:"06:00", arr:"08:05" },
           { route:"CRL-PSR", dep:"08:40", arr:"10:40" },
+          { route:"PSR-MXP", dep:"11:05", arr:"12:30" },
+          { route:"MXP-PSR", dep:"12:55", arr:"14:15" },
         ],
         reportLate: "14:20",
         late: [
@@ -43,8 +45,8 @@ const SCHEDULE = {
         early: [
           { route:"PSR-NRN", dep:"06:20", arr:"08:25" },
           { route:"NRN-PSR", dep:"08:50", arr:"10:50" },
-          { route:"PSR-TIA", dep:"11:20", arr:"12:35" },
-          { route:"TIA-PSR", dep:"13:00", arr:"14:20" },
+          { route:"PSR-AHO", dep:"11:30", arr:"12:45" },
+          { route:"AHO-PSR", dep:"13:10", arr:"14:20" },
         ],
         reportLate: "14:25",
         late: [
@@ -93,8 +95,8 @@ const SCHEDULE = {
         early: [
           { route:"PSR-VLC", dep:"08:30", arr:"10:45" },
           { route:"VLC-PSR", dep:"11:15", arr:"13:20" },
-          { route:"PSR-TIA", dep:"13:45", arr:"15:00" },
-          { route:"TIA-PSR", dep:"15:25", arr:"16:45" },
+          { route:"PSR-AHO", dep:"13:55", arr:"15:10" },
+          { route:"AHO-PSR", dep:"15:35", arr:"16:45" },
         ],
         reportLate: "16:50",
         late: [
@@ -184,8 +186,8 @@ const SCHEDULE = {
         ],
         reportLate: "14:55",
         late: [
-          { route:"PSR-TRN", dep:"15:50", arr:"17:10" },
-          { route:"TRN-PSR", dep:"17:35", arr:"18:50" },
+          { route:"PSR-AHO", dep:"16:00", arr:"17:15" },
+          { route:"AHO-PSR", dep:"17:40", arr:"18:50" },
           { route:"PSR-STN", dep:"19:15", arr:"21:50" },
           { route:"STN-PSR", dep:"22:15", arr:"00:40" },
         ]
