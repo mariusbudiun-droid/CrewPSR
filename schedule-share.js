@@ -236,7 +236,7 @@
     const setBusy = on => {
       if (!btn) return;
       btn.disabled = on;
-      btn.textContent = on ? '⏳ Preparing PDF…' : '📤 Share weekly schedule (PDF)';
+      btn.textContent = on ? '⏳ …' : '📤 PDF';
     };
 
     setBusy(true);

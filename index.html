@@ -164,8 +164,8 @@
       <div style="font-size:22px; font-weight:800; color:var(--text)">Flight Schedule</div>
       <div style="font-size:13px; color:var(--text2); margin-top:2px; display:flex; align-items:center; gap:8px;">Pescara · PSR <span id="schedVersion"></span></div>
     </div>
-    <div style="padding:0 16px 12px">
-      <select id="schedDaySelect" onchange="setSchedDay(parseInt(this.value))" style="margin-bottom:0">
+    <div style="padding:0 16px 12px; display:flex; gap:8px; align-items:stretch">
+      <select id="schedDaySelect" onchange="setSchedDay(parseInt(this.value))" style="margin-bottom:0; flex:1; min-width:0">
         <option value="1">Monday</option>
         <option value="2">Tuesday</option>
         <option value="3">Wednesday</option>
@@ -174,9 +174,9 @@
         <option value="6">Saturday</option>
         <option value="0">Sunday</option>
       </select>
-    </div>
-    <div style="padding:0 16px 12px">
-      <button class="btn secondary" id="schedShareBtn" onclick="shareSchedulePdf()" style="margin-bottom:0">📤 Share weekly schedule (PDF)</button>
+      <button class="btn secondary small" id="schedShareBtn" onclick="shareSchedulePdf()"
+              title="Share the whole week as PDF"
+              style="width:auto; flex:0 0 auto; margin-bottom:0; padding:9px 14px; white-space:nowrap">📤 PDF</button>
     </div>
     <div id="schedContent"></div>
   </div>
