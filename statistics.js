@@ -185,7 +185,9 @@ function _isLateFinish(flights) {
   const lastArr = flights[flights.length - 1].arr;
   if (!lastArr) return false;
   const mins = _toMins(lastArr);
-  return mins >= 30 && mins < 360;
+  // Late finish = last arrival from 01:00 onwards (up to 06:00, i.e. past midnight).
+  // Threshold raised from 00:30 to 01:00 per crew agreement.
+  return mins >= 60 && mins < 360;
 }
 
 // ── General stats ─────────────────────────────────────────────
@@ -723,7 +725,7 @@ function _renderStatsContent() {
                        font-weight:700;color:var(--yellow)">→ ${lastArr}</span>
         </div>`;
       }).join('');
-      html += _section('Late finish (after 00:30)', rows);
+      html += _section('Late finish (after 01:00)', rows);
     }
 
     if (data.topAirports.length) {
@@ -827,7 +829,7 @@ function _renderStatsContent() {
                        font-weight:700;color:var(--yellow)">→ ${lastArr}</span>
         </div>`;
       }).join('');
-      html += _section(`Late finishes — after 00:30 (${data.lateFinishes})`, rows);
+      html += _section(`Late finishes — after 01:00 (${data.lateFinishes})`, rows);
     }
 
     if (data.topAirports.length) {
@@ -939,7 +941,7 @@ function _renderStatsContent() {
                        font-weight:700;color:var(--yellow)">→ ${lastArr}</span>
         </div>`;
       }).join('');
-      html += _section(`Late finishes — after 00:30 (${s.lateFinishes})`, rows);
+      html += _section(`Late finishes — after 01:00 (${s.lateFinishes})`, rows);
     }
 
     if (s.topAirports.length) {

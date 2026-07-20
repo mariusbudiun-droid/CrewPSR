@@ -11,6 +11,15 @@
 
 const RELEASES = [
   {
+    version: '1.11.6',
+    date: 'Jun 2026',
+    title: 'Share the weekly schedule',
+    notes: [
+      "📤 New Share button on the Schedule screen — sends a PDF with the whole week: every day, both aircraft, report times and all flights",
+      "🌙 Late finish now counts arrivals from 01:00 onwards (was 00:30)",
+    ],
+  },
+  {
     version: '1.11.4',
     date: 'May 2026',
     title: 'Schedule V3 — June to September',

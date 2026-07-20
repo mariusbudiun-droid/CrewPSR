@@ -175,6 +175,9 @@
         <option value="0">Sunday</option>
       </select>
     </div>
+    <div style="padding:0 16px 12px">
+      <button class="btn secondary" id="schedShareBtn" onclick="shareSchedulePdf()" style="margin-bottom:0">📤 Share weekly schedule (PDF)</button>
+    </div>
     <div id="schedContent"></div>
   </div>
 
@@ -435,7 +438,7 @@
 
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px">
           <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">📊 Statistics</div>
-          <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 00:30 on day 13).</div>
+          <div style="margin-bottom:4px"><strong>Monthly</strong> tab — navigate months with ‹ ›. Flight Time, Duty Period, sectors, airports, routes, late finishes (arrivals after 01:00 on day 13).</div>
           <div style="margin-bottom:4px"><strong>Yearly</strong> tab — same metrics aggregated per year, plus busiest month and top routes for the year.</div>
           <div style="margin-bottom:4px"><strong>General</strong> tab — all-time totals including a Total Duty figure that counts HSBY at 100% (for reference). Airport counts represent landings (one per leg).</div>
           <div style="margin-bottom:10px"><strong>🏅 Achievements</strong> at the bottom of General — milestone badges for sectors flown, flight hours, airports, countries, and more. Tap to expand.</div>
@@ -702,6 +705,7 @@
 <script src="sync.js"></script>
 <script src="ical-export.js"></script>
 <script src="releases.js"></script>
+<script src="schedule-share.js"></script>
 <script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
