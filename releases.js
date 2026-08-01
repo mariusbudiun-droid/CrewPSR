@@ -11,6 +11,14 @@
 
 const RELEASES = [
   {
+    version: '1.11.8',
+    date: 'Aug 2026',
+    title: 'Fixed: leave days on the home screen',
+    notes: [
+      "🐛 Fixed a bug where the home screen showed your cycle shift (e.g. '3rd Late') with flights on days you actually had leave (PL, AL, Sick, VTO, etc). It now correctly shows the leave, matching the calendar",
+    ],
+  },
+  {
     version: '1.11.6',
     date: 'Jun 2026',
     title: 'Share the weekly schedule',

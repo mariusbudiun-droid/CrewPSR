@@ -37,15 +37,30 @@ function buildHomeSlides() {
     const ds = toDateStr(d);
     const dow = d.getDay();
     const day = cycleDay(APP.roster, ds);
-    const type = shiftType(day);
-    const lbl = shiftLabel(day);
-    const sched = SCHEDULE.days[dow];
     const assign = APP.assignments?.[ds];
     const detail = APP.assignDetails?.[ds];
 
+    // Leave / swap assignments override the theoretical cycle shift entirely.
+    // Without this, a PL/AL/etc day would fall through the flight branches
+    // below and wrongly show the cycle's flights (e.g. "3rd Late" with flights).
+    const LEAVE_LABELS = {
+      AL:   { main: 'Annual Leave',   sub: '' },
+      VTO:  { main: 'VTO',            sub: 'Voluntary Time Off' },
+      SICK: { main: 'Sick Leave',     sub: '' },
+      UL:   { main: 'Unpaid Leave',   sub: '' },
+      PL:   { main: 'Parental Leave', sub: '' },
+      SWAP: { main: 'OFF (Swap)',     sub: 'Shift given to a colleague' },
+    };
+    const isLeave = assign && LEAVE_LABELS[assign];
+
+    // For leave days, force the shift to read as "off" and use the leave label.
+    const type = isLeave ? 'off' : shiftType(day);
+    const lbl  = isLeave ? LEAVE_LABELS[assign] : shiftLabel(day);
+    const sched = SCHEDULE.days[dow];
+
     let reportHtml = '';
 
-    if (assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM') {
+    if (!isLeave && assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM') {
       const useA2 = assign.startsWith('A2');
       const useLate = assign.endsWith('L');
       const plane = useA2 ? sched?.a2 : sched?.a1;
@@ -90,7 +105,7 @@ function buildHomeSlides() {
     let flightsHtml = '';
     let flightsTitle = '';
 
-    if (assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM' && sched) {
+    if (!isLeave && assign && assign !== 'HSBY' && assign !== 'AD' && assign !== 'CUSTOM' && sched) {
       flightsTitle = i === 0 ? `Today's Flights` : `${DOW[dow]}'s Flights`;
 
       const useA2 = assign.startsWith('A2');
