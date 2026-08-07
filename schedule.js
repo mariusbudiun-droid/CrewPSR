@@ -195,8 +195,8 @@ const SCHEDULE = {
       a2: {
         reportEarly: "05:50",
         early: [
-          { route:"PSR-CAG", dep:"06:35", arr:"07:50" },
-          { route:"CAG-PSR", dep:"08:25", arr:"09:40" },
+          { route:"PSR-MXP", dep:"06:35", arr:"08:00" },
+          { route:"MXP-PSR", dep:"08:25", arr:"09:45" },
           { route:"PSR-VLC", dep:"10:10", arr:"12:25" },
           { route:"VLC-PSR", dep:"12:55", arr:"15:00" },
         ],
