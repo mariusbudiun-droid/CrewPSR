@@ -4,7 +4,7 @@
 // Bump this when releasing a new version. The number is shown in the
 // Info screen footer AND used by sw.js for the cache name (so a bump
 // invalidates the old cache automatically). Keep in sync with sw.js APP_VERSION.
-const APP_VERSION = '1.11.8';
+const APP_VERSION = '1.11.9';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -364,6 +364,9 @@ function initApp() {
   if (typeof autoShowReleasesIfNeeded === 'function') {
     autoShowReleasesIfNeeded();
   }
+
+  // Restore Marius-mode chrome if it was unlocked before.
+  if (typeof initMariusMode === 'function') initMariusMode();
 }
 
 

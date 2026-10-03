@@ -140,7 +140,7 @@
 <div class="app" id="mainApp" style="display:none">
 
   <div class="topbar">
-    <div class="topbar-logo">Crew<span>PSR</span></div>
+    <div class="topbar-logo" onclick="mariusLogoTap && mariusLogoTap()">Crew<span>PSR</span></div>
     <div class="topbar-info">
       <div class="day-label" id="topDay"></div>
       <div class="roster-label" id="topRoster"></div>
@@ -706,6 +706,7 @@
 <script src="ical-export.js"></script>
 <script src="releases.js"></script>
 <script src="schedule-share.js"></script>
+<script src="marius.js"></script>
 <script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
