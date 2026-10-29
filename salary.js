@@ -211,11 +211,10 @@ function _salCurrentPayMonth() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
+// Rendered as a dedicated full-screen page (NOT the swipe-dismiss modal), so a
+// long data-entry form can't be closed by accident. Closes only via the back
+// button, which returns to the Marius panel.
 function openSalary(payMonth) {
-  const title = document.getElementById('settingModalTitle');
-  const body  = document.getElementById('settingModalBody');
-  if (!title || !body) return;
-
   const pm = payMonth || (window._salPayMonth) || _salCurrentPayMonth();
   window._salPayMonth = pm;
 
@@ -231,9 +230,32 @@ function openSalary(payMonth) {
     <input id="${id}" type="number" inputmode="decimal" step="${step}" value="${val ?? ''}"
            style="width:100%;box-sizing:border-box;margin:0;font-family:'JetBrains Mono',monospace">`;
 
-  title.textContent = '💶 Stipendio';
-  body.innerHTML = `
-    <div style="max-height:66vh;overflow-y:auto;padding-right:2px">
+  // Close the Marius panel modal behind us, if open.
+  const sm = document.getElementById('settingModal');
+  if (sm) sm.classList.remove('open');
+
+  // Full-screen overlay — created once, reused on re-render.
+  let scr = document.getElementById('salaryScreen');
+  if (!scr) {
+    scr = document.createElement('div');
+    scr.id = 'salaryScreen';
+    scr.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:600;' +
+      'overflow-y:auto;-webkit-overflow-scrolling:touch';
+    document.body.appendChild(scr);
+  }
+
+  scr.innerHTML = `
+    <div style="position:sticky;top:0;z-index:5;background:var(--surface);
+                border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;
+                padding:max(14px,env(safe-area-inset-top)) 16px 14px">
+      <button onclick="closeSalary()"
+        style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--bg);font-family:'Outfit',sans-serif;font-size:14px;
+               font-weight:700;color:var(--text);cursor:pointer">←</button>
+      <div style="font-size:18px;font-weight:800;color:var(--text)">💶 Stipendio</div>
+    </div>
+
+    <div style="padding:16px;padding-bottom:max(32px,env(safe-area-inset-bottom))">
       <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">
         Busta di <strong>${pm}</strong> = fisso di ${pm} + variabili di
         <strong>${prev.ym}</strong>. Campi precompilati dal roster, modificabili.
@@ -268,13 +290,18 @@ function openSalary(payMonth) {
 
       <div id="salResult" style="margin-top:16px"></div>
 
-      <button class="btn secondary" style="margin-top:16px" onclick="openMariusPanel()">← Indietro</button>
+      <button class="btn secondary" style="margin-top:16px" onclick="closeSalary()">← Indietro</button>
     </div>
   `;
-  document.getElementById('settingModal').classList.add('open');
 
   // Auto-calc on open so the result is there immediately.
   salCalc();
+}
+
+function closeSalary() {
+  const scr = document.getElementById('salaryScreen');
+  if (scr) scr.remove();
+  openMariusPanel();
 }
 
 function _salReadForm() {
@@ -380,6 +407,7 @@ function salSave() {
 }
 
 window.openSalary     = openSalary;
+window.closeSalary    = closeSalary;
 window.salCalc        = salCalc;
 window.salChangeMonth = salChangeMonth;
 window.salReprefill   = salReprefill;
