@@ -17,7 +17,7 @@
 //   - Online users get the new version on next page load after we publish.
 //   - No manual "Check for updates" tap needed (kept for backward compatibility).
 
-const APP_VERSION = '1.11.11';
+const APP_VERSION = '1.11.12';
 const CACHE = `crewpsr-v${APP_VERSION}`;
 
 const ASSETS = [
@@ -42,6 +42,7 @@ const ASSETS = [
   '/releases.js',
   '/schedule-share.js',
   '/marius.js',
+  '/salary.js',
   '/announce.js',
   '/icon-192.png',
   '/icon-512.png',

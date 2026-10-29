@@ -148,6 +148,15 @@ function openMariusPanel() {
       <div style="color:var(--text3)">›</div>
     </div>
 
+    <div class="marius-tile" onclick="openSalary()">
+      <div class="marius-tile-icon">💶</div>
+      <div style="flex:1">
+        <div class="marius-tile-title">Stipendio</div>
+        <div class="marius-tile-sub">Stima la busta paga dal roster (solo tu, solo locale)</div>
+      </div>
+      <div style="color:var(--text3)">›</div>
+    </div>
+
     <div class="marius-tile marius-tile-muted">
       <div class="marius-tile-icon">🩺</div>
       <div style="flex:1">
